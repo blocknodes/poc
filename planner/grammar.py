@@ -195,6 +195,6 @@ def build_route_schema() -> dict[str, Any]:
             "tool": {"type": "string", "enum": all_tools},
             "confidence": {"type": "number", "minimum": 0, "maximum": 1},
         },
-        "required": ["domain", "tool", "confidence"],
+        "required": ["domain", "intent", "tool", "confidence"],
         "additionalProperties": False,
     }

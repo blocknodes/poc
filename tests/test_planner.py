@@ -105,14 +105,30 @@ def test_flat_rejects_educ_release_year():
     assert not ok
 
 
-def test_compile_with_fallback_flat_to_nested():
+def test_compile_with_fallback_keeps_slow_tool_best_effort():
+    # 慢链路是语义后端：跨字段 OR 无法无损扁平化时，不再回退到精确检索，
+    # 而是保持慢链路工具并 best-effort 摊平可表达的单字段叶子（布尔关系交还语义层）。
     ir = IR(domain="vod", query=Or([
         leaf("actor", value="刘德华"),
         leaf("director", value="张艺谋"),
     ]))
     tool, params = compile_with_fallback(ir, "vod_slow_search_data_search")
-    assert tool == "vod_search"                     # 自动回退
-    assert "or" in params["query"]
+    assert tool == "vod_slow_search_data_search"     # 保持慢链路，不回退
+    assert params.get("actor") == "刘德华"
+    assert params.get("director") == "张艺谋"
+
+
+def test_compile_flat_best_effort_drops_nonflat_fields():
+    # title 无 flat 落地名 -> 跳过（交还原始 query 语义层），保持慢链路工具不回退。
+    from planner.compiler import compile_flat_best_effort
+    ir = IR(domain="vod", query=And([
+        leaf("title", value="评书隋唐演义"),
+        leaf("category", value="综艺"),
+    ]))
+    tool, params = compile_with_fallback(ir, "vod_slow_search_data_search")
+    assert tool == "vod_slow_search_data_search"
+    assert "title" not in params                     # 无 flat 落地名，已跳过
+    assert params.get("category") == "综艺"
 
 
 def test_grammar_schema_shape():

@@ -50,7 +50,7 @@ def demo_live():
         model=os.environ.get("VLLM_MODEL", "qwen-30b-moe"),
     )
     planner = Planner(VLLMClient(cfg))
-    for q in ["我想看刘德华的免费电影", "适合3到6岁女孩看的科普动画", "最近有什么好看的科幻片，评分高的"]:
+    for q in ["我想看电影，不要刘德华的，不要香港的，不要动作的","我想看刘德华的免费电影", "适合3到6岁女孩看的科普动画", "最近有什么好看的科幻片，评分高的"]:
         res = planner.plan(q)
         _p(f"query: {q}", {
             "tool": res.tool_name, "domain": res.domain,

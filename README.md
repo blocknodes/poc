@@ -139,7 +139,7 @@ vllm serve /path/to/your-30b-moe \
     --structured-outputs-config.backend xgrammar \
     --tensor-parallel-size 4 \
     --enable-expert-parallel \
-    --max-model-len 8192 \
+    --max-model-len 4096 \
     --gpu-memory-utilization 0.90
 ```
 
@@ -149,8 +149,18 @@ vllm serve /path/to/your-30b-moe \
 - 若报 `unrecognized arguments: --structured-outputs-config.backend`，说明是更早的 vLLM：v0.9 及更早用 `--guided-decoding-backend xgrammar`；实在不确定就**直接省略该参数**用默认后端。
 - `--served-model-name`：要与 `VLLMConfig.model` / `VLLM_MODEL` 保持一致。
 - `--tensor-parallel-size` / `--enable-expert-parallel`：按 30B MoE 的显卡数与专家并行需求调整（单卡可去掉这两项）。
-- `--max-model-len`：路由 + IR 生成的 prompt 不长，8192 足够；按 few-shot 规模上调。
+- `--max-model-len 4096`：**必带**。不指定时 vLLM 按模型默认最大上下文（30B 常见 32K/128K）预分配 KV cache，极易 OOM。本 planner 的 prompt（路由 + IR 生成）很短，4096 足够；few-shot 很多时再上调。
 - 启动后接口即为 `http://<host>:8000/v1`，填入 `VLLM_BASE_URL`。
+
+### 显存 OOM 排查
+
+按代价从小到大依次尝试：
+
+1. **加 / 调小 `--max-model-len`**：本 planner 4096 就够，这是最有效的一招。
+2. **调低 `--gpu-memory-utilization`**（如 0.90 → 0.80）：给权重加载/激活留余量；若是加载阶段就 OOM 尤其有效。
+3. **调小 `--max-num-seqs`**（并发序列数，如 256 → 64）：直接减少 KV cache 峰值。
+4. **`--kv-cache-dtype fp8`**：KV cache 用 fp8，显存近乎减半（精度影响小）。
+5. **加大 `--tensor-parallel-size`**：把权重/KV 摊到更多卡上（需多卡）。
 
 > 版本差异（重要）：
 > - **启动参数**：`--structured-outputs-config.backend`（v0.21）↔ `--guided-decoding-backend`（v0.9 及更早）。

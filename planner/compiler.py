@@ -131,6 +131,47 @@ def compile_flat(ir: IR) -> dict[str, Any]:
     return params
 
 
+def compile_flat_best_effort(ir: IR) -> dict[str, Any]:
+    """Best-effort 编译到 flat 慢链路：能表达的字段尽量表达，其余交还语义层。
+
+    与严格版 compile_flat 的区别——绝不抛异常、绝不回退：
+      * 无 flat 落地名的字段（title/role/company/writer 等）→ 跳过（原始 query 已含该信息）；
+      * 跨字段 OR / 嵌套结构 → 尽量摊平其中的单字段叶子，无法无损表达的布尔关系交还语义层；
+      * 同一 flat 字段被多个条件占用 → 保留第一个。
+    这样路由判定的慢链路工具得以保持，不会因表达力不足被改写成精确检索。
+    """
+    params: dict[str, str] = {}
+    _collect_flat_leaves(ir.query, ir.domain, params, negate=False)
+
+    for s in ir.sort:
+        spec = SORT_REGISTRY.get(s.key)
+        if not spec:
+            continue
+        fname = spec.flat_field_by_domain.get(ir.domain)
+        if fname and fname not in params:
+            params[fname] = s.order
+    return params
+
+
+def _collect_flat_leaves(node: Node, domain: str, out: dict, negate: bool) -> None:
+    """遍历 IR 树，尽力把可表达的叶子写入 flat 参数；不可表达的静默跳过（交还语义层）。"""
+    if isinstance(node, (And, Or)):
+        # best-effort：无论 AND / OR，都摊平其中的单字段叶子（布尔关系交还语义层）
+        for child in node.items:
+            _collect_flat_leaves(child, domain, out, negate)
+        return
+    if isinstance(node, Not):
+        _collect_flat_leaves(node.item, domain, out, not negate)
+        return
+    if isinstance(node, Leaf):
+        try:
+            _emit_flat_leaf(node, domain, out, dry_run=False, negate=negate)
+        except CompileError:
+            # 无 flat 落地名 / 多值枚举 / 范围取反 等无法无损表达 → 跳过
+            pass
+        return
+
+
 def _flatten(node: Node, domain: str, out: Optional[dict] = None, *, dry_run: bool) -> None:
     """把 query 树摊平成 field->string。只接受 单叶子 或 顶层 AND(叶子...)。"""
     if isinstance(node, And):
@@ -217,10 +258,15 @@ def compile_ir(ir: IR, tool_name: str) -> dict[str, Any]:
 
 
 def compile_with_fallback(ir: IR, tool_name: str) -> tuple[str, dict[str, Any]]:
-    """返回 (实际使用的工具名, params)。flat 不可无损编译时自动回退到 *_search。"""
+    """返回 (实际使用的工具名, params)。
+
+    慢链路(*_slow_search)是「语义检索」后端：真实接口除了可选的结构化过滤字段外，
+    还会收到用户原始 query 文本并自行做语义理解（见 api.md / 工具定义 required:[]）。
+    因此路由判定为慢链路时，应当保持慢链路工具，用 best-effort 方式把「能表达的」
+    过滤字段编译出来，把无法用扁平 mini-DSL 无损表达的部分（无 flat 落地名的字段、
+    跨字段 OR / 嵌套结构）交还给原始 query 语义层——而不是回退到精确检索 *_search
+    （对模糊 query 用精确检索反而结果更差）。
+    """
     if tool_name in _FLAT_TOOLS:
-        ok, _ = can_compile_flat(ir)
-        if not ok:
-            tool_name = _FLAT_TO_NESTED_FALLBACK[tool_name]
-            return tool_name, compile_nested(ir)
+        return tool_name, compile_flat_best_effort(ir)
     return tool_name, compile_ir(ir, tool_name)
