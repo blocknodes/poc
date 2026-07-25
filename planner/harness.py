@@ -1,9 +1,11 @@
-"""Harness —— 编排整条链路：
+"""Harness —— 推理侧编排：驱动共享的 `PlannerAgent` 状态机走完整条链路
 
-  route  -> ir_generate(约束解码) -> validate_ir(+自修复重试) -> compile(+flat回退) -> step
+  route -> ir_generate(约束解码) -> validate_ir(+自修复重试) -> compile(+flat回退)
 
-对应设计里的分阶段 + 校验闭环。非检索类工具(relate/personalized/history/clip)
-不走 IR，路由后交给各自独立处理（此处留出扩展点）。
+与训练侧 `train/planner_plugin.py::PlannerEnv` **共用同一个 agent 核心**
+（`planner.agent.PlannerAgent`）：prompt 构造与状态转移完全一致，唯一区别是
+本类自己持有 vLLM client 负责生成 + 约束解码，并在收尾做 compile。
+非检索类工具(relate/personalized/history/clip)路由后不走 IR，留出扩展点。
 """
 from __future__ import annotations
 
@@ -11,17 +13,13 @@ import json
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
+from .agent import IR_TOOLS, PlannerAgent
 from .compiler import CompileError, compile_with_fallback
 from .grammar import build_ir_schema, build_route_schema
-from .ir import IRError, parse_ir, validate_ir
-from .prompts import build_ir_messages, build_route_messages
+from .ir import IRError, parse_ir
 from .vllm_client import VLLMClient
 
-# 由 IR 编译器负责的检索类工具
-IR_TOOLS = {
-    "vod_search", "vod_slow_search_data_search",
-    "educ_search", "educ_slow_search_data_search",
-}
+__all__ = ["Planner", "PlanResult", "IR_TOOLS"]
 
 
 @dataclass
@@ -42,63 +40,46 @@ class Planner:
         self.client = client
         self.max_repairs = max_repairs
 
-    # ---- 阶段1：路由 ----
-    def route(self, query: str, memory_hint: str = "") -> dict:
-        messages = build_route_messages(query, memory_hint)
-        return self.client.complete_json(messages, guided_json=build_route_schema())
-
-    # ---- 阶段2+3：IR 生成 + 校验自修复 ----
-    def generate_ir(self, query: str, domain: str, memory_hint: str = "") -> tuple[dict, int]:
-        schema = build_ir_schema(domain)
-        messages = build_ir_messages(query, domain, memory_hint)
-        repairs = 0
-        last_errs: list[str] = []
-        while True:
-            raw = self.client.complete_json(messages, guided_json=schema)
-            try:
-                ir = parse_ir(raw)
-                errs = validate_ir(ir)
-            except IRError as e:
-                errs = [str(e)]
-            if not errs:
-                return raw, repairs
-            last_errs = errs
-            if repairs >= self.max_repairs:
-                break
-            repairs += 1
-            # 把错误回灌给模型自修复
-            messages = messages + [
-                {"role": "assistant", "content": json.dumps(raw, ensure_ascii=False)},
-                {"role": "user", "content": "上面的 IR 有以下问题，请修正后重新只输出 JSON：\n- "
-                 + "\n- ".join(last_errs)},
-            ]
-        raise IRError("IR 校验在最大重试后仍失败: " + "; ".join(last_errs))
-
-    # ---- 端到端 ----
     def plan(self, query: str, memory_hint: str = "") -> PlanResult:
-        route = self.route(query, memory_hint)
-        domain = route["domain"]
-        tool = route["tool"]
-        intent = route.get("intent")
-        conf = route.get("confidence")
+        agent = PlannerAgent(query, memory_hint=memory_hint, max_repairs=self.max_repairs)
 
-        if tool not in IR_TOOLS:
+        # ---- 轨迹起点：system + 首个 observation（与 rollout 的 reset 完全一致）----
+        messages = [
+            {"role": "system", "content": agent.system_prompt()},
+            {"role": "user", "content": agent.first_observation()},
+        ]
+
+        # ---- 阶段1：路由（约束解码）----
+        route_raw = self.client.complete_json(messages, guided_json=build_route_schema())
+        messages.append({"role": "assistant", "content": json.dumps(route_raw, ensure_ascii=False)})
+        step = agent.observe(route_raw)
+
+        if step.phase == "route_end":
             # 非检索类：留给独立 slot-filler（本 POC 不实现），直接回传路由结果
             return PlanResult(
-                tool_name=tool, parameters={}, domain=domain, intent=intent,
-                route_confidence=conf,
-                notes=[f"工具 '{tool}' 走独立 schema，未由 IR 编译器处理"],
+                tool_name=agent.routed_tool, parameters={}, domain=agent.domain,
+                intent=agent.intent, route_confidence=agent.confidence,
+                notes=[f"工具 '{agent.routed_tool}' 走独立 schema，未由 IR 编译器处理"],
             )
 
-        raw_ir, repairs = self.generate_ir(query, domain, memory_hint)
-        ir = parse_ir(raw_ir)
+        # ---- 阶段2+3：IR 生成 + 校验自修复（约束解码）----
+        while not step.done:
+            messages.append({"role": "user", "content": step.next_observation})
+            ir_raw = self.client.complete_json(messages, guided_json=build_ir_schema(agent.domain))
+            messages.append({"role": "assistant", "content": json.dumps(ir_raw, ensure_ascii=False)})
+            step = agent.observe(ir_raw)
 
+        if not agent.ir_valid:
+            raise IRError("IR 校验在最大重试后仍失败: " + "; ".join(agent.errs))
+
+        # ---- 阶段4：编译（+flat 回退）----
+        ir = parse_ir(agent.final_ir)
         try:
-            actual_tool, params = compile_with_fallback(ir, tool)
+            actual_tool, params = compile_with_fallback(ir, agent.routed_tool)
         except CompileError as e:
             raise CompileError(f"IR 编译失败: {e}") from e
 
-        fallback_from = tool if actual_tool != tool else None
+        fallback_from = agent.routed_tool if actual_tool != agent.routed_tool else None
         notes = []
         if fallback_from:
             notes.append(f"慢链路不可无损编译，已回退 {fallback_from} -> {actual_tool}")
@@ -106,11 +87,11 @@ class Planner:
         return PlanResult(
             tool_name=actual_tool,
             parameters=params,
-            domain=domain,
-            intent=intent,
-            ir=raw_ir,
+            domain=agent.domain,
+            intent=agent.intent,
+            ir=agent.final_ir,
             fallback_from=fallback_from,
-            repairs=repairs,
-            route_confidence=conf,
+            repairs=agent.repairs,
+            route_confidence=agent.confidence,
             notes=notes,
         )

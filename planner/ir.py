@@ -128,8 +128,23 @@ def parse_ir(obj: dict) -> IR:
     action = obj.get("action", "search")
     if action not in ("search", "play"):
         raise IRError(f"action 必须是 search 或 play，收到: {action!r}")
-    sort = [SortItem(s["key"], s["order"]) for s in obj.get("sort", [])]
-    playback = dict(obj.get("playback", {}))
+
+    # sort / playback 允许缺省，也要容忍模型显式吐 null（训练侧不开约束解码，
+    # 任何畸形结构都必须归一成 IRError 交给自修复，绝不能抛非 IRError 打挂 rollout）。
+    sort_raw = obj.get("sort") or []
+    if not isinstance(sort_raw, list):
+        raise IRError(f"sort 必须是数组，收到: {type(sort_raw).__name__}")
+    sort = []
+    for s in sort_raw:
+        if not isinstance(s, dict) or "key" not in s or "order" not in s:
+            raise IRError(f"sort 项必须是含 key/order 的对象，收到: {s!r}")
+        sort.append(SortItem(s["key"], s["order"]))
+
+    playback_raw = obj.get("playback") or {}
+    if not isinstance(playback_raw, dict):
+        raise IRError(f"playback 必须是对象，收到: {type(playback_raw).__name__}")
+    playback = dict(playback_raw)
+
     return IR(
         domain=domain,
         query=parse_node(obj["query"]),

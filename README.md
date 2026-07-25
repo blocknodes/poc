@@ -39,7 +39,8 @@ poc/
 │   ├── ir.py            域无关布尔 IR：数据类 / 解析 / 语义校验
 │   ├── grammar.py       从 registry 生成 vLLM guided_json schema
 │   ├── compiler.py      nested / flat 双后端 + 可编译性检查 + 回退
-│   ├── prompts.py       路由判定树 / IR 生成 prompt / few-shot
+│   ├── prompts.py       路由判定树 / IR 生成 prompt / few-shot（单 system + observation 文本）
+│   ├── agent.py         域无关 agent 状态机（route→IR→自修复），推理与训练共用
 │   ├── vllm_client.py   vLLM OpenAI 兼容客户端（guided_json）
 │   └── harness.py       端到端 Planner 编排
 ├── tests/test_planner.py  12 项离线测试（不连模型）
@@ -56,9 +57,10 @@ poc/
 | `ir.py` | IR 数据类(`IR/And/Or/Not/Leaf`)、`parse_ir`、`validate_ir`(registry 驱动的语义校验) |
 | `grammar.py` | `build_ir_schema(domain)` / `build_route_schema()`：按 domain 收紧 field 枚举的 draft-07 schema |
 | `compiler.py` | `compile_nested` / `compile_flat` / `can_compile_flat` / `compile_with_fallback` |
-| `prompts.py` | `build_route_messages` / `build_ir_messages`，含覆盖易错模式的 few-shot |
+| `prompts.py` | `route_system_prompt` / `route_observation` / `ir_observation` / `repair_observation`，few-shot 以文本内嵌 |
+| `agent.py` | **训推一致核心**：`PlannerAgent` 状态机(route→IR→校验自修复) + `IR_TOOLS` + `loads_lenient`，无模型调用 |
 | `vllm_client.py` | `VLLMClient`(`extra_body.guided_json`)；可注入 `responder` 离线测试 |
-| `harness.py` | `Planner.plan()`：route → IR 生成 → 校验自修复 → 编译 |
+| `harness.py` | `Planner.plan()`：驱动 `PlannerAgent`，加 client 生成/约束解码/编译 |
 
 ## IR 结构
 

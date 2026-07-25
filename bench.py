@@ -93,8 +93,25 @@ def _canon(obj: Any) -> Any:
     return obj
 
 
+def _unwrap_singletons(node: Any) -> Any:
+    """把单元素的 and/or 拍平：{"and":[X]} -> X。
+
+    gold 里常把单字段包成 `and[单]`，而模型可能直接输出裸字段；两者语义相同。
+    与训练侧 reward 的指纹归一化保持一致，避免「内容全对但结构包裹不同」被误判为失败。
+    """
+    if isinstance(node, dict):
+        for op in ("and", "or"):
+            if op in node and isinstance(node[op], list):
+                items = [_unwrap_singletons(x) for x in node[op]]
+                return items[0] if len(items) == 1 else {op: items}
+        return {k: _unwrap_singletons(v) for k, v in node.items()}
+    if isinstance(node, list):
+        return [_unwrap_singletons(x) for x in node]
+    return node
+
+
 def params_equivalent(a: Any, b: Any) -> bool:
-    return _canon(a) == _canon(b)
+    return _canon(_unwrap_singletons(a)) == _canon(_unwrap_singletons(b))
 
 
 # ----------------------------- 单条评测 -----------------------------

@@ -88,16 +88,28 @@ IR 结构：
 只输出 JSON IR。"""
 
 
-def build_route_messages(query: str, memory_hint: str = "") -> list[dict]:
-    messages = [{"role": "system", "content": ROUTE_SYSTEM}]
-    for q, route in _ROUTE_FEWSHOTS:
-        messages.append({"role": "user", "content": f"用户请求：{q}"})
-        messages.append({"role": "assistant", "content": json.dumps(route, ensure_ascii=False)})
-    user = f"用户请求：{query}"
+def _render_fewshot(query: str, obj: dict) -> str:
+    return f"用户请求：{query}\n输出：{json.dumps(obj, ensure_ascii=False)}"
+
+
+def route_system_prompt() -> str:
+    """路由阶段 system prompt = ROUTE_SYSTEM + few-shot（以**文本**内嵌）。
+
+    few-shot 内嵌成文本而非独立 role 轮次，是为了和 RL rollout 时 ms-swift
+    GYMScheduler 只能注入「单 system + 单 user observation」的形状严格对齐——
+    这样训练(rollout)与推理(harness)走的是逐 token 一致的 prompt。
+    """
+    shots = "\n\n".join(_render_fewshot(q, r) for q, r in _ROUTE_FEWSHOTS)
+    return ROUTE_SYSTEM + "\n\n# 参考示例（只示范判定边界，不要照抄内容）：\n" + shots
+
+
+def route_observation(query: str, memory_hint: str = "") -> str:
+    """路由阶段注入的首个 user observation。"""
+    obs = f"用户请求：{query}"
     if memory_hint:
-        user += f"\n对话上下文：{memory_hint}"
-    messages.append({"role": "user", "content": user})
-    return messages
+        obs += f"\n对话上下文：{memory_hint}"
+    obs += "\n\n请做路由判定：给出 domain / intent / tool / confidence，只输出路由 JSON。"
+    return obs
 
 
 # 覆盖 search / slow_search / clip / relate / personalized / history 各易错分支的路由 few-shot。
@@ -149,8 +161,14 @@ def _field_catalog(domain: str) -> str:
     return "\n".join(lines)
 
 
-def build_ir_messages(query: str, domain: str, memory_hint: str = "",
-                      few_shots: list[tuple[str, dict]] | None = None) -> list[dict]:
+def ir_observation(query: str, domain: str, memory_hint: str = "",
+                   few_shots: list[tuple[str, dict]] | None = None) -> str:
+    """IR 阶段注入的 user observation（IR_SYSTEM + few-shot + 请求，**全部为文本**）。
+
+    注意：IR 指令这里放进 user turn 而非 system——RL rollout 时 GYMScheduler 的
+    后续 observation 只能作为 user 追加，无法再插入新的 system。推理侧同样走此形状，
+    确保训练/推理一致。
+    """
     sort_keys = sort_keys_for_domain(domain)
     sort_hint = f"可用排序键：{', '.join(sort_keys)}" if sort_keys else ""
     system = IR_SYSTEM.format(
@@ -158,17 +176,21 @@ def build_ir_messages(query: str, domain: str, memory_hint: str = "",
         field_list=_field_catalog(domain),
         sort_hint=sort_hint,
     )
-    messages = [{"role": "system", "content": system}]
-
-    for q, ir in (few_shots or _DEFAULT_FEWSHOTS.get(domain, [])):
-        messages.append({"role": "user", "content": f"用户请求：{q}"})
-        messages.append({"role": "assistant", "content": json.dumps(ir, ensure_ascii=False)})
-
-    user = f"用户请求：{query}"
+    obs = system
+    shots = "\n\n".join(_render_fewshot(q, ir)
+                        for q, ir in (few_shots or _DEFAULT_FEWSHOTS.get(domain, [])))
+    if shots:
+        obs += "\n\n# 参考示例：\n" + shots
+    obs += f"\n\n用户请求：{query}"
     if memory_hint:
-        user += f"\n对话上下文：{memory_hint}"
-    messages.append({"role": "user", "content": user})
-    return messages
+        obs += f"\n对话上下文：{memory_hint}"
+    obs += "\n只输出 IR JSON。"
+    return obs
+
+
+def repair_observation(errs: list[str]) -> str:
+    """IR 校验失败时回灌给模型的 observation。"""
+    return "上面的 IR 有以下问题，请修正后重新只输出 JSON：\n- " + "\n- ".join(errs)
 
 
 # 覆盖易错模式的 few-shot（单值/多值 and/or/not/range/status/sort/嵌套）
