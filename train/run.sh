@@ -13,9 +13,11 @@
 #  两侧共享同一份配置（模型 / plugin / env 契约 / 长度契约），必须一致：
 #      * MODEL、PLUGIN            两侧同一模型、同一 plugin
 #      * gym_env / scheduler      planner_env + gym_scheduler
-#      * max_turns 5              route(1)+IR(1)+自修复(<=2)+余量
+#      * max_turns 1              route_only 模式：路由后即结束（改 MAX_TURNS=5 + PLANNER_ROUTE_ONLY=0 恢复全流程）
 #      * 长度契约                 vllm_max_model_len >= max_length + max_completion_length
-#                                 = 6144(prompt预算) + 2048 = 8192
+#                                 = 14336 + 2048 = 16384
+#    --reward_funcs planner_route_reward planner_param_reward \
+#        --reward_weights 0.3 0.7 \
 # =============================================================================
 set -euo pipefail
 
@@ -30,11 +32,15 @@ PLUGIN="$(pwd)/planner_plugin.py"
 # gym env / 多轮调度 / 长度，两侧必须对齐
 GYM_ENV="planner_env"
 SCHEDULER="gym_scheduler"
-MAX_TURNS="${MAX_TURNS:-5}"
-VLLM_MAX_MODEL_LEN="${VLLM_MAX_MODEL_LEN:-8192}"
+MAX_TURNS="${MAX_TURNS:-1}"
+VLLM_MAX_MODEL_LEN="${VLLM_MAX_MODEL_LEN:-16384}"
+
+# route_only 模式：只训路由（不进入 IR 阶段），配合 MAX_TURNS=1 + planner_route_reward
+# 设为 0 并调大 MAX_TURNS=5 可恢复全流程训练（route+IR+自修复）
+PLANNER_ROUTE_ONLY="${PLANNER_ROUTE_ONLY:-1}"
 
 ROLLOUT_HOST="${ROLLOUT_HOST:-127.0.0.1}"
-ROLLOUT_PORT="${ROLLOUT_PORT:-8000}"
+ROLLOUT_PORT="${ROLLOUT_PORT:-8001}"
 
 usage() {
     cat <<'EOF'
@@ -58,6 +64,7 @@ EOF
 run_rollout() {
     # rollout server 用哪几张卡（与训练卡错开）
     export CUDA_VISIBLE_DEVICES="${ROLLOUT_GPUS:-2,3}"
+    export PLANNER_ROUTE_ONLY
 
     swift rollout \
         --model "$MODEL" \
@@ -75,7 +82,7 @@ run_rollout() {
         --vllm_enable_prefix_caching true
 
     # 说明：
-    #  --max_turns 5     : route(1) + IR(1) + 自修复(<=2) + 余量。与训练侧保持一致。
+    #  --max_turns 1     : route_only 模式，路由后即结束。全流程时改 MAX_TURNS=5 PLANNER_ROUTE_ONLY=0。
     #  --gym_env planner_env / --multi_turn_scheduler gym_scheduler
     #                    : 选中 plugin 里注册的 env，用内置 GYMScheduler 驱动。
     #  env 每步 reward=0（reward 不从 env 出），真正打分在训练侧的 reward_funcs。
@@ -98,15 +105,16 @@ run_rollout() {
 #    6) 降峰值：num_generations 4、global_batch_size 8、steps_per_generation 2。
 #
 #  === 长度契约（必须与 rollout server 对齐）===================================
-#  rollout server 起时用了 --vllm_max_model_len 8192，训练侧必须满足：
+#  rollout server 起时用了 --vllm_max_model_len 16384，训练侧必须满足：
 #      vllm_max_model_len >= max_length + max_completion_length
-#  这里 max_length 6144 + max_completion_length 2048 = 8192。
+#  这里 max_length 14336 + max_completion_length 2048 = 16384。
 #
 #  reward：只用 planner_accuracy（稠密）。env 自身 reward 恒 0。
 #          分项监控：--reward_funcs planner_route planner_ir_valid planner_equiv
 # =============================================================================
 run_train() {
     TRAIN_DATA="${TRAIN_DATA:-data/train.jsonl}"
+    VAL_DATA="${TRAIN_DATA:-data/val.jsonl}"
     OUTPUT_DIR="${OUTPUT_DIR:-megatron_output}"
 
     # === 断点续训（resume）====================================================
@@ -145,6 +153,7 @@ run_train() {
     # 训练卡（与 rollout server 的 2,3 错开）。EP=4 -> 用 4 张：4,5,6,7。
     export CUDA_VISIBLE_DEVICES="${TRAIN_GPUS:-4,5,6,7}"
     export NPROC_PER_NODE="${NPROC_PER_NODE:-4}"
+    export PLANNER_ROUTE_ONLY
     # MoE + 大模型建议开，缓解显存碎片
     export PYTORCH_CUDA_ALLOC_CONF="${PYTORCH_CUDA_ALLOC_CONF:-expandable_segments:True}"
 
@@ -166,7 +175,7 @@ run_train() {
     #   MEM_SAVE=1 RESUME=auto bash run.sh train
     # 若仍不够，再动会改变训练动态的参数（num_generations / global_batch_size / 加卡调 EP）。
     MEM_SAVE_ARGS=()
-    if [ "${MEM_SAVE:-1}" = 1 ]; then
+    if [ "${MEM_SAVE:-0}" = 1 ]; then
         echo "[mem_save] 开启激活重算：recompute_granularity=full uniform num_layers=1" >&2
         MEM_SAVE_ARGS=(
             --recompute_granularity full
@@ -191,7 +200,7 @@ run_train() {
         --moe_shared_expert_overlap true \
         --moe_aux_loss_coeff 1e-3 \
         --external_plugins "$PLUGIN" \
-        --reward_funcs planner_accuracy \
+        --reward_funcs planner_route_reward \
         --dataset "$TRAIN_DATA" \
         --use_gym_env true \
         --gym_env "$GYM_ENV" \
@@ -208,7 +217,7 @@ run_train() {
         --micro_batch_size "${MICRO_BATCH_SIZE:-1}" \
         --steps_per_generation "${STEPS_PER_GENERATION:-4}" \
         --num_generations 8 \
-        --max_length 8192 \
+        --max_length 14336 \
         --max_completion_length 2048 \
         --overlong_filter true \
         --tuner_type lora \
@@ -244,7 +253,7 @@ run_train() {
     #  --tuner_type lora --target_modules all-linear : 只训适配器，规避 35B 全参优化器爆显存
     #  --expert_model_parallel_size 4                : MoE 专家并行，256 experts 切到 4 卡
     #  --freeze_vit/--freeze_aligner true            : 冻结视觉塔/对齐层（本模型带 vision）
-    #  --max_length 6144 + --max_completion_length 2048 = 8192 : 与 rollout vllm_max_model_len 对齐
+    #  --max_length 14336 + --max_completion_length 2048 = 16384 : 与 rollout vllm_max_model_len 对齐
     #  --vllm_mode server + host/port                : 连 rollout 子命令起的 vLLM server
     #
     # 若仍 OOM，从小到大加码：
@@ -344,7 +353,7 @@ run_sft() {
         --num_train_epochs "${EPOCHS:-3}" \
         --global_batch_size "${GLOBAL_BATCH_SIZE:-24}" \
         --micro_batch_size "${MICRO_BATCH_SIZE:-1}" \
-        --max_length 8192 \
+        --max_length 16384 \
         --tuner_type lora \
         --target_modules all-linear \
         --freeze_vit true \

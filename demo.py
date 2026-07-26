@@ -44,13 +44,50 @@ def demo_compiler():
     _p(f"自动回退 -> {tool2}", params2)
 
 
-def demo_live():
+class DebugVLLMClient(VLLMClient):
+    """包装 VLLMClient，在每次 complete_json 前后打印完整的 LLM 输入与输出。"""
+
+    _call_idx = 0
+
+    def complete_json(self, messages, guided_json=None, *, max_tokens=None):
+        DebugVLLMClient._call_idx += 1
+        idx = DebugVLLMClient._call_idx
+        print(f"\n{'='*60}")
+        print(f"[DEBUG] LLM call #{idx}")
+        print(f"{'='*60}")
+        print(f"\n--- INPUT messages ({len(messages)} 条) ---")
+        for i, m in enumerate(messages):
+            role = m["role"]
+            content = m["content"]
+            print(f"  [{i}] role={role}")
+            print(f"      {content}")
+        if guided_json:
+            print(f"\n--- guided_json schema ---")
+            print(json.dumps(guided_json, ensure_ascii=False, indent=2))
+        print(f"\n--- calling LLM ... ---")
+
+        result = super().complete_json(messages, guided_json, max_tokens=max_tokens)
+
+        print(f"\n--- OUTPUT (call #{idx}) ---")
+        print(json.dumps(result, ensure_ascii=False, indent=2))
+        print(f"{'='*60}\n")
+        return result
+
+
+def demo_live(debug=False, query=None):
     cfg = VLLMConfig(
         base_url=os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1"),
         model=os.environ.get("VLLM_MODEL", "qwen-30b-moe"),
     )
-    planner = Planner(VLLMClient(cfg))
-    for q in ["我想看电影，不要刘德华的，不要香港的，不要动作的","我想看刘德华的免费电影", "适合3到6岁女孩看的科普动画", "最近有什么好看的科幻片，评分高的"]:
+    client = DebugVLLMClient(cfg) if debug else VLLMClient(cfg)
+    planner = Planner(client)
+    queries = [query] if query else [
+        "我想看电影，不要刘德华的，不要香港的，不要动作的",
+        "我想看刘德华的免费电影",
+        "适合3到6岁女孩看的科普动画",
+        "最近有什么好看的科幻片，评分高的",
+    ]
+    for q in queries:
         res = planner.plan(q)
         _p(f"query: {q}", {
             "tool": res.tool_name, "domain": res.domain,
@@ -62,8 +99,12 @@ def demo_live():
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
     ap.add_argument("--live", action="store_true", help="连接真实 vLLM 接口")
+    ap.add_argument("--debug", action="store_true", help="打印每次 LLM 调用的完整输入 messages 与输出（需配合 --live）")
+    ap.add_argument("--query", type=str, default=None, help="单条 query，不指定则跑默认批量用例")
     args = ap.parse_args()
     if args.live:
-        demo_live()
+        demo_live(debug=args.debug, query=args.query)
     else:
+        if args.debug or args.query:
+            print("[WARN] --debug/--query 仅在 --live 模式下生效（离线 compiler demo 不走 LLM）")
         demo_compiler()

@@ -6,7 +6,8 @@
   2. env 只负责推进多轮对话与状态机，**reward 恒为 0.0**（reward 不从 env 出）。
   3. 真正的打分由本文件里注册的 ORM reward 函数完成（planner_* 系列）。
   4. 供 GRPO 训练：`swift rlhf --rlhf_type grpo --use_gym_env true --gym_env planner_env
-     --reward_funcs planner_accuracy --external_plugins .../planner_plugin.py`
+     --reward_funcs planner_route_reward planner_param_reward --reward_weights 0.3 0.7
+     --external_plugins .../planner_plugin.py`
 
 env / reward 通过 ms-swift 的两个注册表接入：
   * swift.rollout.gym_env.envs[name]      <- 我们注册 PlannerEnv 为 'planner_env'
@@ -155,26 +156,69 @@ class PlannerEnv(Env):
         asst   : IR JSON                            (turn 2)
         [user  : repair_observation(errs)           (自修复)
          asst  : 修正后的 IR JSON]                  (turn 3..)
+
+    安全机制（Fix: context overflow guard）：
+      step 中在调 agent 之前估算当前轨迹 token 数，若剩余预算不足以容纳生成长度，
+      提前终止（truncated=True），避免 vLLM max_tokens<=0 报错。
     """
+
+    # 粗估：1 char ≈ 0.6 token（中英混合偏保守）；可通过 env_config 覆盖
+    _CHARS_PER_TOKEN = 1.8  # 即 1 token ≈ 1.8 chars，中英混合偏保守
 
     def __init__(self, env_config: dict):
         super().__init__(env_config)
-        self.max_repairs = int((env_config or {}).get("max_repairs", 2))
+        cfg = env_config or {}
+        self.max_repairs = int(cfg.get("max_repairs", 2))
+        # route_only：路由后直接结束，不进入 IR 阶段。
+        # 优先从 env_config 取；fallback 到环境变量 PLANNER_ROUTE_ONLY=1
+        self.route_only = bool(cfg.get("route_only",
+                                       os.environ.get("PLANNER_ROUTE_ONLY", "0") == "1"))
+        # 上下文长度上限 & 最小生成预留（与 run.sh 里 vllm_max_model_len / max_completion_length 对齐）
+        self.max_model_len = int(cfg.get("max_model_len", 16384))
+        self.min_gen_budget = int(cfg.get("min_gen_budget", 512))
         self.agent: Optional[PlannerAgent] = None
+        self._messages: list = []  # 追踪完整轨迹用于 token 估算
+
+    def _estimate_tokens(self, messages: list) -> int:
+        """粗估轨迹 token 数（字符 / chars_per_token）。"""
+        total_chars = sum(len(m.get("content", "")) for m in messages if isinstance(m, dict))
+        return int(total_chars / self._CHARS_PER_TOKEN)
 
     async def reset(self, config):
         data = getattr(config, "data_dict", None) or {}
         query = data.get("query") or self._query_from_messages(config)
-        self.agent = PlannerAgent(query, max_repairs=self.max_repairs)
+        self.agent = PlannerAgent(query, max_repairs=self.max_repairs,
+                                  route_only=self.route_only)
         info = {"phase": "route", "query": query}
+        system_msg = self.agent.system_prompt()
+        first_obs = self.agent.first_observation()
+        # 初始化轨迹追踪
+        self._messages = [
+            {"role": "system", "content": system_msg},
+            {"role": "user", "content": first_obs},
+        ]
         # 返回 (observation, info, system_message)：GYMScheduler 会拼成 [system, user]
-        return self.agent.first_observation(), info, self.agent.system_prompt()
+        return first_obs, info, system_msg
 
     async def step(self, action):
         content = action[-1]["content"] if action else ""
+        # 追踪 assistant 输出
+        self._messages.append({"role": "assistant", "content": content})
+
+        # ---- Context overflow guard ----
+        # 估算当前已用 token；若剩余预算 < min_gen_budget，提前终止
+        used_tokens = self._estimate_tokens(self._messages)
+        remaining = self.max_model_len - used_tokens
+        if remaining < self.min_gen_budget:
+            info = {"phase": "truncated", "reason": "context_overflow",
+                    "used_tokens_est": used_tokens, "remaining_est": remaining}
+            return None, 0.0, True, info
+
         step = self.agent.observe(content)
         info = {"phase": step.phase, **step.info}
         next_obs = step.next_observation if not step.done else None
+        if next_obs:
+            self._messages.append({"role": "user", "content": next_obs})
         return next_obs, 0.0, step.done, info
 
     async def close(self):
@@ -212,9 +256,7 @@ def _route_correct(route: Optional[dict], gold_tool: str) -> bool:
     tool = route.get("tool")
     if tool == gold_tool:
         return True
-    # 慢链路回退到精确检索：路由到 *_slow_search，gold 是同域 *_search，视为等价命中
-    if _FALLBACK_EQUIV.get(tool) == gold_tool or _FALLBACK_EQUIV.get(gold_tool) == tool:
-        return True
+
     return False
 
 
@@ -293,14 +335,60 @@ class PlannerEquiv(ORM):
         return out
 
 
-class PlannerAccuracy(ORM):
-    """主奖励（与 bench 严格度量对齐）。
+class PlannerRouteReward(ORM):
+    """路由 reward 分量（独立打 tensorboard）。
 
-    - 非检索类工具样本（gold 不在 IR_TOOLS）：只按路由是否命中打分（0/1）。
-    - 检索类样本：reward = W_ROUTE*route + W_PARAM*param，且 **param 仅在路由命中时计入**
-      （路由错则参数被编译到错工具上、无意义）。
-      param 用「召回 + 子集门控」硬版（见 _equiv_score）：漏字段按召回扣分、
+    - 非检索类工具样本（gold 不在 IR_TOOLS）：路由命中 1.0，否则 0.0。
+    - 检索类样本：同上。
+    训练时与 PlannerParamReward 一起使用，用 --reward_weights 控制组合权重。
+    """
+
+    def __call__(self, completions, messages=None, gold_tool=None, **kwargs) -> List[float]:
+        n = len(completions)
+        messages = messages or [None] * n
+        gold_tool = gold_tool or [None] * n
+        out = []
+        for msg, gt in zip(messages, gold_tool):
+            route, _ = _extract_route_and_ir(msg)
+            out.append(1.0 if (gt and _route_correct(route, gt)) else 0.0)
+        return out
+
+
+class PlannerParamReward(ORM):
+    """参数 reward 分量（独立打 tensorboard）。
+
+    - 非检索类工具样本（gold 不在 IR_TOOLS）：无参数可评，给 0.0（该项权重对此类样本无贡献）。
+    - 检索类样本：**仅在路由命中时计入**（路由错则参数被编译到错工具上、无意义 → 0.0）。
+      用「召回 + 子集门控」硬版（见 _equiv_score）：漏字段按召回扣分、
       多字段 / 错值直接 0，全对 == 1.0。
+    """
+
+    def __call__(self, completions, messages=None, gold_tool=None, gold_params=None, **kwargs) -> List[float]:
+        n = len(completions)
+        messages = messages or [None] * n
+        gold_tool = gold_tool or [None] * n
+        gold_params = gold_params or [None] * n
+        out = []
+        for msg, gt, gp in zip(messages, gold_tool, gold_params):
+            route, final_ir = _extract_route_and_ir(msg)
+            route_ok = gt and _route_correct(route, gt)
+
+            if gt not in IR_TOOLS:
+                # 非检索类：无参数信号
+                out.append(0.0)
+                continue
+
+            # 检索类：param 仅在路由命中时计入
+            param = _equiv_score(final_ir, gt, _parse_gold_params(gp)) if route_ok else 0.0
+            out.append(param)
+        return out
+
+
+class PlannerAccuracy(ORM):
+    """组合主奖励（保留向后兼容，用于单 reward_func 场景）。
+
+    推荐改用 --reward_funcs planner_route_reward planner_param_reward --reward_weights 0.3 0.7
+    来获得分项 tensorboard 曲线。
     """
 
     W_ROUTE = 0.3
@@ -423,7 +511,9 @@ _install_resume_consumed_samples_patch()
 # ===========================================================================
 envs["planner_env"] = PlannerEnv
 
-orms["planner_accuracy"] = PlannerAccuracy   # 主奖励（推荐单独使用）
+orms["planner_accuracy"] = PlannerAccuracy   # 组合主奖励（向后兼容）
+orms["planner_route_reward"] = PlannerRouteReward   # 路由分量（独立 tensorboard 曲线）
+orms["planner_param_reward"] = PlannerParamReward   # 参数分量（独立 tensorboard 曲线）
 orms["planner_route"] = PlannerRoute         # 诊断/可选：路由
 orms["planner_ir_valid"] = PlannerIRValid    # 诊断/可选：结构合法
 orms["planner_equiv"] = PlannerEquiv         # 诊断/可选：端到端等价

@@ -87,10 +87,12 @@ class PlannerAgent:
          asst  : 修正后的 IR JSON]
     """
 
-    def __init__(self, query: str, memory_hint: str = "", max_repairs: int = 2):
+    def __init__(self, query: str, memory_hint: str = "", max_repairs: int = 2,
+                 route_only: bool = False):
         self.query = query or ""
         self.memory_hint = memory_hint or ""
         self.max_repairs = int(max_repairs)
+        self.route_only = route_only
 
         self.phase = PHASE_ROUTE
         self.repairs = 0
@@ -129,6 +131,15 @@ class PlannerAgent:
         self.routed_tool = route.get("tool")
         self.intent = route.get("intent")
         self.confidence = route.get("confidence")
+
+        # route_only 模式：路由后直接结束，不进入 IR 阶段（用于只训路由能力）
+        if self.route_only:
+            self.phase = PHASE_DONE
+            return AgentStep(
+                done=True, next_observation=None, phase="route_end",
+                info={"routed_tool": self.routed_tool, "domain": self.domain,
+                      "reason": "route_only"},
+            )
 
         # 非检索类工具 / 路由不合法 -> 不进入 IR 阶段，直接结束
         if self.routed_tool not in IR_TOOLS or self.domain not in ("vod", "educ"):
