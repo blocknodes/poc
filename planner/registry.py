@@ -6,7 +6,15 @@
   3. 编译器双后端（nested-json / flat-string）如何把一个 canonical 字段落地到目标工具。
 
 设计原则：模型只认识 canonical 字段名与统一的 IR 结构；影视/少儿的命名差异
-（如 fee vs is_fee、age vs age_range）与序列化差异全部在这里声明、由编译器消化。
+（如 is_fee vs fee、age_range vs age）与序列化差异全部在这里声明、由编译器消化。
+
+字段命名对齐 0725-v1 tool schema：
+  * nested vod: age_range / release_time / is_fee / video_index
+  * playback: series / video_index / voiceStartPos
+
+扩展：新增 audio（有声）和 device（设备控制）两个域。
+  * audio: 不走布尔 IR，仅路由后 slot-fill（query + play_mode + screen_mode）。
+  * device: 不走布尔 IR，路由到 20 个设备工具之一，然后 slot-fill（operation + object + value）。
 """
 from __future__ import annotations
 
@@ -33,7 +41,7 @@ class NestedTarget:
     """canonical 字段 -> *_search（嵌套 JSON）里的落地名，按 domain 可不同。"""
     # domain -> 目标字段名；None 表示该 domain 不支持
     name_by_domain: dict[str, Optional[str]]
-    # release_year 需要 yyyyMMdd；age 是 int；rate 是 0-10 number
+    # release_time 需要 yyyyMMdd；age_range 是 int；rate 是 0-10 number
     value_fmt: str = "string"  # string | int | number | yyyyMMdd | enum01
 
 
@@ -66,7 +74,15 @@ class FieldSpec:
 
 VOD = "vod"
 EDUC = "educ"
+AUDIO = "audio"
+DEVICE = "device"
 BOTH = frozenset({VOD, EDUC})
+
+# 所有支持的 domain
+ALL_DOMAINS = frozenset({VOD, EDUC, AUDIO, DEVICE})
+
+# 走 IR 编译器的 domain（audio / device 不走 IR）
+IR_DOMAINS = frozenset({VOD, EDUC})
 
 
 def _exact(canonical, domains, *, nested_vod=None, nested_educ=None,
@@ -83,7 +99,8 @@ def _exact(canonical, domains, *, nested_vod=None, nested_educ=None,
 
 
 # ---------------------------------------------------------------------------
-# 字段登记表
+# 字段登记表（影视 + 少儿）
+# 对齐 0725-v1 tool schema
 # ---------------------------------------------------------------------------
 _FIELDS: list[FieldSpec] = [
     # ---- 两域共有的精确维度 ----
@@ -95,7 +112,7 @@ _FIELDS: list[FieldSpec] = [
     _exact("gender", BOTH, flat_educ="gender", flat_mode=FlatMode.ENUM, desc="受众性别。"),
     _exact("company", BOTH, desc="出品公司。"),
 
-    # ---- 影视专有精确维度 ----
+    # ---- 影视专有精确维度（对齐 vod_search_all 24 字段）----
     _exact("actor", {VOD}, flat_vod="actor", desc="演员。"),
     _exact("director", {VOD}, flat_vod="director", desc="导演。"),
     _exact("dubbing", {VOD}, desc="配音演员。"),
@@ -114,7 +131,7 @@ _FIELDS: list[FieldSpec] = [
     _exact("comedy_brand", {VOD}, desc="喜剧厂牌。"),
     _exact("technology", {VOD}, desc="拍摄技术，如全景。"),
 
-    # country：educ nested 有；两域 flat 都有
+    # country：vod nested 里没有（vod_search_all 无 country），flat 有；educ nested 有
     _exact("country", {EDUC}, flat_vod="country", flat_educ="country", desc="国家/地区（地理），与 language 区分。"),
 
     # ---- 少儿专有精确维度 ----
@@ -129,8 +146,9 @@ _FIELDS: list[FieldSpec] = [
     _exact("grade", {EDUC}, desc="年级/学段，如小班、一年级。"),
 
     # ---- 状态维度 ----
+    # 0725-v1: nested vod 用 is_fee（之前是 fee），flat 也是 is_fee
     FieldSpec("fee", Kind.STATUS, BOTH,
-              nested=NestedTarget({VOD: "fee", EDUC: "is_fee"}, "enum01"),
+              nested=NestedTarget({VOD: "is_fee", EDUC: "is_fee"}, "enum01"),
               flat=FlatTarget({VOD: "is_fee", EDUC: "is_fee"}, FlatMode.ENUM),
               desc="免付费标识：0=免费，1=付费。"),
     FieldSpec("is_over", Kind.STATUS, frozenset({VOD}),
@@ -139,12 +157,14 @@ _FIELDS: list[FieldSpec] = [
               desc="连载状态：0=连载中，1=已完结（仅影视）。"),
 
     # ---- 范围维度 ----
+    # 0725-v1: nested vod 用 age_range（之前是 age），格式不变
     FieldSpec("age", Kind.RANGE, BOTH,
-              nested=NestedTarget({VOD: "age", EDUC: "age_range"}, "int"),
+              nested=NestedTarget({VOD: "age_range", EDUC: "age_range"}, "int"),
               flat=FlatTarget({VOD: "age", EDUC: "age_range"}, FlatMode.RANGE),
               desc="年龄范围（整数）。"),
+    # 0725-v1: nested vod 用 release_time（之前是 release_year）
     FieldSpec("release_year", Kind.RANGE, BOTH,
-              nested=NestedTarget({VOD: "release_year", EDUC: "release_year"}, "yyyyMMdd"),
+              nested=NestedTarget({VOD: "release_time", EDUC: "release_time"}, "yyyyMMdd"),
               flat=FlatTarget({VOD: "date", EDUC: None}, FlatMode.RANGE),  # educ 慢链路无日期
               desc="发布时间范围，yyyyMMdd。"),
     FieldSpec("rate", Kind.RANGE, frozenset({VOD}),
@@ -157,9 +177,22 @@ FIELD_REGISTRY: dict[str, FieldSpec] = {f.canonical: f for f in _FIELDS}
 
 
 # ---------------------------------------------------------------------------
+# vod_search 精简版字段集（10 个精确字段）—— 用于编译后判断走 vod_search 还是 vod_search_all
+# ---------------------------------------------------------------------------
+VOD_SEARCH_FIELDS: frozenset[str] = frozenset([
+    "title", "actor", "director", "entertainer", "prize",
+    "role", "tag", "target", "definition", "category",
+])
+
+# vod_relate_search 支持的字段集（4 个精确字段）
+VOD_RELATE_FIELDS: frozenset[str] = frozenset([
+    "title", "actor", "director", "category",
+])
+
+
+# ---------------------------------------------------------------------------
 # 排序键：canonical -> 各后端落地
 # ---------------------------------------------------------------------------
-# nested: sort 是独立对象 {key:{order}}；flat: 编码进字段值（rate/play/hot="desc"，new->date）
 @dataclass(frozen=True)
 class SortSpec:
     key: str
@@ -176,11 +209,52 @@ SORT_REGISTRY: dict[str, SortSpec] = {
 }
 
 # 影视播放控制字段（IR 里放在 playback 段，仅 vod）
+# 0725-v1: 用 video_index（下划线，之前是 videoIndex）
 PLAYBACK_FIELDS: dict[str, str] = {
-    "series": "int",       # 第几部/季
-    "videoIndex": "int",   # 第几集/期
-    "voiceStartPos": "int" # 起播秒数
+    "series": "int",        # 第几部/季
+    "video_index": "int",   # 第几集/期（0725-v1 命名）
+    "voiceStartPos": "int"  # 起播秒数
 }
+
+
+# ---------------------------------------------------------------------------
+# 有声（audio）域定义 —— 不走 IR，仅 slot-fill
+# ---------------------------------------------------------------------------
+AUDIO_PLAY_MODES = ["search", "play", "screen_off_play"]
+AUDIO_SCREEN_MODES = ["normal", "screen_standby"]
+
+# 有声域的工具列表
+AUDIO_TOOLS = ["audio_search", "audio_chat_qa"]
+
+
+# ---------------------------------------------------------------------------
+# 设备控制（device）域定义 —— 不走 IR，路由后直接 slot-fill
+# ---------------------------------------------------------------------------
+DEVICE_TOOLS = [
+    "volume_control",
+    "power_control",
+    "signal_source_control",
+    "screen_display_control",
+    "camera_control",
+    "network_control",
+    "bluetooth_control",
+    "input_lang_control",
+    "image_quality_control",
+    "sound_mode_control",
+    "projection_control",
+    "media_center_control",
+    "demo_control",
+    "personalization_control",
+    "scene_mode_control",
+    "screen_safety_control",
+    "playback_control",
+    "ambient_light_control",
+    "system_settings_control",
+    "ai_picture_sound_control",
+]
+
+# 设备工具统一的 slot 描述
+DEVICE_OPERATIONS = ["提高", "降低", "打开", "关闭", "设置", "查询", "切换", "开启", "关", "开"]
 
 
 # ---------------------------------------------------------------------------

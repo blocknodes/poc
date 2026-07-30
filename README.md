@@ -1,6 +1,10 @@
-# 电视端 AI 慢任务 Planner — IR 层 + 双后端编译器 + vLLM 约束解码
+# 电视端 AI 慢任务 Planner — IR 层 + 编译器 + Experience Bank + vLLM 约束解码
 
 面向 **30B MoE planner**，目标：把工具调用准确率稳定拉到 **80%+**。
+
+当前 benchmark（217 条影视评测用例）：
+- 工具准确率 **97.7%**
+- 工具+参数准确率 **79.3%**（从 baseline 47% 优化而来）
 
 ## 背景与问题
 
@@ -12,7 +16,13 @@
 
 ## 核心思路
 
-**不让模型直接生成各工具的最终参数**，而是先路由、再让模型产出一份 **域无关的布尔查询 IR**（受 vLLM 约束解码保证结构合法），最后由**编译器**把 IR 落地成具体工具的 parameters。影视/少儿的字段命名差异、以及「精确检索嵌套 JSON vs 慢链路扁平字符串」两套格式差异，全部从模型身上剥离，下沉到 **Field Registry + 编译器**。
+**三层架构：模型生成 IR → 编译器确定性转换 → Experience Bank 兜底修正**
+
+1. **模型只产出域无关 IR**（受 vLLM 约束解码保证结构合法）
+2. **编译器**把 IR 落地成具体工具参数，同时执行确定性后处理规则
+3. **Experience Bank**（领域规则库）分两处生效：
+   - **Prompt 层**：指导模型正确生成 IR（few-shot + 规则描述）
+   - **Compiler 层**：编译后确定性修正（不依赖模型行为）
 
 ## 链路
 
@@ -22,12 +32,22 @@
  [路由] route  ── guided_json(小schema) ─► {domain, intent, tool, confidence}
    │
  [IR生成] guided_json(按domain收紧的IR schema) ─► 域无关布尔IR
-   │
+   │                                              ↑ Experience Bank (prompt层)
  [校验] validate_ir  ──失败──► 带错误回灌自修复(≤2次)
    │
  [编译] compile_with_fallback ─► 最终 tool params
-        ├─ nested backend  -> vod_search / educ_search
-        └─ flat backend    -> *_slow_search（不可无损编译时自动回退到 *_search）
+   │     ├─ nested backend  -> vod_search / vod_search_all / educ_search
+   │     └─ flat backend    -> *_slow_search（只传query原文）
+   │
+ [后处理] Experience Bank (compiler层)
+   │     ├─ action 动词判定（播放/放/请播→play）
+   │     ├─ 字段名修正（好莱坞→company, 湖南卫视→channel）
+   │     ├─ 值归一化（人名间隔符, TVB→tvb, tag/奖项映射）
+   │     ├─ 结构修正（单元素and解包, not is_fee→is_fee:0）
+   │     ├─ query-text补全（影片→category, 韩剧拆分, 时间词转换）
+   │     └─ title+series 拆分（战狼2→战狼+series:2）
+   ▼
+ 最终输出 {tool_name, parameters}
 ```
 
 ## 目录结构
@@ -38,12 +58,13 @@ poc/
 │   ├── registry.py      Field Registry（单一事实源）
 │   ├── ir.py            域无关布尔 IR：数据类 / 解析 / 语义校验
 │   ├── grammar.py       从 registry 生成 vLLM guided_json schema
-│   ├── compiler.py      nested / flat 双后端 + 可编译性检查 + 回退
-│   ├── prompts.py       路由判定树 / IR 生成 prompt / few-shot（单 system + observation 文本）
+│   ├── compiler.py      编译器 + Experience Bank (compiler层) 全部后处理规则
+│   ├── prompts.py       路由/IR prompt + Experience Bank (prompt层) 领域规则
 │   ├── agent.py         域无关 agent 状态机（route→IR→自修复），推理与训练共用
 │   ├── vllm_client.py   vLLM OpenAI 兼容客户端（guided_json）
 │   └── harness.py       端到端 Planner 编排
-├── tests/test_planner.py  12 项离线测试（不连模型）
+├── bench_vod.py           影视评测脚本（含 param_diff 差异分析）
+├── tests/test_planner.py  81 项离线测试（不连模型）
 ├── demo.py                可运行示例
 ├── requirements.txt
 └── README.md
@@ -53,14 +74,52 @@ poc/
 
 | 文件 | 职责 |
 |---|---|
-| `registry.py` | **单一事实源**：canonical 字段、所属 domain、nested/flat 落地名与格式、sort/playback 登记表。字段词表变更只改这里 |
+| `registry.py` | **单一事实源**：canonical 字段、所属 domain、nested/flat 落地名与格式、sort/playback 登记表 |
 | `ir.py` | IR 数据类(`IR/And/Or/Not/Leaf`)、`parse_ir`、`validate_ir`(registry 驱动的语义校验) |
 | `grammar.py` | `build_ir_schema(domain)` / `build_route_schema()`：按 domain 收紧 field 枚举的 draft-07 schema |
-| `compiler.py` | `compile_nested` / `compile_flat` / `can_compile_flat` / `compile_with_fallback` |
-| `prompts.py` | `route_system_prompt` / `route_observation` / `ir_observation` / `repair_observation`，few-shot 以文本内嵌 |
-| `agent.py` | **训推一致核心**：`PlannerAgent` 状态机(route→IR→校验自修复) + `IR_TOOLS` + `loads_lenient`，无模型调用 |
+| `compiler.py` | 编译核心 + **Experience Bank (compiler层)**：双后端编译 + 全部确定性后处理规则 |
+| `prompts.py` | 路由/IR prompt + **Experience Bank (prompt层)**：27 条领域规则 + 21 组 few-shot |
+| `agent.py` | **训推一致核心**：`PlannerAgent` 状态机(route→IR→校验自修复) |
 | `vllm_client.py` | `VLLMClient`(`extra_body.guided_json`)；可注入 `responder` 离线测试 |
-| `harness.py` | `Planner.plan()`：驱动 `PlannerAgent`，加 client 生成/约束解码/编译 |
+| `harness.py` | `Planner.plan()`：驱动 Agent + 编译 + 后处理完整流程 |
+| `bench_vod.py` | 评测脚本：多worker并发、param_diff 差异列、按工具细分统计 |
+
+## Experience Bank 架构
+
+Experience Bank 是一套**领域规则库**，分两层生效：
+
+### Prompt 层（`prompts.py` 内 27 条规则）
+
+指导模型在 IR 生成阶段做正确的语义选择：
+
+| 规则类 | 示例 |
+|--------|------|
+| action 判定 | "播放/放/请播" → play；"我想看/我要看" + 无片名 → search |
+| category 推断 | "XX片" → 电影；"XX剧" → 电视剧；"节目" → 综艺 |
+| tag 保持原词 | 用户说"抗战" → tag:"抗战"（不替换为"战争"） |
+| tag vs 其他字段 | "真人版/TV版" → tag；"秦腔/小品" → tag；"方言" → language |
+| playback 区分 | "第N集" → video_index；"第N分钟" → voiceStartPos |
+| 字段选择 | "好莱坞" → company；"笑果文化" → comedy_brand；"金庸改编" → writer |
+| sort 触发 | "好看的" 不加 sort；"最新" → new:desc；有明确分数不加 sort |
+| 多值 op | "A和B" → and；"港台" → or |
+
+### Compiler 层（`compiler.py` 内确定性后处理）
+
+编译后基于规则表 **无条件修正** 输出，不依赖模型行为：
+
+| 规则类 | 处理 |
+|--------|------|
+| action 动词覆盖 | 从原文提取动词，强动词(播放/放/请播/打开)→play，弱动词(看/想看)+无title→search |
+| 字段名 remap | 好莱坞→company, 湖南卫视→channel, TVB→company:tvb |
+| 值归一化 | 人名间隔符(汤姆克鲁斯→汤姆·克鲁斯), vender(芒果TV→芒果tv), tag大小写(DVD版→dvd版) |
+| 结构简化 | 单元素 and/or 解包；not{is_fee:1}→is_fee:0 |
+| query-text 补全 | "影片"→category:电影, "韩剧"→area+category, "节目"→category:综艺 |
+| sort 精细控制 | 有明确分数→不加sort；"好看的"→删sort；"最近"→sort:new+删date range |
+| title 处理 | 去后缀(漩涡视频→漩涡), 拆数字(战狼2→战狼+series:2) |
+| 时间转换 | "去年/今年/前年"→绝对年份 |
+| 名称映射 | 奖项(香港金像奖→香港电影金像奖), tag(辩论赛→辩论), company(TVB→tvb) |
+| rate 归一 | 开区间"*"→10.0, from转float |
+| operator 补全 | values 节点始终输出 operator 字段 |
 
 ## IR 结构
 
@@ -70,7 +129,7 @@ poc/
   "action": "search" | "play",                        // 可选，默认 search
   "query": <节点>,                                     // and/or/not/leaf 任意嵌套
   "sort":  [{"key":"rate|hot|new|play","order":"asc|desc"}],  // 可选
-  "playback": {"series":2,"videoIndex":3}             // 可选，仅 vod
+  "playback": {"series":2,"video_index":3}            // 可选，仅 vod play
 }
 ```
 
@@ -78,46 +137,39 @@ poc/
 
 ```jsonc
 {"field":"actor","value":"刘德华"}                       // 精确单值
-{"field":"actor","values":["刘德华","吴京"],"op":"and"}   // 同字段多值，op 默认 or
+{"field":"actor","values":["刘德华","吴京"],"op":"and"}   // 同字段多值
 {"field":"fee","value":0}                               // 状态字段(fee/is_over)，0|1
 {"field":"release_year","range":{"from":"20200101","to":"*"}}  // 范围，开区间用 "*"
 ```
 
-## 编译示例：一份 IR → 两个后端
+## 编译示例
 
-IR（"刘德华和吴京都演、非恐怖、2020年后、免费，按评分降序"）编译结果：
-
-→ `vod_search`（nested）：
+"刘德华和吴京都演的、非恐怖、2020年后、免费电影，按评分降序" →
 
 ```json
-{"query":{"and":[
-  {"field":"actor","values":["刘德华","吴京"],"operator":"and"},
-  {"field":"category","value":"电影"},
-  {"not":{"field":"tag","value":"恐怖"}},
-  {"field":"release_year","from":"20200101","to":"*"},
-  {"field":"fee","value":0}]},
- "sort":{"rate":{"order":"desc"}}}
+{"action": "search",
+ "query": {"and": [
+   {"field": "actor", "values": ["刘德华", "吴京"], "operator": "and"},
+   {"field": "category", "value": "电影"},
+   {"not": {"field": "tag", "value": "恐怖"}},
+   {"field": "release_time", "from": "20200101", "to": "*"},
+   {"field": "is_fee", "value": 0}
+ ]},
+ "sort": {"rate": {"order": "desc"}},
+ "retext": "刘德华和吴京都演的非恐怖2020年后免费电影按评分降序"}
 ```
-
-→ `vod_slow_search_data_search`（flat）：
-
-```json
-{"actor":"刘德华 AND 吴京","category":"电影","tag":"NOT 恐怖",
- "date":"20200101 TO *","is_fee":"0","rate":"desc"}
-```
-
-编译到 educ 时 `fee` 自动映射为 `is_fee`。跨字段 OR / 嵌套 NOT 等 flat 无法无损表达时，`compile_with_fallback` 自动回退到 `*_search`。
 
 ## 运行
 
 ```bash
 pip install -r requirements.txt
 
-python tests/test_planner.py        # 12 项离线测试（不连模型）
-python demo.py                      # 展示同一 IR 编译到 nested/flat 及回退
+python tests/test_planner.py        # 81 项离线测试（不连模型）
+python demo.py                      # 展示编译 + 后处理效果
 
-# 连真实 vLLM（需以 guided decoding 后端启动）
-VLLM_BASE_URL=http://host:8000/v1 VLLM_MODEL=your-30b-moe python demo.py --live
+# 连真实 vLLM 评测
+VLLM_BASE_URL=http://host:8000/v1 VLLM_MODEL=your-30b-moe \
+  python bench_vod.py test_set/*.csv --live --output results.csv --worker 16
 ```
 
 最简用法：
@@ -130,9 +182,23 @@ res = planner.plan("我想看刘德华的免费电影")
 print(res.tool_name, res.parameters)   # -> vod_search {...}
 ```
 
-## vLLM 启动
+## 评测
 
-本 planner 依赖 vLLM 的约束解码（structured outputs）。**vLLM ≥ 0.11 起结构化输出默认开启**，backend 默认 `auto`（对 JSON schema 会自动选 xgrammar），通常无需任何额外参数即可用。
+```bash
+# 评测输出含 param_diff 列，直观展示每条错误的具体差异
+VLLM_BASE_URL=http://localhost:8080/v1 VLLM_MODEL=baseline \
+  python bench_vod.py test_set/*.csv --live --output results1.csv --worker 16
+```
+
+输出 CSV 列：`source_file | row | query | expected_tool | predicted_tool | tool_correct | param_correct | expected_params | predicted_params | param_diff | error | note`
+
+`param_diff` 列示例：
+- `action:search→play`
+- `多余字段:tag=戏曲; 缺失字段:category=戏曲`
+- `值不同:tag(应=抗战,pred=战争)`
+- `op不同:actor(应=and,pred=or)`
+
+## vLLM 启动
 
 ```bash
 vllm serve /path/to/your-30b-moe \
@@ -146,39 +212,43 @@ vllm serve /path/to/your-30b-moe \
 ```
 
 说明：
-
-- `--structured-outputs-config.backend xgrammar`：**可选**，显式指定约束解码后端（也可用 `guidance`）；不写则用默认 `auto`。需与客户端 `VLLMConfig.guided_backend` 一致。
-- 若报 `unrecognized arguments: --structured-outputs-config.backend`，说明是更早的 vLLM：v0.9 及更早用 `--guided-decoding-backend xgrammar`；实在不确定就**直接省略该参数**用默认后端。
-- `--served-model-name`：要与 `VLLMConfig.model` / `VLLM_MODEL` 保持一致。
-- `--tensor-parallel-size` / `--enable-expert-parallel`：按 30B MoE 的显卡数与专家并行需求调整（单卡可去掉这两项）。
-- `--max-model-len 4096`：**必带**。不指定时 vLLM 按模型默认最大上下文（30B 常见 32K/128K）预分配 KV cache，极易 OOM。本 planner 的 prompt（路由 + IR 生成）很短，4096 足够；few-shot 很多时再上调。
-- 启动后接口即为 `http://<host>:8000/v1`，填入 `VLLM_BASE_URL`。
+- `--structured-outputs-config.backend xgrammar`：可选，v0.9 及更早用 `--guided-decoding-backend xgrammar`
+- `--max-model-len 4096`：**必带**，本 planner prompt 很短，4096 足够
+- 启动后接口即为 `http://<host>:8000/v1`
 
 ### 显存 OOM 排查
 
-按代价从小到大依次尝试：
+1. 加/调小 `--max-model-len`（最有效）
+2. 调低 `--gpu-memory-utilization`（0.90 → 0.80）
+3. 调小 `--max-num-seqs`（256 → 64）
+4. `--kv-cache-dtype fp8`
+5. 加大 `--tensor-parallel-size`
 
-1. **加 / 调小 `--max-model-len`**：本 planner 4096 就够，这是最有效的一招。
-2. **调低 `--gpu-memory-utilization`**（如 0.90 → 0.80）：给权重加载/激活留余量；若是加载阶段就 OOM 尤其有效。
-3. **调小 `--max-num-seqs`**（并发序列数，如 256 → 64）：直接减少 KV cache 峰值。
-4. **`--kv-cache-dtype fp8`**：KV cache 用 fp8，显存近乎减半（精度影响小）。
-5. **加大 `--tensor-parallel-size`**：把权重/KV 摊到更多卡上（需多卡）。
+## 为什么能到 80%
 
-> 版本差异（重要）：
-> - **启动参数**：`--structured-outputs-config.backend`（v0.21）↔ `--guided-decoding-backend`（v0.9 及更早）。
-> - **请求参数**：v0.11 起 `guided_json` 已废弃，统一用 `structured_outputs: {"json": <schema>}`。本仓库 `vllm_client.py` 默认走新格式，可用 `VLLMConfig.request_format="guided"` 切回旧格式兼容老服务。
+1. **约束解码**：field 只能取该 domain 枚举 → 字段幻觉清零；结构由 schema 保证 → JSON 错清零。
+2. **分阶段**：路由与填参解耦，模型产 IR 时不关心最终工具选择。
+3. **IR 合并影视/少儿**：模型只学一套域无关结构，负担下降。
+4. **编译器兜格式**：yyyyMMdd / sort / fee↔is_fee / operator 全在编译器。
+5. **Experience Bank 双层兜底**：prompt 层减少错误发生，compiler 层确定性纠错。
+6. **校验自修复闭环**：`validate_ir` 错误信息回灌模型重试 ≤2 次。
 
-## 为什么这样能上 80%
+## 优化历程
 
-1. **约束解码**：field 只能取该 domain 枚举 → 字段幻觉清零；结构由 schema 保证 → JSON/结构错清零。剩余错误集中到「语义选择」，便于针对性迭代。
-2. **分阶段**：路由与填参解耦，且模型产 IR 时不关心最终选哪个 search 工具——精确 vs 慢链路由路由决定，同一 IR 喂不同后端。选错 search 工具从「参数全错」降级为「换后端重编译」。
-3. **IR 合并影视/少儿**：模型只学一套域无关结构，负担与出错面同时下降。
-4. **编译器兜格式**：yyyyMMdd / `TO` 区间 / sort 位置 / `fee↔is_fee` 全在编译器，模型不碰。
-5. **可编译性检查 + 回退**：flat 表达力弱（跨字段仅隐式 AND），遇到跨字段 OR / 嵌套 NOT / educ 日期等不可无损编译时**自动回退到 `*_search`**，绝不静默丢逻辑。
-6. **校验自修复闭环**：`validate_ir` 的错误信息回灌模型重试 ≤2 次。
+| 版本 | param_acc | 主要改动 |
+|------|-----------|---------|
+| baseline | 47.0% | 纯模型端到端 |
+| +编译器 v1 | 60.8% | action覆盖 + TAG_NORMALIZE修正 + and解包 + title拆分 |
+| +编译器 v2 | 71.0% | action精细化(强/弱动词) + operator补全 + rate归一 + 字段remap + 人名归一 |
+| +Experience Bank | **79.3%** | sort精细控制 + title去后缀 + 时间词转换 + 奖项映射 + 韩剧拆分 + prompt规则27条 |
+
+剩余错误主要是：标注存疑(~5条)、外部知识推理(~2条)、模型语义理解(~8条)、数据问题(~2条)。
 
 ## 扩展点
 
-- 非检索类工具（relate / personalized / history / clip）目前只路由、参数留空（`harness.py` 已留 slot），可各自加独立 slot-filler。
-- 字段词表变更只需改 `registry.py`，grammar 与编译器自动同步。
-- 建评测集时按工具分层，指标拆成：**路由准确率 / 结构合法率 / 字段命中率 / 逻辑正确率 / 端到端等价率**，用于定位错误落在哪一层。
+- **Experience Bank 动态更新**：规则表可外置为 JSON/YAML，热加载无需改代码。
+- **tag 标准词表**：接入线上标签系统，编译器做最近邻匹配（辩论赛→辩论）。
+- **知识注入**：actor 关系图谱（孙俪→邓超），可在 prompt 或后处理层实现。
+- **时间感知**：当前年份已注入编译器，支持"去年/今年/前年"自动转换。
+- **字段词表变更**只需改 `registry.py`，grammar 与编译器自动同步。
+- **评测分层**：指标拆成 路由准确率 / 结构合法率 / 字段命中率 / 逻辑正确率 / 端到端等价率。

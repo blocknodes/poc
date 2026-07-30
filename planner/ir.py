@@ -11,7 +11,7 @@ IR JSON 形态::
       "action": "search" | "play",          # 可选，默认 search
       "query": <Node>,                        # 布尔查询树
       "sort":  [ {"key": "rate", "order": "desc"} ],   # 可选
-      "playback": {"series": 2, "videoIndex": 3}       # 可选，仅 vod
+      "playback": {"series": 2, "video_index": 3}     # 可选，仅 vod
     }
 
 Node 四种形态::
@@ -23,6 +23,8 @@ Node 四种形态::
     {"field": "actor", "values": ["刘德华","吴京"], "op": "and"}  # 精确多值
     {"field": "fee",   "value": 0}                          # 状态
     {"field": "release_year", "range": {"from": "20200101", "to": "*"}}  # 范围
+
+非 IR 域（audio / device）不经过本模块，走独立 slot-fill schema。
 """
 from __future__ import annotations
 

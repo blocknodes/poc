@@ -1,0 +1,1353 @@
+﻿业务域,query,原产品意图,智能体意图,测试备注,期望工具,说明,期望参数（对于慢链路部分语料 也给出了如果进入快链路的参数）,疑问,,,,,,,,,,,,,,
+影视,播放大生意人,,vod_keyword_search,标题-电视剧,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""播放大生意人"",
+  ""query"": {
+    ""field"": ""title"",
+    ""value"": ""大生意人""
+  }
+}",,,,,,,,,,,,,,,
+影视,给我放战狼2,,vod_keyword_search,标题-电影,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""给我放战狼2"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""战狼""
+      },
+      {
+        ""field"": ""series"",
+        ""value"": 2
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,放第1集哑巴新娘,,vod_keyword_search,标题-电视剧集数,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""放第1集哑巴新娘"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""哑巴新娘""
+      },
+      {
+        ""field"": ""video_index"",
+        ""value"": 1
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,生万物第3集第10分钟,,vod_keyword_search,标题-电视剧集数+时间,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""生万物第3集第10分钟"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""生万物""
+      },
+      {
+        ""field"": ""video_index"",
+        ""value"": 3
+      },
+      {
+        ""field"": ""voiceStartPos"",
+        ""value"": 600
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,我要看海王第55分钟,,vod_keyword_search,标题-电影,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""我要看海王第55分钟"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""海王""
+      },
+      {
+        ""field"": ""voiceStartPos"",
+        ""value"": 3300
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,免费的电视剧英雄泪,,vod_keyword_search,免费-标题,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""免费的电视剧英雄泪"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""英雄泪""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": 0
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,请播黄河在咆哮谢谢,,vod_keyword_search,标题,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""请播黄河在咆哮谢谢"",
+  ""query"": {
+    ""field"": ""title"",
+    ""value"": ""黄河在咆哮""
+  }
+}",,,,,,,,,,,,,,,
+影视,新出的陈翔六点半,,vod_keyword_search,标题,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""新出的陈翔六点半"",
+  ""query"": {
+    ""field"": ""title"",
+    ""value"": ""陈翔六点半""
+  },
+  ""sort"": {
+    ""new"": {
+      ""order"": ""desc""
+    }
+  }
+}",,,,,,,,,,,,,,,
+影视,小度小度播放电视剧用一生去爱你,,vod_keyword_search,标题,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""小度小度播放电视剧用一生去爱你"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""用一生去爱你""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,我要看庆余年第二季第三集,,vod_keyword_search,标题,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""我要看庆余年第二季第三集"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""庆余年""
+      },
+      {
+        ""field"": ""series"",
+        ""value"": 2
+      },
+      {
+        ""field"": ""video_index"",
+        ""value"": 3
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,播放电影封神第一部第34分,,vod_keyword_search,标题,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""播放电影封神第一部第34分"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""封神""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      },
+     {
+        ""field"": ""series"",
+        ""value"": 1
+      },
+      {
+        ""field"": ""voiceStartPos"",
+        ""value"": 2040
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,播放不是VIP的最强大脑第七季第十集,,vod_keyword_search,标题,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""播放不是VIP的最强大脑第七季第十集"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""最强大脑""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": 0
+      },
+      {
+        ""field"": ""series"",
+        ""value"": 7
+      },
+      {
+        ""field"": ""video_index"",
+        ""value"": 10
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,找到人间世的纪录片全集,,vod_keyword_search,标题,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""找到人间世的纪录片全集"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""人间世""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""纪录片""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,以家人之名DVD版,,vod_keyword_search,版本,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""以家人之名dvd版"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""以家人之名""
+      },
+      {
+        ""field"": ""tag"",
+        ""value"": ""dvd版""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,真人版的狐妖小红娘,,vod_keyword_search,版本,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""真人版的狐妖小红娘"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""狐妖小红娘""
+      },
+      {
+        ""field"": ""tag"",
+        ""value"": ""真人版""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,小敏家TV版,,vod_keyword_search,版本,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""小敏家TV版"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""小敏家""
+      },
+      {
+        ""field"": ""tag"",
+        ""value"": ""tv版""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,老版上海滩,,vod_keyword_search,版本,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""老版上海滩"",
+  ""query"": {
+       ""field"": ""title"",
+       ""value"": ""上海滩""
+  }
+}",,,,,,,,,,,,,,,
+影视,我想看戏曲铡美案,,vod_keyword_search,标题-戏曲,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""我想看戏曲铡美案"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""铡美案""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""戏曲""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,请播放秦腔三滴血,,vod_keyword_search,标题-戏曲,vod_search,"当前秦腔标签为title  
+需要标签系统补充 tag：秦腔映射为tag：秦腔","{
+  ""action"": ""play"",
+  ""retext"": ""请播放秦腔三滴血"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""三滴血""
+      },
+      {
+        ""field"": ""tag"",
+        ""value"": ""秦腔""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,专题片将改革进行到底,,vod_keyword_search,类型+标题,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""专题片将改革进行到底"",
+  ""query"": {
+       ""field"": ""title"",
+       ""value"": ""将改革进行到底""
+  }
+}","专题要体现么？哪些必须提取的，哪些可以松弛的
+感觉不太统一",,,,,,,,,,,,,,
+影视,我想看电视台同步在播的剧,,vod_keyword_search,出品,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""我想看电视台同步在播的剧"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      },
+      {
+        ""field"": ""is_over"",
+        ""value"": 0
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,光线传媒2025年有哪些电影,,vod_keyword_search,出品,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""光线传媒2025年有哪些电影"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""company"",
+        ""value"": ""光线传媒""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      },
+      {
+        ""field"": ""release_time"",
+        ""from"": ""20250101"",
+        ""to"": ""20251231""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,张艺谋导演的抗战片,,vod_keyword_search,导演,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""张艺谋导演的抗战片"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""director"",
+        ""value"": ""张艺谋""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      },
+      {
+        ""field"": ""tag"",
+        ""value"": ""抗战""
+      }
+    ]
+  }
+}","抗战片=tag抗战+电影？
+为啥不是=tag抗战+电视剧？",,,,,,,,,,,,,,
+影视,查找斯皮尔伯格导演的电影,,vod_keyword_search,导演,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""查找斯皮尔伯格导演的电影"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""director"",
+        ""value"": ""斯皮尔伯格""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,郑晓龙导演的古装剧,,vod_keyword_search,导演,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""郑晓龙导演的古装剧"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""director"",
+        ""value"": ""郑晓龙""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      },
+      {
+        ""field"": ""tag"",
+        ""value"": ""古装""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,陈晓卿导演的纪录片,,vod_keyword_search,导演,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""陈晓卿导演的纪录片"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""director"",
+        ""value"": ""陈晓卿""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""纪录片""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,我要看免费的影片,,vod_keyword_search,免费,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""我要看免费的影片"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": 0
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,免费又好看的电视剧,,"vod_quality_search（优质媒资意图，当语料中没有显示出明显的排序维度但是要求优质媒资时进入此意图  如包含：口碑好、值得看、必看、高品质、经典、好看
+的、耐看的）",免费,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""免费又好看的电视剧"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": 0
+      }
+    ]
+  },
+  ""sort"": {
+    ""hot"": {
+      ""order"": ""desc""
+    }
+  }
+}",query 到 field映射规则？好看= hot？,,,,,,,,,,,,,,
+影视,播放不要VIP的鬼片儿,,vod_keyword_search,免费,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""播放不要VIP的鬼片儿"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      },
+      {
+        ""field"": ""tag"",
+        ""value"": ""恐怖""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": 0
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,不用花钱就能看的连续剧,,vod_keyword_search,免费,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""不用花钱就能看的连续剧"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": 0
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,帮我放VIP能看的电影,,vod_keyword_search,付费,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""帮我放VIP能看的电影"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": 1
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,VIP的视频,,vod_keyword_search,付费,vod_search,"只有有免费 付费的槽位，其他槽位为空
+会补充 category 电影、电视剧","{
+  ""action"": ""search"",
+  ""retext"": ""VIP的视频"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""category"",
+        ""values"": [""电影"", ""电视剧""],
+        ""operator"": ""or""
+      },
+      {
+        ""field"": ""fee"",
+        ""value"": 1
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,会员电影,,vod_keyword_search,付费,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""会员电影"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": 1
+      }
+    ]
+  }
+}",缺参数,,,,,,,,,,,,,,
+影视,奥斯卡获奖的影片,,vod_keyword_search,奖项,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""奥斯卡获奖的影片"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""prize"",
+        ""value"": ""奥斯卡""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,获得香港电影金像奖的电影,,vod_keyword_search,奖项,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""获得香港电影金像奖的电影"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""prize"",
+        ""value"": ""香港电影金像奖""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      }
+    ]
+  }
+}
+
+
+
+或者
+
+
+
+{
+  ""action"": ""search"",
+  ""retext"": ""获得香港电影金像奖的电影"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""prize"",
+        ""value"": ""金像奖""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,金鹰奖获的奖电视剧,,vod_keyword_search,奖项,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""金鹰奖获的奖电视剧"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""prize"",
+        ""value"": ""金鹰奖""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,有许三多的那部电视剧,,vod_keyword_search,角色,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""有许三多的那部电视剧"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""role"",
+        ""value"": ""许三多""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,搜索詹姆斯·邦德的电影,,vod_keyword_search,角色,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""搜索詹姆斯·邦德的电影"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""role"",
+        ""value"": ""詹姆斯·邦德""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,播放吴石将军的电视剧,,vod_keyword_search,角色,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""播放吴石将军的电视剧"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""role"",
+        ""value"": ""吴石将军""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,打开要会员的电视剧,,vod_vague_search,分类,vod_search,"标签系统不支持 “会员” 
+智能体意图为 模糊意图 但精确检索可以支持所以近快链路","{
+  ""action"": ""play"",
+  ""retext"": ""打开要会员的电视剧"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": 1
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,综艺节目,,vod_keyword_search,分类,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""综艺节目"",
+  ""query"": {
+    ""field"": ""category"",
+    ""value"": ""综艺""
+  }
+}",,,,,,,,,,,,,,,
+影视,看免费恐怖悬疑电影,,vod_keyword_search,类型,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""看免费恐怖悬疑电影"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      },
+      {
+        ""field"": ""tag"",
+        ""values"": [
+          ""恐怖"",
+          ""悬疑""
+        ],
+        ""operator"": ""or""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": 0
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,最新抗日电影,,vod_keyword_search,类型,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""最新抗日电影"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      },
+      {
+        ""field"": ""tag"",
+        ""value"": ""抗日""
+      }
+    ]
+  },
+  ""sort"": {
+    ""new"": {
+      ""order"": ""desc""
+    }
+  }
+}",,,,,,,,,,,,,,,
+影视,播放言情剧,,vod_keyword_search,类型,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""播放言情剧"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      },
+      {
+        ""field"": ""tag"",
+        ""value"": ""言情""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,播放仙侠电视剧,,vod_keyword_search,类型,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""播放仙侠电视剧"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      },
+      {
+        ""field"": ""tag"",
+        ""value"": ""仙侠""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,我想看相声喜剧,,vod_keyword_search,类型,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""我想看相声喜剧"",
+  ""query"": {
+    ""field"": ""tag"",
+    ""values"": ""相声""
+  }
+}
+
+或者
+
+
+  ""action"": ""play"",
+  ""retext"": ""我想看相声喜剧"",
+  ""query"": {
+    ""field"": ""tag"",
+    ""values"": ""相声喜剧""
+  }
+}",,,,,,,,,,,,,,,
+影视,播安徽民间小调,,vod_keyword_search,类型,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""播安徽民间小调"",
+  ""query"": {
+    ""field"": ""title"",
+    ""value"": ""安徽民间小调""
+  }
+}",,,,,,,,,,,,,,,
+影视,我要看免费的打仗的电视剧,,vod_keyword_search,类型,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""我要看免费的打仗的电视剧"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      },
+      {
+        ""field"": ""tag"",
+        ""value"": ""战争""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": 0
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,香港破案片,,vod_keyword_search,类型,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""香港破案片"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""area"",
+        ""value"": ""香港""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      },
+      {
+        ""field"": ""tag"",
+        ""value"": ""破案""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,最近的免费缉毒电视剧,,vod_keyword_search,类型,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""最近的免费缉毒电视剧"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      },
+      {
+        ""field"": ""tag"",
+        ""value"": ""缉毒""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": 0
+      }
+    ]
+  },
+  ""sort"": {
+    ""new"": {
+      ""order"": ""desc""
+    }
+  }
+}",,,,,,,,,,,,,,,
+影视,播放高评分电视剧,,vod_keyword_search,评分,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""播放高评分电视剧"",
+  ""query"": {
+    ""field"": ""category"",
+    ""value"": ""电视剧""
+  },
+  ""sort"": {
+    ""rate"": {
+      ""order"": ""desc""
+    }
+  }
+}",,,,,,,,,,,,,,,
+影视,豆瓣7分以上的电视剧,,vod_keyword_search,评分,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""豆瓣7分以上的电视剧"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      },
+      {
+        ""field"": ""rate"",
+        ""from"": 7.0,
+        ""to"": 10.0
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,看免费高分综艺,,vod_keyword_search,评分,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""看免费高分综艺"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""category"",
+        ""value"": ""综艺""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": 0
+      }
+    ]
+  },
+  ""sort"": {
+    ""rate"": {
+      ""order"": ""desc""
+    }
+  }
+}",,,,,,,,,,,,,,,
+影视,豆瓣高于8分的电影,,vod_keyword_search,评分,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""豆瓣高于8分的电影"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      },
+      {
+        ""field"": ""rate"",
+        ""from"": 8.0,
+        ""to"": 10.0
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,最新的豆瓣评分高的电视剧,,vod_keyword_search,评分,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""最新的豆瓣评分高的电视剧"",
+  ""query"": {
+    ""field"": ""category"",
+    ""value"": ""电视剧""
+  },
+  ""sort"": {
+    ""new"": {
+      ""order"": ""desc""
+    },
+    ""rate"": {
+      ""order"": ""desc""
+    }
+  }
+}",,,,,,,,,,,,,,,
+影视,刘德华豆瓣评分高的电影,,vod_keyword_search,评分,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""刘德华豆瓣评分高的电影"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""actor"",
+        ""value"": ""刘德华""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      }
+    ]
+  },
+  ""sort"": {
+    ""rate"": {
+      ""order"": ""desc""
+    }
+  }
+}",,,,,,,,,,,,,,,
+影视,评分在8.5到9分之间的影片,,vod_keyword_search,评分,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""评分在8.5到9分之间的影片"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      },
+      {
+        ""field"": ""rate"",
+        ""from"": 8.5,
+        ""to"": 9.0
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,芒果TV新上的综艺,,vod_keyword_search,平台,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""芒果TV新上的综艺"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""vender_name"",
+        ""value"": ""芒果tv""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""综艺""
+      }
+    ]
+  },
+  ""sort"": {
+    ""new"": {
+      ""order"": ""desc""
+    }
+  }
+}",,,,,,,,,,,,,,,
+影视,打开3d视频,,vod_keyword_search,拍摄技术,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""打开3d视频"",
+  ""query"": {
+    ""field"": ""definition"",
+    ""value"": ""is_3d""
+  }
+}",,,,,,,,,,,,,,,
+影视,3d版 电影,,vod_keyword_search,,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""3d版 电影"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""definition"",
+        ""value"": ""is_3d""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,郭德纲儿子最近上的一部剧,,vod_keyword_search,人物关系,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""郭德纲儿子最近上的一部剧"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""actor"",
+        ""value"": ""郭麒麟""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      }
+    ]
+  },
+  ""sort"": {
+    ""new"": {
+      ""order"": ""desc""
+    }
+  }
+}",,,,,,,,,,,,,,,
+影视,我想看孙俪老公的电影,,vod_keyword_search,人物关系,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""我想看孙俪老公的电影"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""actor"",
+        ""value"": ""邓超""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,八十年代的武侠片,,vod_keyword_search,时间,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""八十年代的武侠片"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""release_time"",
+        ""from"": ""19800101"",
+        ""to"": ""19891231""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      },
+      {
+        ""field"": ""tag"",
+        ""value"": ""武侠""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,方中信90年代的电影,,vod_keyword_search,时间+演员,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""方中信90年代的电影"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""actor"",
+        ""value"": ""方中信""
+      },
+      {
+        ""field"": ""release_time"",
+        ""from"": ""19900101"",
+        ""to"": ""19991231""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,大型人文纪录片汉字五千年,,vod_keyword_search,维度组合,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""大型人文纪录片汉字五千年"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""汉字五千年""
+      },
+      {
+        ""field"": ""tag"",
+        ""value"": ""人文""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""纪录片""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,免费的粤语电视剧,,vod_keyword_search,语言,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""免费的粤语电视剧"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""is_fee"",
+        ""value"": 0
+      },
+      {
+        ""field"": ""language"",
+        ""value"": ""粤语""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,小品小崔说事,,vod_vague_search,小品标题,vod_search,parser句法不完备    但小崔说事有title相关标签 且支持小品tag（需标签系统补充映射）,"{
+  ""action"": ""search"",
+  ""retext"": ""小品小崔说事"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""小崔说事""
+      },
+      {
+        ""field"": ""tag"",
+        ""value"": ""小品""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,相声像我这样的人,,vod_keyword_search,相声标题,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""相声像我这样的人"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""像我这样的人""
+      },
+      {
+        ""field"": ""tag"",
+        ""value"": ""相声""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,赵丽蓉的小品打工奇遇,,vod_keyword_search,演员+小品,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""赵丽蓉的小品打工奇遇"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""打工奇遇""
+      },
+      {
+        ""field"": ""actor"",
+        ""value"": ""赵丽蓉""
+      },
+      {
+        ""field"": ""tag"",
+        ""value"": ""小品""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,漩涡视频,,vod_keyword_search,标题,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""漩涡视频"",
+  ""query"": {
+      ""field"": ""title"",
+      ""value"": ""漩涡""
+  }
+}",,,,,,,,,,,,,,,
+影视,我想看电影长安的荔枝3分09秒的全屏,,vod_keyword_search,标题,vod_search,,"{
+  ""action"": ""play"",
+  ""retext"": ""我想看电影长安的荔枝3分09秒的全屏"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""长安的荔枝""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      },
+      {
+        ""field"": ""voiceStartPos"",
+        ""value"": 189
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,找还在更新中的电视剧,,vod_keyword_search,播放状态,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""找还在更新中的电视剧"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""is_over"",
+        ""value"": 0
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,已完结的电视剧,,vod_keyword_search,播放状态,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""找还在更新中的电视剧"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""is_over"",
+        ""value"": 0
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电视剧""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,我们的当打之年花絮,,vod_keyword_search,衍生OST\花絮,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""我们的当打之年花絮"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""我们的当打之年""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""花絮""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,辩论赛经典视频,,vod_vague_search,辩论赛,vod_search,parser句法不完备 但标签系统支持 辩论,"{
+  ""action"": ""search"",
+  ""retext"": ""我们的当打之年花絮"",
+  ""query"": {
+    
+        ""field"": ""tag"",
+        ""value"": ""辩论""
+     
+  }
+}",,,,,,,,,,,,,,,
+影视,适合10到14岁看的纪录片,,vod_keyword_search,年龄,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""适合10到14岁看的纪录片"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""age_range"",
+        ""from"": 10,
+        ""to"": 14
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""纪录片""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,大家都在看的热门剧推荐一下,,vod_vague_search,,vod_search,澄清进模糊  精确检索可以承接,"{
+  ""action"": ""search"",
+  ""retext"": ""大家都在看的热门剧推荐一下"",
+  ""query"": {
+    ""field"": ""category"",
+    ""value"": ""电视剧""
+  },
+  ""sort"": {
+    ""hot"": {
+      ""order"": ""desc""
+    }
+  }
+}",,,,,,,,,,,,,,,
+影视,刘德华友情出演的影片,,vod_keyword_search,友情演出,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""刘德华友情出演的影片"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""actor"",
+        ""value"": ""刘德华""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""电影""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,
+影视,搜索金秀贤、金智媛短视频,,vod_shortvideo,演员,vod_search,,"{
+  ""action"": ""search"",
+  ""retext"": ""搜索金秀贤、金智媛短视频"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""actor"",
+        ""values"": [
+          ""金秀贤"",
+          ""金智媛""
+        ],
+        ""operator"": ""and""
+      },
+      {
+        ""field"": ""category"",
+        ""value"": ""短视频""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,

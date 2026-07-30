@@ -1,0 +1,1476 @@
+﻿·,建议人,name_en,title,url,description,note（选填）,parameters,output,example,,,,,,,,,,
+,岳文浩,"工具schema规范 
+工具里包含逻辑关系的按照dsl格式传参，如果没有则按照普通提槽格式传参",,,,,,,,,,,,,,,,,
+智能体,要点：,"全局唯一，全系统不可重复，作为智能体路由分发工具的主键；
+命名风格统一：小写，禁止空格、中文、特殊符号；
+语义直观：一眼看懂工具能力，区分同模块不同动作；",简短概括工具功能,,"1、核心能力：工具能做什么；
+2、适用场景：智能体什么情况下必须调用；
+ 3、禁用场景：什么情况禁止调用本工具，避免模型误调用；",,完整schema,,,,,,,,,,,,
+少儿,,educ_search,少儿精确检索,,"少儿媒资组合式搜索工具(educ_search)。当用户表达搜索、查找、推荐少儿内容的意图时触发，支持按 18 个维度筛选：16 个精确匹配维度(title/content_type/角色/国家/语言/年级等)、1 个状态维度(is_fee 0=免费|1=付费)、1 个范围维度(release_year, 格式 yyyyMMdd)。同一维度多值通过 values 数组+operator 字段指定逻辑(or任一匹配/and全部匹配, 默认or)；不同维度间通过 BoolNode 组合：and(与)、or(或)、not(非)，支持任意嵌套。可选 sort 按评分/热度/发布时间排序。",,"{
+  ""$schema"": ""http://json-schema.org/draft-07/schema#"",
+  ""name"": ""educ_search"",
+  ""description"": ""少儿媒资组合式搜索工具(educ_search)。当用户表达了搜索、查找、推荐少儿内容的意图时触发，包括按标题(title)、媒资类型(content_type)、蛛网标签二级分类(children_second_genre)/三级分类(children_third_genre)、少儿培养目标(training_objectives)、角色(role)、少儿八大智能(multiple_intelligences)、国家(country)、出品公司(company)、语言(language)、性别(gender)、节日(festival)、奖项(prize)/子奖项(sub_prize)、音效(features)、年级(grade)等维度筛选，以及按免付费状态(is_fee)过滤和发布时间范围(release_year, 格式yyyyMMdd)筛选的场景。支持16个精确匹配维度、1个状态维度(is_fee 0|1)和1个范围维度(release_year 发布时间区间)。同一维度多值时通过values数组+operator字段指定逻辑(or任一匹配/and全部匹配，默认or)。不同维度间通过BoolNode组合：and(与)、or(或)、not(非)，支持任意嵌套。"",
+  ""type"": ""object"",
+  ""properties"": {
+    ""query"": {
+      ""$ref"": ""#/definitions/QueryNode"",
+      ""description"": ""搜索查询的根节点。可以是单个叶子节点，也可以是由 AND/OR/NOT 组成的复合节点。""
+    },
+    ""sort"": {
+      ""type"": ""object"",
+      ""description"": ""排序规则(三种排序键的候选值固定为 asc/desc)，可选 rate(评分)、hot(热度)、new(发布时间) 中的一种或多种组合。三者差异：rate 按 用户/专家评分高低排序，hot 按综合热度(播放量、搜索量等) 排序，new 按发布时间新旧排序。每个排序键的 order 取 asc(正序) 或 desc(倒序)。不传 sort 表示不涉及排序。"",
+      ""properties"": {
+        ""rate"": {
+          ""type"": ""object"",
+          ""properties"": {
+            ""order"": { ""type"": ""string"", ""enum"": [""asc"", ""desc""] }
+          },
+          ""required"": [""order""]
+        },
+        ""hot"": {
+          ""type"": ""object"",
+          ""properties"": {
+            ""order"": { ""type"": ""string"", ""enum"": [""asc"", ""desc""] }
+          },
+          ""required"": [""order""]
+        },
+        ""new"": {
+          ""type"": ""object"",
+          ""properties"": {
+            ""order"": { ""type"": ""string"", ""enum"": [""asc"", ""desc""] }
+          },
+          ""required"": [""order""]
+        }
+      },
+      ""additionalProperties"": false,
+      ""minProperties"": 1
+    }
+  },
+  ""required"": [""query""],
+  ""additionalProperties"": false,
+
+  ""definitions"": {
+
+    ""QueryNode"": {
+      ""description"": ""查询节点，支持两种形态：1) 布尔复合节点(AND/OR/NOT)；2) 叶子条件节点(单个字段的匹配条件)。"",
+      ""oneOf"": [
+        { ""$ref"": ""#/definitions/BoolNode"" },
+        { ""$ref"": ""#/definitions/LeafNode"" }
+      ]
+    },
+
+    ""BoolNode"": {
+      ""description"": ""布尔逻辑组合节点，支持 AND(与)、OR(或)、NOT(非) 三种组合方式。可嵌套组合。"",
+      ""type"": ""object"",
+      ""oneOf"": [
+        {
+          ""properties"": {
+            ""and"": {
+              ""type"": ""array"",
+              ""items"": { ""$ref"": ""#/definitions/QueryNode"" },
+              ""minItems"": 1,
+              ""description"": ""AND逻辑：所有子节点条件必须同时满足。""
+            }
+          },
+          ""required"": [""and""],
+          ""additionalProperties"": false
+        },
+        {
+          ""properties"": {
+            ""or"": {
+              ""type"": ""array"",
+              ""items"": { ""$ref"": ""#/definitions/QueryNode"" },
+              ""minItems"": 1,
+              ""description"": ""OR逻辑：子节点条件中至少满足一个。""
+            }
+          },
+          ""required"": [""or""],
+          ""additionalProperties"": false
+        },
+        {
+          ""properties"": {
+            ""not"": {
+              ""$ref"": ""#/definitions/QueryNode"",
+              ""description"": ""NOT逻辑：对子节点条件取反。""
+            }
+          },
+          ""required"": [""not""],
+          ""additionalProperties"": false
+        }
+      ]
+    },
+
+    ""LeafNode"": {
+      ""description"": ""叶子条件节点，描述对某一搜索维度的具体匹配条件。field 指定维度，value 指定匹配值。"",
+      ""type"": ""object"",
+      ""oneOf"": [
+        { ""$ref"": ""#/definitions/ExactFieldCondition"" },
+        { ""$ref"": ""#/definitions/StatusFieldCondition"" },
+        { ""$ref"": ""#/definitions/RangeFieldCondition"" }
+      ]
+    },
+
+    ""ExactFieldCondition"": {
+      ""description"": ""精确匹配条件。value 为单值精确匹配；values 为多值数组时，通过 operator 字段控制维度内的逻辑关系：\""or\"" 表示任一值匹配即命中(默认)，\""and\"" 表示所有值均需匹配。"",
+      ""type"": ""object"",
+      ""properties"": {
+        ""field"": {
+          ""type"": ""string"",
+          ""description"": ""搜索维度字段名（共16个精确匹配维度）。候选类型分三类：固定候选(取值有限可枚举，模型应在候选内取值或归一化)、半固定候选(常见取值有限但可扩展)、开放型(取值不可枚举，按语义自由填入)。部分字段间存在语义边界，需按各 const 描述中的差异化说明选择正确字段。"",
+          ""oneOf"": [
+            { ""const"": ""title"", ""description"": ""媒资作品标题(开放型)。搜索具体的作品名称时使用。与 role(人物角色) 不同——title 是作品本身的名字(如西游记)，role 是作品中的人物(如孙悟空)。典型取值：动画片名(小猪佩奇、汪汪队)、电影名(战狼、流浪地球)、电视剧名(甄嬛传)、游戏名(斗罗大陆、王者荣耀)、儿歌歌曲名(红蜻蜓、葫芦娃)、儿歌集锦名(儿歌多多)、儿童故事名(葫芦娃、三毛)、玩具名(陀螺、溜溜球)、玩具视频名(芭比玩具)、儿童视频名(挖掘机)、漫画名、手工类型、棋类名称、ar百科媒资(摩托车、北极熊)、儿童课程类型(国学经典、启蒙教育)、书本册数(上册、下册)、儿童舞蹈类型-聚好看(萌动)、少儿视频弱标签(老鼠爱大米、起风了)等"" },
+            { ""const"": ""content_type"", ""description"": ""媒资表现形式(固定候选)。仅在用户明确区分媒资形态时使用，候选值：动画、动画片。与 children_third_genre(主题标签) 不同——content_type 描述\""是什么形态的媒资\""，children_third_genre 描述\""讲什么主题的内容\"""" },
+            { ""const"": ""children_second_genre"", ""description"": ""蛛网标签-二级分类(固定候选)。少儿内容蛛网分类体系下的较粗粒度大类标签。与 children_third_genre(三级分类) 是上下位关系——second_genre 是大类，third_genre 是其下的细分标签，候选值：才艺、宠物、动画、动画电影、儿歌、故事、国学、绘本、家长课堂、经典、科普、少儿动漫、数学、玩具、音频、英语、早教、真人"" },
+            { ""const"": ""children_third_genre"", ""description"": ""蛛网标签-三级分类(开放型)。少儿内容蛛网分类体系下的较细粒度标签，是 children_second_genre(二级分类) 的下位细分。典型取值：工程车、百科综合、益智动画、益智儿歌、昆虫、玩玩具、身体健康、自然拼读、冒险等"" },
+            { ""const"": ""training_objectives"", ""description"": ""少儿培养目标(开放型)。按教育目标筛选内容时使用。与 multiple_intelligences(八大智能) 不同——training_objectives 偏教学目标导向(如培养专注力、启蒙认知)，multiple_intelligences 偏智能维度分类(如语言智能、逻辑数学智能)"" },
+            { ""const"": ""role"", ""description"": ""角色(开放型)。作品中的具体人物角色。与 title(作品名称) 不同——role 是作品中的人物(如孙悟空、路飞)，title 是作品本身的名字(如西游记、海贼王)。适用场景如\""找有路飞出场的动画\"""" },
+            { ""const"": ""multiple_intelligences"", ""description"": ""少儿八大智能(开放型)。按多元智能理论筛选内容。与 training_objectives(培养目标) 不同——multiple_intelligences 是智能维度分类(语言智能、逻辑数学智能、空间智能等)，training_objectives 是教学目标导向"" },
+            { ""const"": ""country"", ""description"": ""国家/地区(开放型)。按地理维度筛选内容时使用。与 language(语言) 不同——country 是地理概念(中国、山东、卢森堡)，language 是语言本身(中文、英语)；当一词多义(如\""中华\"")时按用户意图归类。典型取值：外国国家名(卢森堡、苏格兰)、中国国家(中国)、国内省份(山东、陕西)、国内区域名(中华、香港)、国外区域名(中东、欧亚)、地区(中东)等"" },
+            { ""const"": ""company"", ""description"": ""出品公司(开放型)。制作或发行该媒资的公司主体。适用场景如\""找时光传媒出品的动画\""。典型取值：影视出品公司(时光传媒)等"" },
+            { ""const"": ""language"", ""description"": ""语言(半固定候选)。语种或语言版本。与 country(地理) 不同——language 描述作品使用的语言或制作风格的地域版本，country 是地理归属。常见取值：中文、英语、日语等语种；韩版、美版等版本词"" },
+            { ""const"": ""gender"", ""description"": ""受众人群性别(固定候选)。按目标受众性别筛选内容时使用。候选值：男、男生、男性、女、女生、女性。适用场景如\""适合男生看的电影\""、\""女生喜欢的动画片\"""" },
+            { ""const"": ""festival"", ""description"": ""节日/学期(开放型)。按节日或学期节点筛选内容时使用。与 release_year(具体日期范围) 不同——festival 是节日名或学期概念(除夕、端午、开学季)，release_year 是 yyyyMMdd 格式的精确日期区间。典型取值：时间-节日(除夕、端午)、学期等"" },
+            { ""const"": ""prize"", ""description"": ""奖项(开放型)。整体奖项名称。与 sub_prize(子奖项) 是上下位关系——prize 是奖项整体(如金鸡奖、金马奖)，sub_prize 是该奖项下的具体子项(如最佳男配角、最佳女主角)。当用户只说\""金鸡奖\""用 prize，说\""金鸡奖最佳男主角\""则 prize+sub_prize 组合使用"" },
+            { ""const"": ""sub_prize"", ""description"": ""子奖项(开放型)。奖项下的具体子项，是 prize(奖项整体) 的下位细分。与 prize 配合使用以精确指向某一具体奖项子项。典型取值：最佳男配角、最佳女主角、最佳导演等。适用场景如\""找获得最佳男主角的影片\"""" },
+            { ""const"": ""features"", ""description"": ""音效(固定候选)。技术性音效标识。候选值：杜比、杜比音效。适用场景如\""找支持杜比音效的内容\"""" },
+            { ""const"": ""grade"", ""description"": ""年级。按目标受众的学段或筛选内容时使用。候选值：幼儿园阶段(小班、中班、大班)、小学年级(一年级~六年级)等"" }
+          ]
+        },
+        ""value"": { ""type"": ""string"", ""description"": ""单值精确匹配"" },
+        ""values"": {
+          ""type"": ""array"",
+          ""items"": { ""type"": ""string"" },
+          ""minItems"": 1,
+          ""description"": ""多值匹配，逻辑关系由 operator 字段决定""
+        },
+        ""operator"": {
+          ""type"": ""string"",
+          ""enum"": [""and"", ""or""],
+          ""default"": ""or"",
+          ""description"": ""维度内多值逻辑关系。\""or\"" 表示任一值匹配即命中(默认)，\""and\"" 表示所有值均需匹配。仅在使用 values 时生效。""
+        }
+      },
+      ""required"": [""field""],
+      ""oneOf"": [
+        { ""required"": [""value""] },
+        { ""required"": [""values""] }
+      ],
+      ""additionalProperties"": false
+    },
+
+    ""StatusFieldCondition"": {
+      ""description"": ""状态标识条件(固定候选 0/1)。用于枚举状态字段，值为 0 或 1 的整数。is_fee: 0=免费, 1=付费。不传表示不涉及该条件。"",
+      ""type"": ""object"",
+      ""properties"": {
+        ""field"": {
+          ""type"": ""string"",
+          ""description"": ""状态字段名"",
+          ""oneOf"": [
+            { ""const"": ""is_fee"", ""description"": ""免付费标识。0=免费，1=付费。适用场景如\""找免费内容\""、\""找VIP付费内容\""。与 ExactFieldCondition 中的其他维度不同——is_fee 是布尔型状态过滤，不参与主题/属性匹配"" }
+          ]
+        },
+        ""value"": {
+          ""type"": ""integer"",
+          ""enum"": [0, 1],
+          ""description"": ""状态值，0 或 1。is_fee: 0=免费(对应自然语言\""免费/不要钱\"")，1=付费(对应自然语言\""付费/VIP\"")。自然语言中的\""打折/五折/半价\""等费用相关词需归一化为 0 或 1 后传入。""
+        }
+      },
+      ""required"": [""field"", ""value""],
+      ""additionalProperties"": false
+    },
+
+    ""RangeFieldCondition"": {
+      ""description"": ""范围匹配条件。支持 age_range(年龄范围) release_year(发布时间范围)含边界。"",
+      ""type"": ""object"",
+      ""properties"": {
+        ""field"": {
+          ""type"": ""string"",
+          ""description"": ""范围搜索维度字段名"",
+          ""oneOf"": [
+            { ""const"": ""age_range"", ""description"": ""年龄范围筛选，三种模式：1. \""3 TO 6\""年龄区间；2. \""* TO 6\""不超过6岁；3. \""6 TO *\""不小于6岁"" },
+            { ""const"": ""release_year"", ""description"": ""发布时间范围。from/to 均为 yyyyMMdd 格式字符串，含边界"" }
+          ]
+        },
+        ""from"": {
+          ""type"": ""string"",
+          ""pattern"": ""^[0-9]{8}$"",
+          ""description"": ""发布日期下限(含)，age_range为整数，release_year格式 yyyyMMdd，如 20200101。自然语言归一化示例：\""2023年/2023\""→from:20230101；\""去年/上一年/明年\""→from:对应年份1月1日；\""80年代\""→from:19800101；\""近一年/近5年\""等时间段→from:对应起始日期；\""本周一/上周一\""等星期表达→from:对应日期。""
+        },
+        ""to"": {
+          ""type"": ""string"",
+          ""pattern"": ""^[0-9]{8}$"",
+          ""description"": ""发布日期上限(含)，age_range为整数，release_year格式 yyyyMMdd，如 20231231。归一化示例：\""2023年\""→to:20231231；\""80年代\""→to:19891231；\""近一年/近5年\""→to:当天日期；\""本周一/上周一\""→to:对应日期。""
+        }
+      },
+      ""required"": [""field"", ""from"", ""to""],
+      ""additionalProperties"": false
+    }
+  }
+}","{
+    ""$schema"": ""http://json-schema.org/draft-04/schema#"",
+    ""type"": ""object"",
+    ""properties"": {
+        ""$schema"": {
+            ""type"": ""string""
+        },
+        ""type"": {
+            ""type"": ""string""
+        },
+        ""properties"": {
+            ""type"": ""object"",
+            ""properties"": {
+                ""智能体（影视、少儿）"": {
+                    ""type"": ""object"",
+                    ""properties"": {
+                        ""type"": {
+                            ""type"": ""string""
+                        },
+                        ""properties"": {
+                            ""type"": ""object"",
+                            ""properties"": {
+                                ""code"": {
+                                    ""type"": ""object"",
+                                    ""properties"": {
+                                        ""type"": {
+                                            ""type"": ""string""
+                                        },
+                                        ""description"": {
+                                            ""type"": ""string""
+                                        }
+                                    }
+                                },
+                                ""data"": {
+                                    ""type"": ""object"",
+                                    ""properties"": {
+                                        ""type"": {
+                                            ""type"": ""string""
+                                        },
+                                        ""properties"": {
+                                            ""type"": ""object"",
+                                            ""properties"": {
+                                                ""ttscontent"": {
+                                                    ""type"": ""object"",
+                                                    ""properties"": {
+                                                        ""type"": {
+                                                            ""type"": ""string""
+                                                        },
+                                                        ""description"": {
+                                                            ""type"": ""string""
+                                                        }
+                                                    }
+                                                },
+                                                ""llmSemantic"": {
+                                                    ""type"": ""object"",
+                                                    ""properties"": {
+                                                        ""type"": {
+                                                            ""type"": ""string""
+                                                        },
+                                                        ""properties"": {
+                                                            ""type"": ""object"",
+                                                            ""properties"": {
+                                                                ""query"": {
+                                                                    ""type"": ""object"",
+                                                                    ""properties"": {
+                                                                        ""type"": {
+                                                                            ""type"": ""string""
+                                                                        }
+                                                                    }
+                                                                },
+                                                                ""vectorQuery"": {
+                                                                    ""type"": ""object"",
+                                                                    ""properties"": {
+                                                                        ""type"": {
+                                                                            ""type"": ""string""
+                                                                        },
+                                                                        ""description"": {
+                                                                            ""type"": ""string""
+                                                                        }
+                                                                    }
+                                                                },
+                                                                ""domain"": {
+                                                                    ""type"": ""object"",
+                                                                    ""properties"": {
+                                                                        ""type"": {
+                                                                            ""type"": ""string""
+                                                                        },
+                                                                        ""description"": {
+                                                                            ""type"": ""string""
+                                                                        }
+                                                                    }
+                                                                },
+                                                                ""intent"": {
+                                                                    ""type"": ""object"",
+                                                                    ""properties"": {
+                                                                        ""type"": {
+                                                                            ""type"": ""string""
+                                                                        },
+                                                                        ""description"": {
+                                                                            ""type"": ""string""
+                                                                        }
+                                                                    }
+                                                                },
+                                                                ""isNewVersion"": {
+                                                                    ""type"": ""object"",
+                                                                    ""properties"": {
+                                                                        ""type"": {
+                                                                            ""type"": ""string""
+                                                                        },
+                                                                        ""description"": {
+                                                                            ""type"": ""string""
+                                                                        }
+                                                                    }
+                                                                },
+                                                                ""content"": {
+                                                                    ""type"": ""object"",
+                                                                    ""properties"": {
+                                                                        ""type"": {
+                                                                            ""type"": ""string""
+                                                                        },
+                                                                        ""description"": {
+                                                                            ""type"": ""string""
+                                                                        }
+                                                                    }
+                                                                },
+                                                                ""largeModelSlotData"": {
+                                                                    ""type"": ""object"",
+                                                                    ""properties"": {
+                                                                        ""type"": {
+                                                                            ""type"": ""string""
+                                                                        },
+                                                                        ""properties"": {
+                                                                            ""type"": ""object"",
+                                                                            ""properties"": {
+
+                                                                            }
+                                                                        },
+                                                                        ""description"": {
+                                                                            ""type"": ""string""
+                                                                        }
+                                                                    }
+                                                                },
+                                                                ""originalQuery"": {
+                                                                    ""type"": ""object"",
+                                                                    ""properties"": {
+                                                                        ""type"": {
+                                                                            ""type"": ""string""
+                                                                        },
+                                                                        ""description"": {
+                                                                            ""type"": ""string""
+                                                                        }
+                                                                    }
+                                                                },
+                                                                ""rewriteQuery"": {
+                                                                    ""type"": ""object"",
+                                                                    ""properties"": {
+                                                                        ""type"": {
+                                                                            ""type"": ""string""
+                                                                        },
+                                                                        ""description"": {
+                                                                            ""type"": ""string""
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                        ""description"": {
+                                                            ""type"": ""string""
+                                                        },
+                                                        ""required"": {
+                                                            ""type"": ""array"",
+                                                            ""items"": {
+                                                                ""type"": ""string""
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                ""data"": {
+                                                    ""type"": ""object"",
+                                                    ""properties"": {
+                                                        ""type"": {
+                                                            ""type"": ""string""
+                                                        },
+                                                        ""properties"": {
+                                                            ""type"": ""object"",
+                                                            ""properties"": {
+
+                                                            }
+                                                        },
+                                                        ""description"": {
+                                                            ""type"": ""string""
+                                                        }
+                                                    }
+                                                },
+                                                ""ttsPolishParam"": {
+                                                    ""type"": ""object"",
+                                                    ""properties"": {
+                                                        ""type"": {
+                                                            ""type"": ""string""
+                                                        },
+                                                        ""properties"": {
+                                                            ""type"": ""object"",
+                                                            ""properties"": {
+
+                                                            }
+                                                        },
+                                                        ""description"": {
+                                                            ""type"": ""string""
+                                                        }
+                                                    }
+                                                },
+                                                ""iotinfocheck"": {
+                                                    ""type"": ""object"",
+                                                    ""properties"": {
+                                                        ""type"": {
+                                                            ""type"": ""string""
+                                                        },
+                                                        ""description"": {
+                                                            ""type"": ""string""
+                                                        }
+                                                    }
+                                                },
+                                                ""multispeech"": {
+                                                    ""type"": ""object"",
+                                                    ""properties"": {
+                                                        ""type"": {
+                                                            ""type"": ""string""
+                                                        },
+                                                        ""description"": {
+                                                            ""type"": ""string""
+                                                        }
+                                                    }
+                                                },
+                                                ""ttsReplace"": {
+                                                    ""type"": ""object"",
+                                                    ""properties"": {
+                                                        ""type"": {
+                                                            ""type"": ""string""
+                                                        },
+                                                        ""description"": {
+                                                            ""type"": ""string""
+                                                        }
+                                                    }
+                                                },
+                                                ""sort"": {
+                                                    ""type"": ""object"",
+                                                    ""properties"": {
+                                                        ""type"": {
+                                                            ""type"": ""string""
+                                                        },
+                                                        ""description"": {
+                                                            ""type"": ""string""
+                                                        }
+                                                    }
+                                                },
+                                                ""priority"": {
+                                                    ""type"": ""object"",
+                                                    ""properties"": {
+                                                        ""type"": {
+                                                            ""type"": ""string""
+                                                        },
+                                                        ""description"": {
+                                                            ""type"": ""string""
+                                                        }
+                                                    }
+                                                },
+                                                ""subsort"": {
+                                                    ""type"": ""object"",
+                                                    ""properties"": {
+                                                        ""type"": {
+                                                            ""type"": ""string""
+                                                        },
+                                                        ""description"": {
+                                                            ""type"": ""string""
+                                                        }
+                                                    }
+                                                },
+                                                ""screenoper"": {
+                                                    ""type"": ""object"",
+                                                    ""properties"": {
+                                                        ""type"": {
+                                                            ""type"": ""string""
+                                                        },
+                                                        ""description"": {
+                                                            ""type"": ""string""
+                                                        }
+                                                    }
+                                                },
+                                                ""logId"": {
+                                                    ""type"": ""object"",
+                                                    ""properties"": {
+                                                        ""type"": {
+                                                            ""type"": ""string""
+                                                        },
+                                                        ""description"": {
+                                                            ""type"": ""string""
+                                                        }
+                                                    }
+                                                },
+                                                ""fullduplex"": {
+                                                    ""type"": ""object"",
+                                                    ""properties"": {
+                                                        ""type"": {
+                                                            ""type"": ""string""
+                                                        },
+                                                        ""description"": {
+                                                            ""type"": ""string""
+                                                        }
+                                                    }
+                                                },
+                                                ""extradata"": {
+                                                    ""type"": ""object"",
+                                                    ""properties"": {
+                                                        ""type"": {
+                                                            ""type"": ""string""
+                                                        },
+                                                        ""properties"": {
+                                                            ""type"": ""object"",
+                                                            ""properties"": {
+                                                                ""video"": {
+                                                                    ""type"": ""object"",
+                                                                    ""properties"": {
+                                                                        ""type"": {
+                                                                            ""type"": ""string""
+                                                                        },
+                                                                        ""properties"": {
+                                                                            ""type"": ""object"",
+                                                                            ""properties"": {
+                                                                                ""videorecommand"": {
+                                                                                    ""type"": ""object"",
+                                                                                    ""properties"": {
+                                                                                        ""type"": {
+                                                                                            ""type"": ""string""
+                                                                                        },
+                                                                                        ""items"": {
+                                                                                            ""type"": ""object"",
+                                                                                            ""properties"": {
+                                                                                                ""type"": {
+                                                                                                    ""type"": ""string""
+                                                                                                },
+                                                                                                ""properties"": {
+                                                                                                    ""type"": ""object"",
+                                                                                                    ""properties"": {
+                                                                                                        ""videonum"": {
+                                                                                                            ""type"": ""object"",
+                                                                                                            ""properties"": {
+                                                                                                                ""type"": {
+                                                                                                                    ""type"": ""string""
+                                                                                                                },
+                                                                                                                ""description"": {
+                                                                                                                    ""type"": ""string""
+                                                                                                                }
+                                                                                                            }
+                                                                                                        },
+                                                                                                        ""isrecommand"": {
+                                                                                                            ""type"": ""object"",
+                                                                                                            ""properties"": {
+                                                                                                                ""type"": {
+                                                                                                                    ""type"": ""string""
+                                                                                                                },
+                                                                                                                ""description"": {
+                                                                                                                    ""type"": ""string""
+                                                                                                                }
+                                                                                                            }
+                                                                                                        }
+                                                                                                    }
+                                                                                                },
+                                                                                                ""required"": {
+                                                                                                    ""type"": ""array"",
+                                                                                                    ""items"": {
+                                                                                                        ""type"": ""string""
+                                                                                                    }
+                                                                                                }
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        ""description"": {
+                                                                            ""type"": ""string""
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                        ""description"": {
+                                                            ""type"": ""string""
+                                                        }
+                                                    }
+                                                },
+                                                ""debugLog"": {
+                                                    ""type"": ""object"",
+                                                    ""properties"": {
+                                                        ""type"": {
+                                                            ""type"": ""string""
+                                                        },
+                                                        ""properties"": {
+                                                            ""type"": ""object"",
+                                                            ""properties"": {
+
+                                                            }
+                                                        },
+                                                        ""description"": {
+                                                            ""type"": ""string""
+                                                        }
+                                                    }
+                                                },
+                                                ""memoryData"": {
+                                                    ""type"": ""object"",
+                                                    ""properties"": {
+                                                        ""type"": {
+                                                            ""type"": ""string""
+                                                        },
+                                                        ""items"": {
+                                                            ""type"": ""object"",
+                                                            ""properties"": {
+                                                                ""type"": {
+                                                                    ""type"": ""string""
+                                                                },
+                                                                ""properties"": {
+                                                                    ""type"": ""object"",
+                                                                    ""properties"": {
+                                                                        ""sort"": {
+                                                                            ""type"": ""object"",
+                                                                            ""properties"": {
+                                                                                ""type"": {
+                                                                                    ""type"": ""string""
+                                                                                },
+                                                                                ""description"": {
+                                                                                    ""type"": ""string""
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        ""subsort"": {
+                                                                            ""type"": ""object"",
+                                                                            ""properties"": {
+                                                                                ""type"": {
+                                                                                    ""type"": ""string""
+                                                                                },
+                                                                                ""description"": {
+                                                                                    ""type"": ""string""
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        ""recognitionType"": {
+                                                                            ""type"": ""object"",
+                                                                            ""properties"": {
+                                                                                ""type"": {
+                                                                                    ""type"": ""string""
+                                                                                },
+                                                                                ""description"": {
+                                                                                    ""type"": ""string""
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        ""text"": {
+                                                                            ""type"": ""object"",
+                                                                            ""properties"": {
+                                                                                ""type"": {
+                                                                                    ""type"": ""string""
+                                                                                },
+                                                                                ""description"": {
+                                                                                    ""type"": ""string""
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        ""serviceId"": {
+                                                                            ""type"": ""object"",
+                                                                            ""properties"": {
+                                                                                ""type"": {
+                                                                                    ""type"": ""string""
+                                                                                },
+                                                                                ""description"": {
+                                                                                    ""type"": ""string""
+                                                                                }
+                                                                            }
+                                                                        },
+                                                                        ""data"": {
+                                                                            ""type"": ""object"",
+                                                                            ""properties"": {
+                                                                                ""type"": {
+                                                                                    ""type"": ""string""
+                                                                                },
+                                                                                ""items"": {
+                                                                                    ""type"": ""object"",
+                                                                                    ""properties"": {
+                                                                                        ""type"": {
+                                                                                            ""type"": ""string""
+                                                                                        },
+                                                                                        ""properties"": {
+                                                                                            ""type"": ""object"",
+                                                                                            ""properties"": {
+                                                                                                ""actor"": {
+                                                                                                    ""type"": ""object"",
+                                                                                                    ""properties"": {
+                                                                                                        ""type"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        },
+                                                                                                        ""items"": {
+                                                                                                            ""type"": ""object"",
+                                                                                                            ""properties"": {
+                                                                                                                ""type"": {
+                                                                                                                    ""type"": ""string""
+                                                                                                                },
+                                                                                                                ""description"": {
+                                                                                                                    ""type"": ""string""
+                                                                                                                }
+                                                                                                            }
+                                                                                                        },
+                                                                                                        ""description"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        }
+                                                                                                    }
+                                                                                                },
+                                                                                                ""childCategory"": {
+                                                                                                    ""type"": ""object"",
+                                                                                                    ""properties"": {
+                                                                                                        ""type"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        },
+                                                                                                        ""items"": {
+                                                                                                            ""type"": ""object"",
+                                                                                                            ""properties"": {
+                                                                                                                ""type"": {
+                                                                                                                    ""type"": ""string""
+                                                                                                                },
+                                                                                                                ""description"": {
+                                                                                                                    ""type"": ""string""
+                                                                                                                }
+                                                                                                            }
+                                                                                                        },
+                                                                                                        ""description"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        }
+                                                                                                    }
+                                                                                                },
+                                                                                                ""mediaTitle"": {
+                                                                                                    ""type"": ""object"",
+                                                                                                    ""properties"": {
+                                                                                                        ""type"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        },
+                                                                                                        ""description"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        }
+                                                                                                    }
+                                                                                                },
+                                                                                                ""doubanRate"": {
+                                                                                                    ""type"": ""object"",
+                                                                                                    ""properties"": {
+                                                                                                        ""type"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        },
+                                                                                                        ""description"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        }
+                                                                                                    }
+                                                                                                },
+                                                                                                ""director"": {
+                                                                                                    ""type"": ""object"",
+                                                                                                    ""properties"": {
+                                                                                                        ""type"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        },
+                                                                                                        ""items"": {
+                                                                                                            ""type"": ""object"",
+                                                                                                            ""properties"": {
+                                                                                                                ""type"": {
+                                                                                                                    ""type"": ""string""
+                                                                                                                }
+                                                                                                            }
+                                                                                                        },
+                                                                                                        ""description"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        }
+                                                                                                    }
+                                                                                                },
+                                                                                                ""guest"": {
+                                                                                                    ""type"": ""object"",
+                                                                                                    ""properties"": {
+                                                                                                        ""type"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        }
+                                                                                                    }
+                                                                                                },
+                                                                                                ""isClip"": {
+                                                                                                    ""type"": ""object"",
+                                                                                                    ""properties"": {
+                                                                                                        ""type"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        },
+                                                                                                        ""description"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        }
+                                                                                                    }
+                                                                                                },
+                                                                                                ""mediaId"": {
+                                                                                                    ""type"": ""object"",
+                                                                                                    ""properties"": {
+                                                                                                        ""type"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        },
+                                                                                                        ""description"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        },
+                                                                                                        ""format"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        }
+                                                                                                    }
+                                                                                                },
+                                                                                                ""category"": {
+                                                                                                    ""type"": ""object"",
+                                                                                                    ""properties"": {
+                                                                                                        ""type"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        },
+                                                                                                        ""description"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        }
+                                                                                                    }
+                                                                                                },
+                                                                                                ""pubdate"": {
+                                                                                                    ""type"": ""object"",
+                                                                                                    ""properties"": {
+                                                                                                        ""type"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        },
+                                                                                                        ""description"": {
+                                                                                                            ""type"": ""string""
+                                                                                                        }
+                                                                                                    }
+                                                                                                }
+                                                                                            }
+                                                                                        },
+                                                                                        ""required"": {
+                                                                                            ""type"": ""array"",
+                                                                                            ""items"": {
+                                                                                                ""type"": ""string""
+                                                                                            }
+                                                                                        }
+                                                                                    }
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    }
+                                                                },
+                                                                ""required"": {
+                                                                    ""type"": ""array"",
+                                                                    ""items"": {
+                                                                        ""type"": ""string""
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                        ""description"": {
+                                                            ""type"": ""string""
+                                                        }
+                                                    }
+                                                },
+                                                ""memoryContent"": {
+                                                    ""type"": ""object"",
+                                                    ""properties"": {
+                                                        ""type"": {
+                                                            ""type"": ""string""
+                                                        },
+                                                        ""description"": {
+                                                            ""type"": ""string""
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        ""description"": {
+                                            ""type"": ""string""
+                                        },
+                                        ""required"": {
+                                            ""type"": ""array"",
+                                            ""items"": {
+                                                ""type"": ""string""
+                                            }
+                                        }
+                                    }
+                                },
+                                ""message"": {
+                                    ""type"": ""object"",
+                                    ""properties"": {
+                                        ""type"": {
+                                            ""type"": ""string""
+                                        },
+                                        ""description"": {
+                                            ""type"": ""string""
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        ""description"": {
+                            ""type"": ""string""
+                        }
+                    }
+                }
+            }
+        },
+        ""required"": {
+            ""type"": ""array"",
+            ""items"": {
+                ""type"": ""string""
+            }
+        }
+    }
+}",,,,,,,,,,,
+,仅慢链路,educ_slow_search_data_search,少儿_媒资搜索_慢链路_数据搜索涵盖（少儿模糊搜索、少儿问答、少儿知识问答、少儿个性化推荐模糊搜索等）,,"少儿内容非明确的复杂语义搜索。用于处理用户以模糊、描述性、问答等方式表达少儿内容查找意图的场景，包括受众条件描述、复杂组合条件等，系统将自然语言解析为结构化筛选参数后进行检索。
+适用场景：1. 受众/年龄段描述类查询，如\""适合3-6岁男宝的免费动画\""、\""给4岁女孩找的英语启蒙\""；2. 问答式查询，如\""3岁宝宝能看什么\""（解析为age_range条件）、\""有什么免费的国产儿童片\""（解析为country+is_fee条件）；3. 复杂组合描述，如\""非美国的、适合女孩的、中文的教育类内容\""、\""国产或日本的音乐类免费儿歌\""；4. 多维度交叉筛选，支持tag/age_range/gender/country/language/is_fee 六维度内多值与维度间 AND/OR/NOT 任意嵌套。
+不适用场景：明确指定了具体IP/角色/品牌/栏目名的请求不要使用该工具，如\""看小猪佩奇\""、\""播放汪汪队\""、\""跳到宝宝巴士\""，应使用直达工具 children_direct。
+关联工具：明确直达词用 children_direct；查看用户观看历史用 children_history_list；获取内容详情用 children_detail_get；批量获取用 children_batch_get。
+异常：DSL语法不合法返回 QUERY_INVALID；字段或值不合法返回 FIELD_VALUE_INVALID（如 gender 非\""男/女\""、is_fee 非 0/1、age_range 格式错误）。
+结果使用：items 为内容条目列表，total 为命中总数，分页通过 page/page_size 控制；item 中 age_range 表示适合年龄段，is_fee 表示免费/收费状态，score 辅助前端重排。",,"{
+    ""name"": ""educ_slow_search_data_search"",
+    ""title"": ""教育_内容搜索_慢链路_数据搜索"",
+    ""url"": ""https://api.example.com/educ/search"",
+    ""method"": ""POST"",
+    ""description"": ""功能：教育内容非明确的复杂语义搜索。用于处理用户以模糊、描述性、问答等方式表达教育/少儿内容查找意图的场景，包括按受众描述、组合条件、问答式查询等，系统将自然语言解析为结构化筛选参数后进行检索。\n适用场景：1. 受众描述类查询，如\""适合3到6岁男孩的英语启蒙动画\""、\""给学龄前小朋友看的免费儿歌\""；2. 问答式查询，如\""有没有适合女童的国产动画\""（解析为gender+country+tag条件）、\""有没有免费的英语启蒙内容\""（解析为is_fee+language+tag条件）；3. 复杂组合描述，如\""非国产的、免费的、适合6岁以上孩子的英语教学内容\""、\""不是收费的、日本出的、适合女童的动漫\""；4. 语言/产地相关的模糊查找。\n不适用场景：简单明确的查询不要使用该工具，如\""播放小猪佩奇\""、\""打开英语启蒙频道\""、\""看儿歌多多\""等直接指定了明确内容名称或固定分类的请求，应使用明确的检索工具。\n异常：无法解析用户意图时results返回空对象且status_code为200；参数格式错误时status_code为500。\n结果使用：results中各字段反映系统从用户自然语言中解析出的结构化筛选条件，用于确认解析意图并展示匹配内容。"",
+    ""parameters"": {
+        ""type"": ""object"",
+        ""properties"": {
+            ""tag"": {
+                ""type"": ""string"",
+                ""description"": ""二级分类筛选"",
+                ""enum"": [
+                    ""才艺"",
+                    ""宠物"",
+                    ""动画"",
+                    ""动画电影"",
+                    ""儿歌"",
+                    ""故事"",
+                    ""国学"",
+                    ""绘本"",
+                    ""家长课堂"",
+                    ""经典"",
+                    ""科普"",
+                    ""少儿动漫"",
+                    ""数学"",
+                    ""玩具"",
+                    ""音频"",
+                    ""英语"",
+                    ""早教"",
+                    ""真人""
+                ]
+            },
+            ""age_range"": {
+                ""type"": ""string"",
+                ""description"": ""年龄范围筛选，三种模式：1. \""3 TO 6\""年龄区间；2. \""* TO 6\""不超过6岁；3. \""6 TO *\""不小于6岁""
+            },
+            ""gender"": {
+                ""type"": ""string"",
+                ""description"": ""性别筛选"",
+                ""enum"": [
+                    ""男"",
+                    ""女""
+                ]
+            },
+            ""country"": {
+                ""type"": ""string"",
+                ""description"": ""内容出品国家/地区名，如\""中国\""、\""美国\""、\""日本\""、\""英国\""、\""韩国\""等""
+            },
+            ""language"": {
+                ""type"": ""string"",
+                ""description"": ""内容语种，如\""中文\""、\""英语\""、\""日语\""、\""韩语\""、\""法语\""等""
+            },
+            ""is_fee"": {
+                ""type"": ""string"",
+                ""description"": ""是否收费筛选"",
+                ""enum"": [
+                    ""0"",
+                    ""1""
+                ]
+            }
+        },
+        ""required"": [
+
+        ]
+    },
+    ""output"": {
+        ""type"": ""object"",
+        ""properties"": {
+            ""results"": {
+                ""type"": ""object"",
+                ""description"": ""搜索结果，包含解析后的筛选条件回显"",
+                ""properties"": {
+                    ""tag"": {
+                        ""type"": ""string"",
+                        ""description"": ""二级分类""
+                    },
+                    ""age_range"": {
+                        ""type"": ""string"",
+                        ""description"": ""年龄范围条件。三种模式：1. \""number1 TO number2\""；2. \""* TO number2\""；3. \""number1 TO *\""""
+                    },
+                    ""gender"": {
+                        ""type"": ""string"",
+                        ""description"": ""性别，\""男\""或\""女\""""
+                    },
+                    ""country"": {
+                        ""type"": ""string"",
+                        ""description"": ""内容出品国家名""
+                    },
+                    ""language"": {
+                        ""type"": ""string"",
+                        ""description"": ""内容语种""
+                    },
+                    ""is_fee"": {
+                        ""type"": ""string"",
+                        ""description"": ""是否收费，\""0\""=免费，\""1\""=收费""
+                    }
+                }
+            },
+            ""status_code"": {
+                ""type"": ""number"",
+                ""description"": ""响应状态码，200=成功，500=出错""
+            },
+            ""error_log"": {
+                ""type"": ""string"",
+                ""description"": ""错误信息，仅status_code为500时返回""
+            }
+        },
+        ""required"": [
+            ""results"",
+            ""status_code""
+        ],
+        ""usage_hint"": ""results中各字段反映系统从用户复杂自然语言中解析出的结构化筛选条件；结合status_code判断解析是否成功；当results为空对象时说明系统无法从用户描述中提取有效筛选条件""
+    },
+    ""error_output"": {
+        ""type"": ""object"",
+        ""properties"": {
+            ""status_code"": {
+                ""type"": ""number"",
+                ""description"": ""错误状态码，500表示参数格式错误或服务异常""
+            },
+            ""error_log"": {
+                ""type"": ""string"",
+                ""description"": ""错误描述信息，说明具体错误原因""
+            }
+        }
+    },
+    ""examples"": [
+        {
+            ""scenario"": ""受众描述：适合3到6岁男孩的英语启蒙动画"",
+            ""input"": {
+                ""tag"": ""英语启蒙"",
+                ""age_range"": ""3 TO 6"",
+                ""gender"": ""男"",
+                ""language"": ""英语""
+            },
+            ""output"": {
+                ""results"": {
+                    ""tag"": ""英语启蒙"",
+                    ""age_range"": ""3 TO 6"",
+                    ""gender"": ""男"",
+                    ""language"": ""英语""
+                },
+                ""status_code"": 200
+            }
+        },
+        {
+            ""scenario"": ""问答式查询：有没有免费的中文儿歌（解析为is_fee+language+tag条件）"",
+            ""input"": {
+                ""tag"": ""儿歌"",
+                ""language"": ""中文"",
+                ""is_fee"": ""0""
+            },
+            ""output"": {
+                ""results"": {
+                    ""tag"": ""儿歌"",
+                    ""language"": ""中文"",
+                    ""is_fee"": ""0""
+                },
+                ""status_code"": 200
+            }
+        },
+        {
+            ""scenario"": ""复杂描述：非国产的、免费的、适合6岁以上孩子的英语教学"",
+            ""input"": {
+                ""tag"": ""教育"",
+                ""age_range"": ""6 TO *"",
+                ""language"": ""英语"",
+                ""is_fee"": ""0""
+            },
+            ""output"": {
+                ""results"": {
+                    ""tag"": ""教育"",
+                    ""age_range"": ""6 TO *"",
+                    ""language"": ""英语"",
+                    ""is_fee"": ""0""
+                },
+                ""status_code"": 200
+            }
+        },
+        {
+            ""scenario"": ""模糊描述：给女童看的日本动漫"",
+            ""input"": {
+                ""tag"": ""动画"",
+                ""gender"": ""女"",
+                ""country"": ""日本""
+            },
+            ""output"": {
+                ""results"": {
+                    ""tag"": ""动画"",
+                    ""gender"": ""女"",
+                    ""country"": ""日本""
+                },
+                ""status_code"": 200
+            }
+        },
+        {
+            ""scenario"": ""问答式：有没有适合小女孩的免费国产动画"",
+            ""input"": {
+                ""tag"": ""动画"",
+                ""gender"": ""女"",
+                ""country"": ""中国"",
+                ""is_fee"": ""0""
+            },
+            ""output"": {
+                ""results"": {
+                    ""tag"": ""动画"",
+                    ""gender"": ""女"",
+                    ""country"": ""中国"",
+                    ""is_fee"": ""0""
+                },
+                ""status_code"": 200
+            }
+        },
+        {
+            ""scenario"": ""参数格式错误"",
+            ""input"": {
+                ""age_range"": ""3岁到6岁"",
+                ""gender"": ""boy"",
+                ""is_fee"": ""yes""
+            },
+            ""output"": {
+                ""status_code"": 500,
+                ""error_log"": ""参数格式错误：age_range需为\""N1 TO N2\""/\""* TO N2\""/\""N1 TO *\""模式；gender取值仅支持\""男\""或\""女\""；is_fee取值仅支持\""0\""或\""1\""""
+            }
+        }
+    ]
+}",输出需要定义,,,,,,,,,,,
+,仅慢链路,educ_slow_search_data_construction,少儿_模糊搜索_数据构建,,提供了根据搜索媒资构建面向终端结构化数据的能力，分包返回,,依赖数据搜索输出定义,同精确检索，educ_search,,,,,,,,,,,
+,,educ_relate_recommend,少儿相关推荐，同精确检索，建议合并,,"少儿相关推荐工具(educ_relate_recommend)。当用户表达""找类似的/推荐相关的/像XX这样的""意图时触发，基于已知内容找相似推荐。字段固定为 title(必填) + actor/director/entertainer(可选) 四类种子信息。每个字段支持 value(单值)/values(多值)+operator(or/and, 默认or)/not_values(否定)，字段间为隐式AND。与 children_search 的多维度筛选语义互补。",参考educ_search,"{
+  ""$schema"": ""http://json-schema.org/draft-07/schema#"",
+  ""name"": ""educ_relate_recommend"",
+  ""description"": ""基于用户描述的参考媒资进行相似少儿内容推荐，系统将自然语言解析为结构化的参考标题和筛选偏好参数，检索与该参考媒资类型、风格、题材相似的少儿内容。\n适用场景：用户表达了\""基于某内容找类似的\""、\""推荐相关的\""、\""找同类型的\""、\""还有没有像XX这样的\""等相似性推荐意图时使用，如\""我想看类似小猪佩奇的动画片\""、\""推荐和汪汪队差不多的少儿节目\""、\""有没有熊出没那种动画\""。\n不适用场景：用户直接指定明确媒资名称要求播放时不要调用，如\""播放小猪佩奇\""；复杂模糊描述类查询不要调用，如\""有狗狗的动画片\""，应使用educ_search；简单分类浏览请求不要调用，如\""打开少儿频道\""。\n关联工具：复杂语义搜索用educ_search。与educ_search的区别：educ_search用于多维度筛选查询，educ_relate_recommend用于基于已知内容找相似推荐，字段固定为title(参考种子) + content_type/children_second_genre/children_third_genre/training_objectives/role/multiple_intelligences/country/company/language/is_fee/gender/festival/prize 等多维度筛选偏好。\n异常：无法识别参考媒资时返回error_code=REFERENCE_NOT_FOUND；参数格式错误时返回error_code=INVALID_PARAMETER。\n结果使用：title为系统识别的参考媒资，用于检索相似内容；其余字段为用户附加的筛选偏好，用于在相似结果中进一步过滤。每个字段支持value(单值精确)/values(多值数组)+operator(or任一匹配/and全部匹配, 默认or)/not_values(否定值, 这些值不能命中)，字段间为隐式AND(同时满足)；is_fee为状态字段，取值0(免费)/1(付费)。"",
+  ""type"": ""object"",
+  ""properties"": {
+    ""query"": {
+      ""$ref"": ""#/definitions/QueryNode"",
+      ""description"": ""搜索查询的根节点。可以是单个叶子节点，也可以是由 AND/OR/NOT 组成的复合节点。""
+    },
+    ""sort"": {
+      ""type"": ""object"",
+      ""description"": ""排序规则(三种排序键的候选值固定为 asc/desc)，可选 rate(评分)、hot(热度)、new(发布时间) 中的一种或多种组合。三者差异：rate 按 用户/专家评分高低排序，hot 按综合热度(播放量、搜索量等) 排序，new 按发布时间新旧排序。每个排序键的 order 取 asc(正序) 或 desc(倒序)。不传 sort 表示不涉及排序。"",
+      ""properties"": {
+        ""rate"": {
+          ""type"": ""object"",
+          ""properties"": {
+            ""order"": { ""type"": ""string"", ""enum"": [""asc"", ""desc""] }
+          },
+          ""required"": [""order""]
+        },
+        ""hot"": {
+          ""type"": ""object"",
+          ""properties"": {
+            ""order"": { ""type"": ""string"", ""enum"": [""asc"", ""desc""] }
+          },
+          ""required"": [""order""]
+        },
+        ""new"": {
+          ""type"": ""object"",
+          ""properties"": {
+            ""order"": { ""type"": ""string"", ""enum"": [""asc"", ""desc""] }
+          },
+          ""required"": [""order""]
+        }
+      },
+      ""additionalProperties"": false,
+      ""minProperties"": 1
+    }
+  },
+  ""required"": [""query""],
+  ""additionalProperties"": false,
+
+  ""definitions"": {
+
+    ""QueryNode"": {
+      ""description"": ""查询节点，支持两种形态：1) 布尔复合节点(AND/OR/NOT)；2) 叶子条件节点(单个字段的匹配条件)。"",
+      ""oneOf"": [
+        { ""$ref"": ""#/definitions/BoolNode"" },
+        { ""$ref"": ""#/definitions/LeafNode"" }
+      ]
+    },
+
+    ""BoolNode"": {
+      ""description"": ""布尔逻辑组合节点，支持 AND(与)、OR(或)、NOT(非) 三种组合方式。可嵌套组合。"",
+      ""type"": ""object"",
+      ""oneOf"": [
+        {
+          ""properties"": {
+            ""and"": {
+              ""type"": ""array"",
+              ""items"": { ""$ref"": ""#/definitions/QueryNode"" },
+              ""minItems"": 1,
+              ""description"": ""AND逻辑：所有子节点条件必须同时满足。""
+            }
+          },
+          ""required"": [""and""],
+          ""additionalProperties"": false
+        },
+        {
+          ""properties"": {
+            ""or"": {
+              ""type"": ""array"",
+              ""items"": { ""$ref"": ""#/definitions/QueryNode"" },
+              ""minItems"": 1,
+              ""description"": ""OR逻辑：子节点条件中至少满足一个。""
+            }
+          },
+          ""required"": [""or""],
+          ""additionalProperties"": false
+        },
+        {
+          ""properties"": {
+            ""not"": {
+              ""$ref"": ""#/definitions/QueryNode"",
+              ""description"": ""NOT逻辑：对子节点条件取反。""
+            }
+          },
+          ""required"": [""not""],
+          ""additionalProperties"": false
+        }
+      ]
+    },
+
+    ""LeafNode"": {
+      ""description"": ""叶子条件节点，描述对某一搜索维度的具体匹配条件。field 指定维度，value 指定匹配值。"",
+      ""type"": ""object"",
+      ""oneOf"": [
+        { ""$ref"": ""#/definitions/ExactFieldCondition"" },
+        { ""$ref"": ""#/definitions/StatusFieldCondition"" },
+        { ""$ref"": ""#/definitions/RangeFieldCondition"" }
+      ]
+    },
+
+    ""ExactFieldCondition"": {
+      ""description"": ""精确匹配条件。value 为单值精确匹配；values 为多值数组时，通过 operator 字段控制维度内的逻辑关系：\""or\"" 表示任一值匹配即命中(默认)，\""and\"" 表示所有值均需匹配。"",
+      ""type"": ""object"",
+      ""properties"": {
+        ""field"": {
+          ""type"": ""string"",
+          ""description"": ""搜索维度字段名（共16个精确匹配维度）。候选类型分三类：固定候选(取值有限可枚举，模型应在候选内取值或归一化)、半固定候选(常见取值有限但可扩展)、开放型(取值不可枚举，按语义自由填入)。部分字段间存在语义边界，需按各 const 描述中的差异化说明选择正确字段。"",
+          ""oneOf"": [
+            { ""const"": ""title"", ""description"": ""媒资作品标题(开放型)。搜索具体的作品名称时使用。与 role(人物角色) 不同——title 是作品本身的名字(如西游记)，role 是作品中的人物(如孙悟空)。典型取值：动画片名(小猪佩奇、汪汪队)、电影名(战狼、流浪地球)、电视剧名(甄嬛传)、游戏名(斗罗大陆、王者荣耀)、儿歌歌曲名(红蜻蜓、葫芦娃)、儿歌集锦名(儿歌多多)、儿童故事名(葫芦娃、三毛)、玩具名(陀螺、溜溜球)、玩具视频名(芭比玩具)、儿童视频名(挖掘机)、漫画名、手工类型、棋类名称、ar百科媒资(摩托车、北极熊)、儿童课程类型(国学经典、启蒙教育)、书本册数(上册、下册)、儿童舞蹈类型-聚好看(萌动)、少儿视频弱标签(老鼠爱大米、起风了)等"" },
+            { ""const"": ""content_type"", ""description"": ""媒资表现形式(固定候选)。仅在用户明确区分媒资形态时使用，候选值：动画、动画片。与 children_third_genre(主题标签) 不同——content_type 描述\""是什么形态的媒资\""，children_third_genre 描述\""讲什么主题的内容\"""" },
+            { ""const"": ""children_second_genre"", ""description"": ""蛛网标签-二级分类(固定候选)。少儿内容蛛网分类体系下的较粗粒度大类标签。与 children_third_genre(三级分类) 是上下位关系——second_genre 是大类，third_genre 是其下的细分标签，候选值：才艺、宠物、动画、动画电影、儿歌、故事、国学、绘本、家长课堂、经典、科普、少儿动漫、数学、玩具、音频、英语、早教、真人"" },
+            { ""const"": ""children_third_genre"", ""description"": ""蛛网标签-三级分类(开放型)。少儿内容蛛网分类体系下的较细粒度标签，是 children_second_genre(二级分类) 的下位细分。典型取值：工程车、百科综合、益智动画、益智儿歌、昆虫、玩玩具、身体健康、自然拼读、冒险等"" },
+            { ""const"": ""training_objectives"", ""description"": ""少儿培养目标(开放型)。按教育目标筛选内容时使用。与 multiple_intelligences(八大智能) 不同——training_objectives 偏教学目标导向(如培养专注力、启蒙认知)，multiple_intelligences 偏智能维度分类(如语言智能、逻辑数学智能)"" },
+            { ""const"": ""role"", ""description"": ""角色(开放型)。作品中的具体人物角色。与 title(作品名称) 不同——role 是作品中的人物(如孙悟空、路飞)，title 是作品本身的名字(如西游记、海贼王)。适用场景如\""找有路飞出场的动画\"""" },
+            { ""const"": ""multiple_intelligences"", ""description"": ""少儿八大智能(开放型)。按多元智能理论筛选内容。与 training_objectives(培养目标) 不同——multiple_intelligences 是智能维度分类(语言智能、逻辑数学智能、空间智能等)，training_objectives 是教学目标导向"" },
+            { ""const"": ""country"", ""description"": ""国家/地区(开放型)。按地理维度筛选内容时使用。与 language(语言) 不同——country 是地理概念(中国、山东、卢森堡)，language 是语言本身(中文、英语)；当一词多义(如\""中华\"")时按用户意图归类。典型取值：外国国家名(卢森堡、苏格兰)、中国国家(中国)、国内省份(山东、陕西)、国内区域名(中华、香港)、国外区域名(中东、欧亚)、地区(中东)等"" },
+            { ""const"": ""company"", ""description"": ""出品公司(开放型)。制作或发行该媒资的公司主体。适用场景如\""找时光传媒出品的动画\""。典型取值：影视出品公司(时光传媒)等"" },
+            { ""const"": ""language"", ""description"": ""语言(半固定候选)。语种或语言版本。与 country(地理) 不同——language 描述作品使用的语言或制作风格的地域版本，country 是地理归属。常见取值：中文、英语、日语等语种；韩版、美版等版本词"" },
+            { ""const"": ""gender"", ""description"": ""受众人群性别(固定候选)。按目标受众性别筛选内容时使用。候选值：男、男生、男性、女、女生、女性。适用场景如\""适合男生看的电影\""、\""女生喜欢的动画片\"""" },
+            { ""const"": ""festival"", ""description"": ""节日/学期(开放型)。按节日或学期节点筛选内容时使用。与 release_year(具体日期范围) 不同——festival 是节日名或学期概念(除夕、端午、开学季)，release_year 是 yyyyMMdd 格式的精确日期区间。典型取值：时间-节日(除夕、端午)、学期等"" },
+            { ""const"": ""prize"", ""description"": ""奖项(开放型)。整体奖项名称。与 sub_prize(子奖项) 是上下位关系——prize 是奖项整体(如金鸡奖、金马奖)，sub_prize 是该奖项下的具体子项(如最佳男配角、最佳女主角)。当用户只说\""金鸡奖\""用 prize，说\""金鸡奖最佳男主角\""则 prize+sub_prize 组合使用"" },
+            { ""const"": ""sub_prize"", ""description"": ""子奖项(开放型)。奖项下的具体子项，是 prize(奖项整体) 的下位细分。与 prize 配合使用以精确指向某一具体奖项子项。典型取值：最佳男配角、最佳女主角、最佳导演等。适用场景如\""找获得最佳男主角的影片\"""" },
+            { ""const"": ""features"", ""description"": ""音效(固定候选)。技术性音效标识。候选值：杜比、杜比音效。适用场景如\""找支持杜比音效的内容\"""" },
+            { ""const"": ""grade"", ""description"": ""年级。按目标受众的学段或筛选内容时使用。候选值：幼儿园阶段(小班、中班、大班)、小学年级(一年级~六年级)等"" }
+          ]
+        },
+        ""value"": { ""type"": ""string"", ""description"": ""单值精确匹配"" },
+        ""values"": {
+          ""type"": ""array"",
+          ""items"": { ""type"": ""string"" },
+          ""minItems"": 1,
+          ""description"": ""多值匹配，逻辑关系由 operator 字段决定""
+        },
+        ""operator"": {
+          ""type"": ""string"",
+          ""enum"": [""and"", ""or""],
+          ""default"": ""or"",
+          ""description"": ""维度内多值逻辑关系。\""or\"" 表示任一值匹配即命中(默认)，\""and\"" 表示所有值均需匹配。仅在使用 values 时生效。""
+        }
+      },
+      ""required"": [""field""],
+      ""oneOf"": [
+        { ""required"": [""value""] },
+        { ""required"": [""values""] }
+      ],
+      ""additionalProperties"": false
+    },
+
+    ""StatusFieldCondition"": {
+      ""description"": ""状态标识条件(固定候选 0/1)。用于枚举状态字段，值为 0 或 1 的整数。is_fee: 0=免费, 1=付费。不传表示不涉及该条件。"",
+      ""type"": ""object"",
+      ""properties"": {
+        ""field"": {
+          ""type"": ""string"",
+          ""description"": ""状态字段名"",
+          ""oneOf"": [
+            { ""const"": ""is_fee"", ""description"": ""免付费标识。0=免费，1=付费。适用场景如\""找免费内容\""、\""找VIP付费内容\""。与 ExactFieldCondition 中的其他维度不同——is_fee 是布尔型状态过滤，不参与主题/属性匹配"" }
+          ]
+        },
+        ""value"": {
+          ""type"": ""integer"",
+          ""enum"": [0, 1],
+          ""description"": ""状态值，0 或 1。is_fee: 0=免费(对应自然语言\""免费/不要钱\"")，1=付费(对应自然语言\""付费/VIP\"")。自然语言中的\""打折/五折/半价\""等费用相关词需归一化为 0 或 1 后传入。""
+        }
+      },
+      ""required"": [""field"", ""value""],
+      ""additionalProperties"": false
+    },
+
+    ""RangeFieldCondition"": {
+      ""description"": ""范围匹配条件。支持 age_range(年龄范围) release_year(发布时间范围)含边界。"",
+      ""type"": ""object"",
+      ""properties"": {
+        ""field"": {
+          ""type"": ""string"",
+          ""description"": ""范围搜索维度字段名"",
+          ""oneOf"": [
+            { ""const"": ""age_range"", ""description"": ""年龄范围筛选，三种模式：1. \""3 TO 6\""年龄区间；2. \""* TO 6\""不超过6岁；3. \""6 TO *\""不小于6岁"" },
+            { ""const"": ""release_year"", ""description"": ""发布时间范围。from/to 均为 yyyyMMdd 格式字符串，含边界"" }
+          ]
+        },
+        ""from"": {
+          ""type"": ""string"",
+          ""pattern"": ""^[0-9]{8}$"",
+          ""description"": ""发布日期下限(含)，age_range为整数，release_year格式 yyyyMMdd，如 20200101。自然语言归一化示例：\""2023年/2023\""→from:20230101；\""去年/上一年/明年\""→from:对应年份1月1日；\""80年代\""→from:19800101；\""近一年/近5年\""等时间段→from:对应起始日期；\""本周一/上周一\""等星期表达→from:对应日期。""
+        },
+        ""to"": {
+          ""type"": ""string"",
+          ""pattern"": ""^[0-9]{8}$"",
+          ""description"": ""发布日期上限(含)，age_range为整数，release_year格式 yyyyMMdd，如 20231231。归一化示例：\""2023年\""→to:20231231；\""80年代\""→to:19891231；\""近一年/近5年\""→to:当天日期；\""本周一/上周一\""→to:对应日期。""
+        }
+      },
+      ""required"": [""field"", ""from"", ""to""],
+      ""additionalProperties"": false
+    }
+  }
+}",,,,,,,,,,,,
+,,educ_history,少儿历史记录,,"功能：按时间范围查询当前用户的少儿内容观看历史记录。
+适用场景：用户表达查看观看历史的意图时触发，如\""我看过的动画\""、\""上周看过什么\""、\""最近一个月的观看记录\""。
+不适用场景：搜索具体内容用 children_fuzzy_search；按直达词跳转用 children_direct；收藏/心愿单/购买记录用对应专用工具。
+关联工具：内容详情用 children_detail_get；继续播放用 children_play_resume；相似推荐用 children_similar_get。
+异常：time 缺失返回 TIME_REQUIRED；时间格式不符 yyyyMMdd TO yyyyMMdd 或日期非法返回 TIME_FORMAT_INVALID；andList 与 orList 同时出现返回 TIME_LIST_CONFLICT；范围内无历史返回 HISTORY_NOT_FOUND。
+结果使用：items 按 watch_time 倒序；watch_time 展示观看时间，progress 展示观看百分比或继续播放入口，duration 展示总时长。",参考vod_history,"{
+  ""name"": ""educ_history"",
+  ""title"": ""少儿历史记录"",
+  ""url"": ""https://api.example.com/educ/history/query"",
+  ""method"": ""POST"",
+  ""description"": ""功能：查询用户的少儿历史观看记录，支持按时间范围（精确到秒）筛选，返回符合条件的历史记录。\n适用场景：用户表达了查看少儿历史记录的意图时使用，如\""我看过的动画\""、\""上周看过什么\""、\""最近一个月的观看记录\""、\""2024年3月给宝宝放过哪些内容\""、\""昨天晚上给宝宝看的动画片\""、\""查一下最近一周的少儿观看记录，但不要上周三的\""。\n不适用场景：1. 用户搜索具体内容时不要调用，应使用educ_slow_search；2. 用户按直达词跳转时不要调用，应使用educ_direct_page；3. 用户要求推荐内容时不要调用；4. 用户查询影视/教育/体育/戏曲/乐活/音乐/K歌等其他业务历史记录时不要调用，应跳转对应业务历史记录页。\n关联工具：搜索具体内容用educ_slow_search，按直达词跳转用educ_direct_page。\n异常：用户无历史记录时返回error_code=NO_HISTORY_RECORD；参数格式错误时返回error_code=INVALID_PARAMETER；细分维度查无时返回error_code=NO_MATCHED_RECORD并提示\""没有找到相关结果，为您展示全部历史记录\""。\n结果使用：time为系统从用户自然语言中解析出的时间范围筛选条件（精确到秒）；根据该条件查询并返回用户的少儿历史观看记录。"",
+  ""parameters"": {
+    ""type"": ""object"",
+    ""properties"": {
+      ""time"": {
+        ""type"": ""object"",
+        ""description"": ""时间范围。指定查询的历史记录时间区间，格式为\""yyyy-MM-dd HH:mm:ss TO yyyy-MM-dd HH:mm:ss\""（精确到秒），如\""2025-03-01 00:00:00 TO 2025-03-31 23:59:59\""表示查询2025年3月1日0点0分0秒至3月31日23点59分59秒的记录。不传时查询全部历史记录。\n支持的时间颗粒度：\n1. 月：本月、上个月、上上个月；\n2. 周：本（这）周、上周、上上周；本周一至本周日；上周一至上周日（以此类推）；\n3. 日：今天、昨天、前天、大前天；上个月的第一天/最后一天；本月的第一天/最后一天；\n4. 早中晚（按时段精确到秒）：凌晨 01:00:00-04:59:59、早上 05:00:00-07:59:59、上午 08:00:00-10:59:59、中午 11:00:00-12:59:59、下午 13:00:00-16:59:59、傍晚 17:00:00-18:59:59、晚上 19:00:00-22:59:59、子夜 23:00:00-次日00:59:59。\n颗粒度可叠加，如\""昨天晚上\""=昨天日期 + 晚上时段（19:00:00-22:59:59）。""
+      }
+    },
+    ""required"": []
+  },
+
+  ""output"": {
+    ""type"": ""object"",
+    ""properties"": {
+        ""time"": {
+          ""type"": ""string"",
+          ""description"": ""时间范围解析结果，格式为\""yyyy-MM-dd HH:mm:ss TO yyyy-MM-dd HH:mm:ss\""（精确到秒），未传时为空""
+        }
+    },
+    ""usage_hint"": ""time为系统从用户自然语言中解析出的查询条件（精确到秒），用于筛选历史观看记录；未传的字段表示不做该维度限制。当用户时间表达不属于月/周/日/早中晚任一颗粒度时，应展示全部历史记录并播报\""为您找到全部历史记录\""。""
+  },
+
+  ""error_output"": {
+    ""type"": ""object"",
+    ""properties"": {
+      ""error_code"": {""type"": ""string"", ""description"": ""错误码，NO_HISTORY_RECORD=用户无历史记录，INVALID_PARAMETER=参数格式错误，NO_MATCHED_RECORD=细分维度查无结果""},
+      ""error_message"": {""type"": ""string"", ""description"": ""错误描述信息""}
+    }
+  },
+
+  ""examples"": [
+    {
+      ""scenario"": ""2024年3月历史（按月）"",
+      ""input"": {
+        ""time"": ""2024-03-01 00:00:00 TO 2024-03-31 23:59:59""
+      },
+      ""output"": {
+        ""time"": ""2024-03-01 00:00:00 TO 2024-03-31 23:59:59""
+      }
+    },
+    {
+      ""scenario"": ""最近看了什么（不带任何筛选）"",
+      ""input"": {},
+      ""output"": {}
+    },
+    {
+      ""scenario"": ""今年看过的（按月范围，精确到秒）"",
+      ""input"": {
+        ""time"": ""2026-01-01 00:00:00 TO 2026-07-13 23:59:59""
+      },
+      ""output"": {
+        ""time"": ""2026-01-01 00:00:00 TO 2026-07-13 23:59:59""
+      }
+    },
+    {
+      ""scenario"": ""昨天晚上看的（日 + 晚上 19:00:00-22:59:59）"",
+      ""input"": {
+        ""time"": ""2026-07-12 19:00:00 TO 2026-07-12 22:59:59""
+      },
+      ""output"": {
+        ""time"": ""2026-07-12 19:00:00 TO 2026-07-12 22:59:59""
+      }
+    },
+    {
+      ""scenario"": ""今天上午看的（日 + 上午 08:00:00-10:59:59）"",
+      ""input"": {
+        ""time"": ""2026-07-13 08:00:00 TO 2026-07-13 10:59:59""
+      },
+      ""output"": {
+        ""time"": ""2026-07-13 08:00:00 TO 2026-07-13 10:59:59""
+      }
+    },
+    {
+      ""scenario"": ""今天凌晨看的（日 + 凌晨 01:00:00-04:59:59）"",
+      ""input"": {
+        ""time"": ""2026-07-13 01:00:00 TO 2026-07-13 04:59:59""
+      },
+      ""output"": {
+        ""time"": ""2026-07-13 01:00:00 TO 2026-07-13 04:59:59""
+      }
+    },
+    {
+      ""scenario"": ""昨晚子夜看的（跨日 + 子夜 23:00:00-次日00:59:59）"",
+      ""input"": {
+        ""time"": ""2026-07-12 23:00:00 TO 2026-07-13 00:59:59""
+      },
+      ""output"": {
+        ""time"": ""2026-07-12 23:00:00 TO 2026-07-13 00:59:59""
+      }
+    },
+    {
+      ""scenario"": ""用户无历史记录"",
+      ""input"": {},
+      ""output"": {
+        ""error_code"": ""NO_HISTORY_RECORD"",
+        ""error_message"": ""暂无历史观看记录""
+      }
+    },
+    {
+      ""scenario"": ""细分维度查无结果（fallback 到全部历史）"",
+      ""input"": {
+        ""time"": ""2026-07-13 01:00:00 TO 2026-07-13 04:59:59""
+      },
+      ""output"": {
+        ""error_code"": ""NO_MATCHED_RECORD"",
+        ""error_message"": ""没有找到相关结果，为您展示全部历史记录""
+      }
+    }
+  ]
+}",‘’,,,,,,,,,,,

@@ -1,0 +1,942 @@
+﻿智能体,要点：,"全局唯一，全系统不可重复，作为智能体路由分发工具的主键；
+命名风格统一：小写，禁止空格、中文、特殊符号；
+语义直观：一眼看懂工具能力，区分同模块不同动作；",简短概括工具功能,,"1、核心能力：工具能做什么；
+2、适用场景：智能体什么情况下必须调用；
+ 3、禁用场景：什么情况禁止调用本工具，避免模型误调用；",,完整schema,,,,,,,,,,,,
+体育,,sports_match_search,赛程查询,sports_match_search,体育赛事赛程组合式搜索工具(sports_match_search)。当用户表达了搜索、查找、推荐体育赛事赛程的意图时触发，包括按球队/俱乐部(主队/客队)、运动员/球星、赛事名称、运动项目、比赛阶段、赛季、直播状态、轮次、赛事时间等维度筛选。不同字段间仅支持AND组合，不支持OR组合和NOT取反。支持多个精确匹配维度和1个范围维度(sport_time_range赛事时间区间)。,,"{
+    ""$schema"": ""http://json-schema.org/draft-07/schema#"",
+    ""name"": ""sports_match_search"",
+    ""description"": ""体育赛事赛程组合式搜索工具(sports_match_search)。当用户表达了搜索、查找、推荐体育赛事赛程的意图时触发，包括按球队/俱乐部(主队/客队)、运动员/球星、赛事名称、运动项目、比赛阶段、赛季、直播状态、轮次、赛事时间等维度筛选。不同字段间仅支持AND组合，不支持OR组合和NOT取反。支持多个精确匹配维度和1个范围维度(sport_time_range赛事时间区间)。"",
+    ""type"": ""object"",
+    ""properties"": {
+        ""query"": {
+            ""$ref"": ""#/definitions/QueryNode"",
+            ""description"": ""搜索查询的根节点。可以是单个叶子节点，也可以是由 AND 组成的复合节点。仅支持AND逻辑，不支持OR/NOT。""
+        }
+    },
+    ""required"": [
+        ""query""
+    ],
+    ""additionalProperties"": false,
+    ""definitions"": {
+        ""QueryNode"": {
+            ""description"": ""查询节点，支持两种形态：1) AND复合节点；2) 叶子条件节点(单个字段的匹配条件)。"",
+            ""oneOf"": [
+                {
+                    ""$ref"": ""#/definitions/AndNode""
+                },
+                {
+                    ""$ref"": ""#/definitions/LeafNode""
+                }
+            ]
+        },
+        ""AndNode"": {
+            ""description"": ""AND逻辑组合节点。不同字段间仅用AND连接，同一字段values列表中多个值间也是AND连接(值内部含逗号则拆为OR子条件)。不支持OR组合和NOT取反。"",
+            ""type"": ""object"",
+            ""properties"": {
+                ""and"": {
+                    ""type"": ""array"",
+                    ""items"": {
+                        ""$ref"": ""#/definitions/QueryNode""
+                    },
+                    ""minItems"": 1,
+                    ""description"": ""AND逻辑：所有子节点条件必须同时满足。""
+                }
+            },
+            ""required"": [
+                ""and""
+            ],
+            ""additionalProperties"": false
+        },
+        ""LeafNode"": {
+            ""description"": ""叶子条件节点，描述对某一搜索维度的具体匹配条件。可以是精确匹配或范围匹配。"",
+            ""type"": ""object"",
+            ""oneOf"": [
+                {
+                    ""$ref"": ""#/definitions/ExactFieldCondition""
+                },
+                {
+                    ""$ref"": ""#/definitions/RangeFieldCondition""
+                }
+            ]
+        },
+        ""ExactFieldCondition"": {
+            ""description"": ""精确匹配条件。value 为单值精确匹配；values 为多值数组时，列表中每个值用AND连接，若某个值内部含逗号则拆分为OR子条件。"",
+            ""type"": ""object"",
+            ""properties"": {
+                ""field"": {
+                    ""type"": ""string"",
+                    ""enum"": [
+                        ""sport_team"",
+                        ""sport_team_home"",
+                        ""sport_team_guest"",
+                        ""sport_star"",
+                        ""sport_game"",
+                        ""sport_name"",
+                        ""sport_competition_phase"",
+                        ""sport_season"",
+                        ""sport_time"",
+                        ""live_state"",
+                        ""round_offset""
+                    ],
+                    ""description"": ""搜索维度字段名。sport_team:球队/俱乐部名称(主队/客队变体sport_team_home/sport_team_guest均映射到此字段)；sport_star:运动员/球星姓名；sport_game:具体赛事/比赛名称；sport_name:运动项目类型(如足球/篮球/网球等)；sport_competition_phase:比赛阶段(如小组赛/半决赛/决赛等)；sport_season:赛季(如2024-2025赛季)；sport_time:赛事时间，值为yyyyMMdd格式日期(如20240715)；live_state:直播状态(如1未开始/2进行中/3已结束/4回看等)；round_offset:轮次偏移(如第3轮等，不拼入query，单独作为URL参数处理)。""
+                },
+                ""value"": {
+                    ""type"": ""string"",
+                    ""description"": ""单值精确匹配。若值内部含逗号，则按逗号拆分为OR子条件。""
+                },
+                ""values"": {
+                    ""type"": ""array"",
+                    ""items"": {
+                        ""type"": ""string""
+                    },
+                    ""minItems"": 1,
+                    ""description"": ""多值匹配。列表中每个值用AND连接，若某个值内部含逗号则拆分为OR子条件。""
+                }
+            },
+            ""required"": [
+                ""field""
+            ],
+            ""oneOf"": [
+                {
+                    ""required"": [
+                        ""value""
+                    ]
+                },
+                {
+                    ""required"": [
+                        ""values""
+                    ]
+                }
+            ],
+            ""additionalProperties"": false
+        },
+        ""RangeFieldCondition"": {
+            ""description"": ""范围匹配条件。支持 sport_time_range(赛事时间区间) 范围字段，from/to 均为 yyyyMMdd HH:mm:ss 格式日期时间字符串，精确到秒，后续由系统转换为UTC秒级时间戳进行查询。搜索'比赛开始时间'处于 from(含) 和 to(含) 之间的赛程，from 和 to 可以一致。时间范围生成规则：1)用户输入具体时间但无范围时(如'明天下午1点的比赛')，以该时间点为起点，根据语义(之前/之后)往前或往后扩展1小时作为范围；2)用户输入具体日期但无范围时(如'6月17日之后的比赛')，以该日期为起点，根据语义(之前/之后)往前或往后扩展30天作为范围；3)特殊时段固定范围：凌晨00:00:00~06:00:00、早上04:00:00~12:00:00、上午08:00:00~12:00:00、中午12:00:00~14:00:00、下午12:00:00~18:00:00、傍晚17:00:00~19:00:00、晚上18:00:00~24:00:00。"",
+            ""type"": ""object"",
+            ""properties"": {
+                ""field"": {
+                    ""type"": ""string"",
+                    ""enum"": [
+                        ""sport_time_range""
+                    ],
+                    ""description"": ""范围搜索维度字段名。sport_time_range:赛事时间区间，yyyyMMdd HH:mm:ss格式。""
+                },
+                ""from"": {
+                    ""type"": ""string"",
+                    ""pattern"": ""^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$"",
+                    ""description"": ""起始时间(含)，格式 yyyyMMdd HH:mm:ss，精确到秒，如 20260127 06:00:00。""
+                },
+                ""to"": {
+                    ""type"": ""string"",
+                    ""pattern"": ""^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$"",
+                    ""description"": ""结束时间(含)，格式 yyyyMMdd HH:mm:ss，精确到秒，如 20260127 07:00:00。""
+                }
+            },
+            ""required"": [
+                ""field"",
+                ""from"",
+                ""to""
+            ],
+            ""additionalProperties"": false
+        }
+    }
+}
+","{
+  ""$schema"": ""http://json-schema.org/draft-04/schema#"",
+  ""type"": ""object"",
+  ""properties"": {
+    ""$schema"": {
+      ""type"": ""string""
+    },
+    ""type"": {
+      ""type"": ""string""
+    },
+    ""properties"": {
+      ""type"": ""object"",
+      ""properties"": {
+        ""赛程查询"": {
+          ""type"": ""object"",
+          ""properties"": {
+            ""type"": {
+              ""type"": ""string""
+            },
+            ""properties"": {
+              ""type"": ""object"",
+              ""properties"": {
+                ""code"": {
+                  ""type"": ""object"",
+                  ""properties"": {
+                    ""type"": {
+                      ""type"": ""string""
+                    },
+                    ""description"": {
+                      ""type"": ""string""
+                    }
+                  }
+                },
+                ""data"": {
+                  ""type"": ""object"",
+                  ""properties"": {
+                    ""type"": {
+                      ""type"": ""string""
+                    },
+                    ""properties"": {
+                      ""type"": ""object"",
+                      ""properties"": {
+                        ""ttscontent"": {
+                          ""type"": ""object"",
+                          ""properties"": {
+                            ""type"": {
+                              ""type"": ""string""
+                            },
+                            ""description"": {
+                              ""type"": ""string""
+                            }
+                          }
+                        },
+                        ""llmSemantic"": {
+                          ""type"": ""object"",
+                          ""properties"": {
+                            ""type"": {
+                              ""type"": ""string""
+                            },
+                            ""properties"": {
+                              ""type"": ""object"",
+                              ""properties"": {
+                                ""domain"": {
+                                  ""type"": ""object"",
+                                  ""properties"": {
+                                    ""type"": {
+                                      ""type"": ""string""
+                                    },
+                                    ""description"": {
+                                      ""type"": ""string""
+                                    }
+                                  }
+                                },
+                                ""intent"": {
+                                  ""type"": ""object"",
+                                  ""properties"": {
+                                    ""type"": {
+                                      ""type"": ""string""
+                                    },
+                                    ""description"": {
+                                      ""type"": ""string""
+                                    }
+                                  }
+                                },
+                                ""content"": {
+                                  ""type"": ""object"",
+                                  ""properties"": {
+                                    ""type"": {
+                                      ""type"": ""string""
+                                    },
+                                    ""description"": {
+                                      ""type"": ""string""
+                                    }
+                                  }
+                                },
+                                ""isMultipleCalls"": {
+                                  ""type"": ""object"",
+                                  ""properties"": {
+                                    ""type"": {
+                                      ""type"": ""string""
+                                    },
+                                    ""description"": {
+                                      ""type"": ""string""
+                                    }
+                                  }
+                                }
+                              }
+                            },
+                            ""description"": {
+                              ""type"": ""string""
+                            },
+                            ""required"": {
+                              ""type"": ""array"",
+                              ""items"": {
+                                ""type"": ""string""
+                              }
+                            }
+                          }
+                        },
+                        ""data"": {
+                          ""type"": ""object"",
+                          ""properties"": {
+                            ""type"": {
+                              ""type"": ""string""
+                            },
+                            ""properties"": {
+                              ""type"": ""object"",
+                              ""properties"": {}
+                            },
+                            ""description"": {
+                              ""type"": ""string""
+                            }
+                          }
+                        },
+                        ""iotinfocheck"": {
+                          ""type"": ""object"",
+                          ""properties"": {
+                            ""type"": {
+                              ""type"": ""string""
+                            },
+                            ""description"": {
+                              ""type"": ""string""
+                            }
+                          }
+                        },
+                        ""multispeech"": {
+                          ""type"": ""object"",
+                          ""properties"": {
+                            ""type"": {
+                              ""type"": ""string""
+                            },
+                            ""description"": {
+                              ""type"": ""string""
+                            }
+                          }
+                        },
+                        ""ttsReplace"": {
+                          ""type"": ""object"",
+                          ""properties"": {
+                            ""type"": {
+                              ""type"": ""string""
+                            },
+                            ""description"": {
+                              ""type"": ""string""
+                            }
+                          }
+                        },
+                        ""sort"": {
+                          ""type"": ""object"",
+                          ""properties"": {
+                            ""type"": {
+                              ""type"": ""string""
+                            },
+                            ""description"": {
+                              ""type"": ""string""
+                            }
+                          }
+                        },
+                        ""priority"": {
+                          ""type"": ""object"",
+                          ""properties"": {
+                            ""type"": {
+                              ""type"": ""string""
+                            },
+                            ""description"": {
+                              ""type"": ""string""
+                            }
+                          }
+                        },
+                        ""subsort"": {
+                          ""type"": ""object"",
+                          ""properties"": {
+                            ""type"": {
+                              ""type"": ""string""
+                            },
+                            ""description"": {
+                              ""type"": ""string""
+                            }
+                          }
+                        },
+                        ""screenoper"": {
+                          ""type"": ""object"",
+                          ""properties"": {
+                            ""type"": {
+                              ""type"": ""string""
+                            },
+                            ""description"": {
+                              ""type"": ""string""
+                            }
+                          }
+                        },
+                        ""logId"": {
+                          ""type"": ""object"",
+                          ""properties"": {
+                            ""type"": {
+                              ""type"": ""string""
+                            },
+                            ""description"": {
+                              ""type"": ""string""
+                            }
+                          }
+                        },
+                        ""fullduplex"": {
+                          ""type"": ""object"",
+                          ""properties"": {
+                            ""type"": {
+                              ""type"": ""string""
+                            },
+                            ""description"": {
+                              ""type"": ""string""
+                            }
+                          }
+                        },
+                        ""debugLog"": {
+                          ""type"": ""object"",
+                          ""properties"": {
+                            ""type"": {
+                              ""type"": ""string""
+                            },
+                            ""properties"": {
+                              ""type"": ""object"",
+                              ""properties"": {}
+                            },
+                            ""description"": {
+                              ""type"": ""string""
+                            }
+                          }
+                        }
+                      }
+                    },
+                    ""description"": {
+                      ""type"": ""string""
+                    },
+                    ""required"": {
+                      ""type"": ""array"",
+                      ""items"": {
+                        ""type"": ""string""
+                      }
+                    }
+                  }
+                },
+                ""message"": {
+                  ""type"": ""object"",
+                  ""properties"": {
+                    ""type"": {
+                      ""type"": ""string""
+                    },
+                    ""description"": {
+                      ""type"": ""string""
+                    }
+                  }
+                }
+              }
+            },
+            ""description"": {
+              ""type"": ""string""
+            }
+          }
+        }
+      }
+    },
+    ""required"": {
+      ""type"": ""array"",
+      ""items"": {
+        ""type"": ""string""
+      }
+    }
+  }
+}",,,,,,,,,,,
+,,sports_vod_search,体育视频查询,sports_vod_search,体育赛事视频组合式搜索工具(sports_vod_search)。当用户表达了搜索、查找、推荐体育赛事视频/录像/回放/集锦等内容的意图时触发，包括按球队/俱乐部(主队/客队)、运动员/球星、赛事名称、运动项目、比赛阶段、标题、赛季、直播状态、轮次、赛事时间等维度筛选。不同字段间仅支持AND组合，不支持OR组合和NOT取反。支持多个精确匹配维度和1个范围维度(sport_time_range赛事时间区间)。,,"{
+    ""$schema"": ""http://json-schema.org/draft-07/schema#"",
+    ""name"": ""sports_vod_search"",
+    ""description"": ""体育赛事视频组合式搜索工具(sports_vod_search)。当用户表达了搜索、查找、推荐体育赛事视频/录像/回放/集锦等内容的意图时触发，包括按球队/俱乐部(主队/客队)、运动员/球星、赛事名称、运动项目、比赛阶段、标题、赛季、直播状态、轮次、赛事时间等维度筛选。不同字段间仅支持AND组合，不支持OR组合和NOT取反。支持多个精确匹配维度和1个范围维度(sport_time_range赛事时间区间)。"",
+    ""type"": ""object"",
+    ""properties"": {
+        ""query"": {
+            ""$ref"": ""#/definitions/QueryNode"",
+            ""description"": ""搜索查询的根节点。可以是单个叶子节点，也可以是由 AND 组成的复合节点。仅支持AND逻辑，不支持OR/NOT。""
+        }
+    },
+    ""required"": [
+        ""query""
+    ],
+    ""additionalProperties"": false,
+    ""definitions"": {
+        ""QueryNode"": {
+            ""description"": ""查询节点，支持两种形态：1) AND复合节点；2) 叶子条件节点(单个字段的匹配条件)。"",
+            ""oneOf"": [
+                {
+                    ""$ref"": ""#/definitions/AndNode""
+                },
+                {
+                    ""$ref"": ""#/definitions/LeafNode""
+                }
+            ]
+        },
+        ""AndNode"": {
+            ""description"": ""AND逻辑组合节点。不同字段间仅用AND连接，同一字段values列表中多个值间也是AND连接(值内部含逗号则拆为OR子条件)。不支持OR组合和NOT取反。"",
+            ""type"": ""object"",
+            ""properties"": {
+                ""and"": {
+                    ""type"": ""array"",
+                    ""items"": {
+                        ""$ref"": ""#/definitions/QueryNode""
+                    },
+                    ""minItems"": 1,
+                    ""description"": ""AND逻辑：所有子节点条件必须同时满足。""
+                }
+            },
+            ""required"": [
+                ""and""
+            ],
+            ""additionalProperties"": false
+        },
+        ""LeafNode"": {
+            ""description"": ""叶子条件节点，描述对某一搜索维度的具体匹配条件。可以是精确匹配或范围匹配。"",
+            ""type"": ""object"",
+            ""oneOf"": [
+                {
+                    ""$ref"": ""#/definitions/ExactFieldCondition""
+                },
+                {
+                    ""$ref"": ""#/definitions/RangeFieldCondition""
+                }
+            ]
+        },
+        ""ExactFieldCondition"": {
+            ""description"": ""精确匹配条件。value 为单值精确匹配；values 为多值数组时，列表中每个值用AND连接，若某个值内部含逗号则拆分为OR子条件。"",
+            ""type"": ""object"",
+            ""properties"": {
+                ""field"": {
+                    ""type"": ""string"",
+                    ""enum"": [
+                        ""sport_team"",
+                        ""sport_team_home"",
+                        ""sport_team_guest"",
+                        ""sport_star"",
+                        ""sport_game"",
+                        ""sport_name"",
+                        ""sport_competition_phase"",
+                        ""title"",
+                        ""sport_season"",
+                        ""sport_time"",
+                        ""live_state"",
+                        ""round_offset""
+                    ],
+                    ""description"": ""搜索维度字段名。sport_team:球队/俱乐部名称(主队/客队变体sport_team_home/sport_team_guest均映射到此字段)；sport_star:运动员/球星姓名；sport_game:具体赛事/比赛名称；sport_name:运动项目类型(如足球/篮球/网球等)；sport_competition_phase:比赛阶段(如小组赛/半决赛/决赛等)；title:视频/节目标题；sport_season:赛季(如2024-2025赛季)；sport_time:赛事时间，值为yyyyMMdd格式日期(如20240715)；live_state:直播状态(如1未开始/2进行中/3已结束/4回看等)；round_offset:轮次偏移(如第3轮等，不拼入query，单独作为URL参数处理)。""
+                },
+                ""value"": {
+                    ""type"": ""string"",
+                    ""description"": ""单值精确匹配。若值内部含逗号，则按逗号拆分为OR子条件。""
+                },
+                ""values"": {
+                    ""type"": ""array"",
+                    ""items"": {
+                        ""type"": ""string""
+                    },
+                    ""minItems"": 1,
+                    ""description"": ""多值匹配。列表中每个值用AND连接，若某个值内部含逗号则拆分为OR子条件。""
+                }
+            },
+            ""required"": [
+                ""field""
+            ],
+            ""oneOf"": [
+                {
+                    ""required"": [
+                        ""value""
+                    ]
+                },
+                {
+                    ""required"": [
+                        ""values""
+                    ]
+                }
+            ],
+            ""additionalProperties"": false
+        },
+        ""RangeFieldCondition"": {
+            ""description"": ""范围匹配条件。支持 sport_time_range(赛事时间区间) 范围字段，from/to 均为 yyyyMMdd HH:mm:ss 格式日期时间字符串，精确到秒，后续由系统转换为UTC秒级时间戳进行查询。搜索'比赛开始时间'处于 from(含) 和 to(含) 之间的赛程，from 和 to 可以一致。时间范围生成规则：1)用户输入具体时间但无范围时(如'明天下午1点的比赛')，以该时间点为起点，根据语义(之前/之后)往前或往后扩展1小时作为范围；2)用户输入具体日期但无范围时(如'6月17日之后的比赛')，以该日期为起点，根据语义(之前/之后)往前或往后扩展30天作为范围；3)特殊时段固定范围：凌晨00:00:00~06:00:00、早上04:00:00~12:00:00、上午08:00:00~12:00:00、中午12:00:00~14:00:00、下午12:00:00~18:00:00、傍晚17:00:00~19:00:00、晚上18:00:00~24:00:00。"",
+            ""type"": ""object"",
+            ""properties"": {
+                ""field"": {
+                    ""type"": ""string"",
+                    ""enum"": [
+                        ""sport_time_range""
+                    ],
+                    ""description"": ""范围搜索维度字段名。sport_time_range:赛事时间区间，yyyyMMdd HH:mm:ss格式。""
+                },
+                ""from"": {
+                    ""type"": ""string"",
+                    ""pattern"": ""^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$"",
+                    ""description"": ""起始时间(含)，格式 yyyyMMdd HH:mm:ss，精确到秒，如 20260127 06:00:00。""
+                },
+                ""to"": {
+                    ""type"": ""string"",
+                    ""pattern"": ""^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$"",
+                    ""description"": ""结束时间(含)，格式 yyyyMMdd HH:mm:ss，精确到秒，如 20260127 07:00:00。""
+                }
+            },
+            ""required"": [
+                ""field"",
+                ""from"",
+                ""to""
+            ],
+            ""additionalProperties"": false
+        }
+    }
+}
+",同赛程查询,,,,,,,,,,,
+,,sports_history,历史记录,sports_history,,"功能：本工具为不支持意图，固定返回\""不支持\""，不执行任何实际查询或数据检索。\n适用场景：当用户意图被识别为历史记录查询(sports_history)时，作为兜底回复，统一返回\""不支持\""，不向前端透传任何业务数据。\n不适用场景：不应用于任何需要真实历史记录数据的场景；如需赛程/赛况等数据请改用sports_match_search、sports_match_event_qa_search等工具。\n说明：该意图暂未支持，无需任何输入参数，调用时传入任何参数均被忽略，output固定为字符串\""不支持\""。","{
+  ""name"": ""sports_history"",——API名称，蛇形命名，与SportsIntentEnum.SPORTS_HISTORY一致；本工具为不支持意图
+  ""title"": ""历史记录"",
+  ""description"": ""功能：本工具为不支持意图，固定返回\""不支持\""，不执行任何实际查询或数据检索。\n适用场景：当用户意图被识别为历史记录查询(sports_history)时，作为兜底回复，统一返回\""不支持\""，不向前端透传任何业务数据。\n不适用场景：不应用于任何需要真实历史记录数据的场景；如需赛程/赛况等数据请改用sports_match_search、sports_match_event_qa_search等工具。\n说明：该意图暂未支持，无需任何输入参数，调用时传入任何参数均被忽略，output固定为字符串\""不支持\""。"",
+  ""parameters"": {——工具参数定义，本工具无任何输入参数
+    ""type"": ""object"",
+    ""properties"": {},
+    ""required"": []
+  },
+  ""output"": {——返回结果格式说明，固定文本输出，无业务数据
+    ""type"": ""string"",
+    ""description"": ""固定返回字符串\""不支持\"""",
+    ""usage_hint"": ""直接将固定文本\""不支持\""作为工具结果返回给用户，不进行任何后续处理或数据拼装。""
+  },
+  ""examples"": [——调用和返回示例
+    {
+      ""scenario"": ""任意输入均返回不支持"",
+      ""input"": {},
+      ""output"": ""不支持""
+    }
+  ]
+}",固定回复不支持,,,,,,,,,,,
+,,sports_match_detail_search,足球比赛相关信息查询,sports_match_detail_search,功能：查询体育比赛的详情信息，包括赛事事件问答、阵容、赛况和技术统计四类数据。\n适用场景：当用户询问某场比赛的进球/红黄牌/换人等事件、比赛阵容、比赛赛况、或技术统计数据时使用。\n不适用场景：用户询问赛程安排、比赛预约、视频回放等非比赛详情内容时不要调用。\n关联工具：赛程查询用sports_match_search，视频查询用sports_vod_search，比赛预约用sports_match_reservation。\n结果使用：根据intent类型展示对应的比赛详情卡片或文本信息。,,"{
+  ""name"": ""sports_match_detail_search"",
+  ""title"": ""体育比赛详情查询"",
+  ""description"": ""功能：查询体育比赛的详情信息，包括赛事事件问答、阵容、赛况和技术统计四类数据。\n适用场景：当用户询问某场比赛的进球/红黄牌/换人等事件、比赛阵容、比赛赛况、或技术统计数据时使用。\n不适用场景：用户询问赛程安排、比赛预约、视频回放等非比赛详情内容时不要调用。\n关联工具：赛程查询用sports_match_search，视频查询用sports_vod_search，比赛预约用sports_match_reservation。\n结果使用：根据intent类型展示对应的比赛详情卡片或文本信息。"",
+  ""parameters"": {
+    ""type"": ""object"",
+    ""properties"": {
+      ""intent"": {
+        ""type"": ""string"",
+        ""description"": ""具体的查询意图类型。sports_match_event_qa_search：赛事事件问答，查询进球、红黄牌、换人等比赛关键事件；sports_match_lineup_search：阵容查询，查询比赛双方首发阵容及替补信息；sports_match_event_card_search：赛况查询，查询比赛实时赛况事件流；sports_match_statistics_card_search：技术统计查询，查询控球率、射门数等技术统计数据。"",
+        ""enum"": [
+          ""sports_match_event_qa_search"",
+          ""sports_match_lineup_search"",
+          ""sports_match_event_card_search"",
+          ""sports_match_statistics_card_search""
+        ]
+      }
+    },
+    ""required"": [""intent""]
+  }
+}
+",同赛程查询,,,,,,,,,,,
+,,sports_match_reservation,比赛预约,sports_match_reservation,体育赛事预约组合式搜索工具(sports_match_reservation)。当用户表达了预约、订阅或取消预约体育赛事的意图时触发，包括按球队/俱乐部(主队/客队)、运动员/球星、赛事名称、运动项目、比赛阶段、赛季、轮次、赛事时间等维度筛选。注意：预约场景下 live_state 不参与搜索，由系统内部自动过滤可预约(未开始)的比赛。不同字段间仅支持AND组合，不支持OR组合和NOT取反。支持多个精确匹配维度和1个范围维度(sport_time_range赛事时间区间)。通过 intent 字段区分具体子意图：sports_match_reservation_cancel(取消预约)或 sports_schedule_reservation(赛程预约)。,,"{
+    ""$schema"": ""http://json-schema.org/draft-07/schema#"",
+    ""name"": ""sports_match_reservation"",
+    ""description"": ""体育赛事预约组合式搜索工具(sports_match_reservation)。当用户表达了预约、订阅或取消预约体育赛事的意图时触发，包括按球队/俱乐部(主队/客队)、运动员/球星、赛事名称、运动项目、比赛阶段、赛季、轮次、赛事时间等维度筛选。注意：预约场景下 live_state 不参与搜索，由系统内部自动过滤可预约(未开始)的比赛。不同字段间仅支持AND组合，不支持OR组合和NOT取反。支持多个精确匹配维度和1个范围维度(sport_time_range赛事时间区间)。通过 intent 字段区分具体子意图：sports_match_reservation_cancel(取消预约)或 sports_schedule_reservation(赛程预约)。"",
+    ""type"": ""object"",
+    ""properties"": {
+        ""intent"": {
+            ""type"": ""string"",
+            ""enum"": [
+                ""sports_match_reservation_cancel"",
+                ""sports_schedule_reservation""
+            ],
+            ""description"": ""预约子意图。sports_match_reservation_cancel:取消比赛预约；sports_schedule_reservation:赛程预约。""
+        },
+        ""query"": {
+            ""$ref"": ""#/definitions/QueryNode"",
+            ""description"": ""搜索查询的根节点。可以是单个叶子节点，也可以是由 AND 组成的复合节点。仅支持AND逻辑，不支持OR/NOT。""
+        }
+    },
+    ""required"": [
+        ""intent"",
+        ""query""
+    ],
+    ""additionalProperties"": false,
+    ""definitions"": {
+        ""QueryNode"": {
+            ""description"": ""查询节点，支持两种形态：1) AND复合节点；2) 叶子条件节点(单个字段的匹配条件)。"",
+            ""oneOf"": [
+                {
+                    ""$ref"": ""#/definitions/AndNode""
+                },
+                {
+                    ""$ref"": ""#/definitions/LeafNode""
+                }
+            ]
+        },
+        ""AndNode"": {
+            ""description"": ""AND逻辑组合节点。不同字段间仅用AND连接，同一字段values列表中多个值间也是AND连接(值内部含逗号则拆为OR子条件)。不支持OR组合和NOT取反。"",
+            ""type"": ""object"",
+            ""properties"": {
+                ""and"": {
+                    ""type"": ""array"",
+                    ""items"": {
+                        ""$ref"": ""#/definitions/QueryNode""
+                    },
+                    ""minItems"": 1,
+                    ""description"": ""AND逻辑：所有子节点条件必须同时满足。""
+                }
+            },
+            ""required"": [
+                ""and""
+            ],
+            ""additionalProperties"": false
+        },
+        ""LeafNode"": {
+            ""description"": ""叶子条件节点，描述对某一搜索维度的具体匹配条件。可以是精确匹配或范围匹配。"",
+            ""type"": ""object"",
+            ""oneOf"": [
+                {
+                    ""$ref"": ""#/definitions/ExactFieldCondition""
+                },
+                {
+                    ""$ref"": ""#/definitions/RangeFieldCondition""
+                }
+            ]
+        },
+        ""ExactFieldCondition"": {
+            ""description"": ""精确匹配条件。value 为单值精确匹配；values 为多值数组时，列表中每个值用AND连接，若某个值内部含逗号则拆分为OR子条件。"",
+            ""type"": ""object"",
+            ""properties"": {
+                ""field"": {
+                    ""type"": ""string"",
+                    ""enum"": [
+                        ""sport_team"",
+                        ""sport_team_home"",
+                        ""sport_team_guest"",
+                        ""sport_star"",
+                        ""sport_game"",
+                        ""sport_name"",
+                        ""sport_competition_phase"",
+                        ""sport_season"",
+                        ""sport_time"",
+                        ""round_offset""
+                    ],
+                    ""description"": ""搜索维度字段名。sport_team:球队/俱乐部名称(主队/客队变体sport_team_home/sport_team_guest均映射到此字段)；sport_star:运动员/球星姓名；sport_game:具体赛事/比赛名称；sport_name:运动项目类型(如足球/篮球/网球等)；sport_competition_phase:比赛阶段(如小组赛/半决赛/决赛等)；sport_season:赛季(如2024-2025赛季)；sport_time:赛事时间，值为yyyyMMdd格式日期(如20240715)；round_offset:轮次偏移(如第3轮等，不拼入query，单独作为URL参数处理)。注意：预约场景下 live_state 不作为搜索维度，由系统内部自动过滤可预约(未开始)的比赛。""
+                },
+                ""value"": {
+                    ""type"": ""string"",
+                    ""description"": ""单值精确匹配。若值内部含逗号，则按逗号拆分为OR子条件。""
+                },
+                ""values"": {
+                    ""type"": ""array"",
+                    ""items"": {
+                        ""type"": ""string""
+                    },
+                    ""minItems"": 1,
+                    ""description"": ""多值匹配。列表中每个值用AND连接，若某个值内部含逗号则拆分为OR子条件。""
+                }
+            },
+            ""required"": [
+                ""field""
+            ],
+            ""oneOf"": [
+                {
+                    ""required"": [
+                        ""value""
+                    ]
+                },
+                {
+                    ""required"": [
+                        ""values""
+                    ]
+                }
+            ],
+            ""additionalProperties"": false
+        },
+        ""RangeFieldCondition"": {
+            ""description"": ""范围匹配条件。支持 sport_time_range(赛事时间区间) 范围字段，from/to 均为 yyyyMMdd HH:mm:ss 格式日期时间字符串，精确到秒，后续由系统转换为UTC秒级时间戳进行查询。搜索'比赛开始时间'处于 from(含) 和 to(含) 之间的赛程，from 和 to 可以一致。时间范围生成规则：1)用户输入具体时间但无范围时(如'明天下午1点的比赛')，以该时间点为起点，根据语义(之前/之后)往前或往后扩展1小时作为范围；2)用户输入具体日期但无范围时(如'6月17日之后的比赛')，以该日期为起点，根据语义(之前/之后)往前或往后扩展30天作为范围；3)特殊时段固定范围：凌晨00:00:00~06:00:00、早上04:00:00~12:00:00、上午08:00:00~12:00:00、中午12:00:00~14:00:00、下午12:00:00~18:00:00、傍晚17:00:00~19:00:00、晚上18:00:00~24:00:00。"",
+            ""type"": ""object"",
+            ""properties"": {
+                ""field"": {
+                    ""type"": ""string"",
+                    ""enum"": [
+                        ""sport_time_range""
+                    ],
+                    ""description"": ""范围搜索维度字段名。sport_time_range:赛事时间区间，yyyyMMdd HH:mm:ss格式。""
+                },
+                ""from"": {
+                    ""type"": ""string"",
+                    ""pattern"": ""^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$"",
+                    ""description"": ""起始时间(含)，格式 yyyyMMdd HH:mm:ss，精确到秒，如 20260127 06:00:00。""
+                },
+                ""to"": {
+                    ""type"": ""string"",
+                    ""pattern"": ""^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$"",
+                    ""description"": ""结束时间(含)，格式 yyyyMMdd HH:mm:ss，精确到秒，如 20260127 07:00:00。""
+                }
+            },
+            ""required"": [
+                ""field"",
+                ""from"",
+                ""to""
+            ],
+            ""additionalProperties"": false
+        }
+    }
+}
+",同赛程查询,,,,,,,,,,,
+,,sports_qa,体育问答-快链路,sports_qa,体育问答(sports_qa)统一入口Schema。包含三部分：1) intent意图分类(枚举值)；2) query用户原始查询文本；3) search_slots搜索槽位信息(仅sports_match_forecast意图使用，用于赛程检索)。意图涵盖：单场比赛预测、赛事预测、单场比赛总结、赛事总结、体育基本信息查询、体育知识问答、体育人物查询、体育榜单模型意图。,,"{
+    ""$schema"": ""http://json-schema.org/draft-07/schema#"",
+    ""name"": ""sports_qa"",
+    ""description"": ""体育问答(sports_qa)统一入口Schema。包含三部分：1) intent意图分类(枚举值)；2) query用户原始查询文本；3) search_slots搜索槽位信息(仅sports_match_forecast意图使用，用于赛程检索)。意图涵盖：单场比赛预测、赛事预测、单场比赛总结、赛事总结、体育基本信息查询、体育知识问答、体育人物查询、体育榜单模型意图。"",
+    ""type"": ""object"",
+    ""properties"": {
+        ""intent"": {
+            ""type"": ""string"",
+            ""description"": ""用户意图分类。sports_match_forecast:单场比赛预测，预测某场具体比赛的胜负/比分等；sports_forecast:赛事预测，预测整个赛事的冠军/晋级等；sports_match_summary:单场比赛总结，总结某场已结束比赛的赛况；sports_summary:赛事总结，总结整个赛事的整体情况；sports_match_info_search:体育基本信息查询，查询赛程/比赛时间/对阵等基本信息；sports_chat_qa:体育知识问答，回答体育相关的知识性问题；sports_person_search:体育人物查询，查询运动员/教练等人物信息；sports_rank_llm_search:体育榜单模型意图，查询体育排行榜相关数据。"",
+            ""enum"": [
+                ""sports_match_forecast"",
+                ""sports_forecast"",
+                ""sports_match_summary"",
+                ""sports_summary"",
+                ""sports_match_info_search"",
+                ""sports_chat_qa"",
+                ""sports_person_search"",
+                ""sports_rank_llm_search""
+            ]
+        },
+        ""query"": {
+            ""type"": ""string"",
+            ""description"": ""用户原始输入的查询文本。为用户的自然语言问题原文，用于意图理解、槽位提取和兜底问答。"",
+            ""minLength"": 1
+        },
+        ""search_slots"": {
+            ""$ref"": ""#/definitions/SearchSlots"",
+            ""description"": ""搜索槽位信息，仅当intent为sports_match_forecast时使用。用于构建赛程检索query，通过AND/OR逻辑组合不同维度的搜索条件，定位到具体的比赛。""
+        }
+    },
+    ""required"": [
+        ""intent"",
+        ""query""
+    ],
+    ""additionalProperties"": false,
+    ""definitions"": {
+        ""SearchSlots"": {
+            ""description"": ""sports_match_forecast搜索槽位。包含一个query根节点，用于构建赛程检索的布尔查询表达式。不同字段间仅支持AND连接；同一字段多个值(values数组)间也是AND连接；若某个值内部含逗号，则按逗号拆分为OR子条件。round_offset不参与query拼接，单独作为URL参数传递。live_state由系统自动设置为未开始(liveState=1)，不作为用户可控搜索维度。"",
+            ""type"": ""object"",
+            ""properties"": {
+                ""query"": {
+                    ""$ref"": ""#/definitions/QueryNode"",
+                    ""description"": ""搜索查询的根节点。可以是单个叶子节点，也可以是由AND组成的复合节点。仅支持AND逻辑，不支持OR组合节点和NOT取反。""
+                },
+                ""round_offset"": {
+                    ""type"": ""string"",
+                    ""description"": ""轮次偏移(如'第3轮')。不参与query拼接，单独作为URL参数(roundOffset)传递给搜索API。""
+                }
+            },
+            ""required"": [
+                ""query""
+            ],
+            ""additionalProperties"": false
+        },
+        ""QueryNode"": {
+            ""description"": ""查询节点，支持两种形态：1) AND复合节点(多个子条件AND连接)；2) 叶子条件节点(单个字段的匹配条件)。"",
+            ""oneOf"": [
+                {
+                    ""$ref"": ""#/definitions/AndNode""
+                },
+                {
+                    ""$ref"": ""#/definitions/LeafNode""
+                }
+            ]
+        },
+        ""AndNode"": {
+            ""description"": ""AND逻辑组合节点。不同字段间仅用AND连接。拼接规则：每个子节点条件用括号包裹，子节点之间用AND连接。例如：(sport_team:皇马) AND (sport_name:足球)。不支持OR组合节点和NOT取反。"",
+            ""type"": ""object"",
+            ""properties"": {
+                ""and"": {
+                    ""type"": ""array"",
+                    ""items"": {
+                        ""$ref"": ""#/definitions/QueryNode""
+                    },
+                    ""minItems"": 1,
+                    ""description"": ""AND逻辑：所有子节点条件必须同时满足。拼接时每个子条件用()包裹，子条件间用AND连接。""
+                }
+            },
+            ""required"": [
+                ""and""
+            ],
+            ""additionalProperties"": false
+        },
+        ""LeafNode"": {
+            ""description"": ""叶子条件节点，描述对某一搜索维度的具体匹配条件。可以是精确匹配或范围匹配。"",
+            ""type"": ""object"",
+            ""oneOf"": [
+                {
+                    ""$ref"": ""#/definitions/ExactFieldCondition""
+                },
+                {
+                    ""$ref"": ""#/definitions/RangeFieldCondition""
+                }
+            ]
+        },
+        ""ExactFieldCondition"": {
+            ""description"": ""精确匹配条件。value为单值精确匹配；values为多值数组。拼接规则：1) 单值value → (field:value)，如(sport_team:皇马)；2) 多值values → 每个值用AND连接，如(field:值1) AND (field:值2)；3) 若某个值内部含逗号，则按逗号拆分为OR子条件，如值为'皇马,巴萨' → ((field:皇马) OR (field:巴萨))。注意：此拼接逻辑对应buildsportsMatchQuery方法实现。"",
+            ""type"": ""object"",
+            ""properties"": {
+                ""field"": {
+                    ""type"": ""string"",
+                    ""enum"": [
+                        ""sport_team"",
+                        ""team_name_home"",
+                        ""team_name_guest"",
+                        ""sport_star"",
+                        ""sport_game"",
+                        ""sport_name"",
+                        ""sport_competition_phase"",
+                        ""sport_season"",
+                        ""sport_time""
+                    ],
+                    ""description"": ""搜索维度字段名。sport_team:球队/俱乐部名称(如'皇马'、'湖人')；team_name_home:主队名称(如'曼联')；team_name_guest:客队名称(如'切尔西')；sport_star:运动员/球星姓名(如'梅西'、'詹姆斯')；sport_game:具体赛事/比赛名称(如'欧冠'、'NBA')；sport_name:运动项目类型(如'足球'、'篮球'、'网球')；sport_competition_phase:比赛阶段(如'小组赛'、'半决赛'、'决赛')；sport_season:赛季(如'2024-2025赛季')；sport_time:赛事时间，值为yyyyMMdd格式日期(如'20240715')。注意：live_state由系统自动设置(预测场景=未开始liveState=1)，不作为用户可控搜索维度。""
+                },
+                ""value"": {
+                    ""type"": ""string"",
+                    ""description"": ""单值精确匹配。拼接为(field:value)格式。若值内部含逗号，则按逗号拆分为OR子条件，拼接为((field:值1) OR (field:值2))格式。""
+                },
+                ""values"": {
+                    ""type"": ""array"",
+                    ""items"": {
+                        ""type"": ""string""
+                    },
+                    ""minItems"": 1,
+                    ""description"": ""多值匹配。列表中每个值用AND连接，拼接为(field:值1) AND (field:值2)格式。若某个值内部含逗号，则该值按逗号拆分为OR子条件。""
+                }
+            },
+            ""required"": [
+                ""field""
+            ],
+            ""oneOf"": [
+                {
+                    ""required"": [
+                        ""value""
+                    ]
+                },
+                {
+                    ""required"": [
+                        ""values""
+                    ]
+                }
+            ],
+            ""additionalProperties"": false
+        },
+        ""RangeFieldCondition"": {
+            ""description"": ""范围匹配条件。支持 sport_time_range(赛事时间区间) 范围字段，from/to 均为 yyyyMMdd HH:mm:ss 格式日期时间字符串，精确到秒，后续由系统转换为UTC秒级时间戳进行查询。搜索'比赛开始时间'处于 from(含) 和 to(含) 之间的赛程，from 和 to 可以一致。时间范围生成规则：1)用户输入具体时间但无范围时(如'明天下午1点的比赛')，以该时间点为起点，根据语义(之前/之后)往前或往后扩展1小时作为范围；2)用户输入具体日期但无范围时(如'6月17日之后的比赛')，以该日期为起点，根据语义(之前/之后)往前或往后扩展30天作为范围；3)特殊时段固定范围：凌晨00:00:00~06:00:00、早上04:00:00~12:00:00、上午08:00:00~12:00:00、中午12:00:00~14:00:00、下午12:00:00~18:00:00、傍晚17:00:00~19:00:00、晚上18:00:00~24:00:00。"",
+            ""type"": ""object"",
+            ""properties"": {
+                ""field"": {
+                    ""type"": ""string"",
+                    ""enum"": [
+                        ""sport_time_range""
+                    ],
+                    ""description"": ""范围搜索维度字段名。sport_time_range:赛事时间区间，yyyyMMdd HH:mm:ss格式。""
+                },
+                ""from"": {
+                    ""type"": ""string"",
+                    ""pattern"": ""^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$"",
+                    ""description"": ""起始时间(含)，格式 yyyyMMdd HH:mm:ss，精确到秒，如 20260127 06:00:00。""
+                },
+                ""to"": {
+                    ""type"": ""string"",
+                    ""pattern"": ""^[0-9]{8} [0-9]{2}:[0-9]{2}:[0-9]{2}$"",
+                    ""description"": ""结束时间(含)，格式 yyyyMMdd HH:mm:ss，精确到秒，如 20260127 07:00:00。""
+                }
+            },
+            ""required"": [
+                ""field"",
+                ""from"",
+                ""to""
+            ],
+            ""additionalProperties"": false
+        }
+    }
+}
+",,,,,,,,,,,,
