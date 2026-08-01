@@ -9,12 +9,17 @@
   * audio：route → audio slot-fill(约束解码) → compile
   * device：route → device slot-fill(约束解码) → compile
 
+支持多意图并发：
+  * plan_multi() 先做意图拆分（约束解码），检测到多意图时并发 plan 各子请求。
+  * 单意图时退化为普通 plan()，无额外开销。
+
 与训练侧 `train/planner_plugin.py::PlannerEnv` **共用同一个 agent 核心**
 （`planner.agent.PlannerAgent`）：prompt 构造与状态转移完全一致。
 """
 from __future__ import annotations
 
 import json
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
@@ -35,10 +40,12 @@ from .compiler import (
 from .grammar import (
     build_audio_schema,
     build_device_schema,
+    build_intent_split_schema,
     build_ir_schema,
     build_route_schema,
 )
 from .ir import IRError, parse_ir
+from .prompts import intent_split_observation, intent_split_system_prompt
 from .vllm_client import VLLMClient
 
 __all__ = ["Planner", "PlanResult", "IR_TOOLS"]
@@ -61,15 +68,17 @@ class PlanResult:
 
 class Planner:
     def __init__(self, client: VLLMClient, max_repairs: int = 2, vod_only: bool = False,
-                 use_eb_prompt: bool = True):
+                 educ_only: bool = False, use_eb_prompt: bool = True):
         self.client = client
         self.max_repairs = max_repairs
         self.vod_only = vod_only
+        self.educ_only = educ_only
         self.use_eb_prompt = use_eb_prompt
 
     def plan(self, query: str, memory_hint: str = "") -> PlanResult:
         agent = PlannerAgent(query, memory_hint=memory_hint, max_repairs=self.max_repairs,
-                             vod_only=self.vod_only, use_eb_prompt=self.use_eb_prompt)
+                             vod_only=self.vod_only, educ_only=self.educ_only,
+                             use_eb_prompt=self.use_eb_prompt)
 
         trace: list[dict] = []  # 记录每次 LLM 调用
 
@@ -80,7 +89,7 @@ class Planner:
         ]
 
         # ---- 阶段1：路由（约束解码）----
-        route_schema = build_route_schema(vod_only=self.vod_only)
+        route_schema = build_route_schema(vod_only=self.vod_only, educ_only=self.educ_only)
         route_raw = self.client.complete_json(messages, guided_json=route_schema)
         messages.append({"role": "assistant", "content": json.dumps(route_raw, ensure_ascii=False)})
         trace.append({
@@ -133,6 +142,78 @@ class Planner:
             notes=["未知路由结果，无法进一步处理"],
             trace=trace,
         )
+
+    def plan_multi(self, query: str, memory_hint: str = "",
+                   max_workers: int = 4) -> list[PlanResult]:
+        """多意图规划：先做意图拆分，检测到多意图时并发 plan 各子请求。
+
+        单意图时退化为 [plan(query)]，无额外开销（跳过拆分阶段）。
+        多意图时并发调用 plan()，返回有序的 PlanResult 列表。
+
+        Args:
+            query: 原始用户请求
+            memory_hint: 对话上下文摘要
+            max_workers: 并发规划子意图的最大线程数
+
+        Returns:
+            list[PlanResult]: 按子请求顺序排列的规划结果列表
+        """
+        # ---- 阶段0：意图拆分（约束解码）----
+        split_schema = build_intent_split_schema()
+        messages = [
+            {"role": "system", "content": intent_split_system_prompt()},
+            {"role": "user", "content": intent_split_observation(query, memory_hint)},
+        ]
+        split_raw = self.client.complete_json(messages, guided_json=split_schema)
+
+        is_multi = split_raw.get("multi", False)
+        sub_queries = split_raw.get("sub_queries", [query])
+
+        # 校验：拆分结果必须非空
+        if not sub_queries:
+            sub_queries = [query]
+            is_multi = False
+
+        # 单意图 → 直接走原有 plan，避免不必要的开销
+        if not is_multi or len(sub_queries) <= 1:
+            return [self.plan(query, memory_hint=memory_hint)]
+
+        # ---- 多意图并发规划 ----
+        results: list[Optional[PlanResult]] = [None] * len(sub_queries)
+        errors: list[Optional[Exception]] = [None] * len(sub_queries)
+
+        def _plan_one(idx: int, sub_q: str) -> tuple[int, PlanResult]:
+            return idx, self.plan(sub_q, memory_hint=memory_hint)
+
+        with ThreadPoolExecutor(max_workers=min(max_workers, len(sub_queries))) as pool:
+            futures = {
+                pool.submit(_plan_one, i, sq): i
+                for i, sq in enumerate(sub_queries)
+            }
+            for future in as_completed(futures):
+                idx = futures[future]
+                try:
+                    _, result = future.result()
+                    results[idx] = result
+                except Exception as e:
+                    errors[idx] = e
+
+        # 收集成功结果（保序），失败的附带错误信息
+        final: list[PlanResult] = []
+        for i, (res, err) in enumerate(zip(results, errors)):
+            if res is not None:
+                res.notes.insert(0, f"多意图拆分: 子请求[{i}]='{sub_queries[i]}'")
+                final.append(res)
+            elif err is not None:
+                # 子请求失败：生成一个带错误标记的 PlanResult
+                final.append(PlanResult(
+                    tool_name="error",
+                    parameters={"query": sub_queries[i], "error": str(err)},
+                    domain="unknown",
+                    notes=[f"多意图拆分: 子请求[{i}]='{sub_queries[i]}' 执行失败: {err}"],
+                ))
+
+        return final if final else [self.plan(query, memory_hint=memory_hint)]
 
     def _handle_simple(self, agent: PlannerAgent) -> PlanResult:
         """简单工具（personalized/history 以及非 IR 的 route_end）。"""
@@ -206,7 +287,7 @@ class Planner:
         step = agent.observe(slot_raw)
 
         slot_fill = agent.slot_fill or {}
-        tool_name, params = compile_device(slot_fill)
+        tool_name, params = compile_device(slot_fill, query=agent.query)
 
         return PlanResult(
             tool_name=tool_name,
@@ -246,7 +327,7 @@ class Planner:
             raise IRError("IR 校验在最大重试后仍失败: " + "; ".join(agent.errs))
 
         # 编译
-        ir = parse_ir(agent.final_ir)
+        ir = parse_ir(agent.final_ir, domain_hint=agent.domain)
         try:
             actual_tool, params = compile_with_fallback(
                 ir, agent.routed_tool, retext=query, intent=agent.intent or ""

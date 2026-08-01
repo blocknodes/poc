@@ -27,6 +27,7 @@ from .registry import (
     AUDIO_PLAY_MODES,
     AUDIO_SCREEN_MODES,
     AUDIO_TOOLS,
+    AI_PICTURE_SOUND_INTENTS,
     DEVICE_TOOLS,
     Kind,
     PLAYBACK_FIELDS,
@@ -41,13 +42,135 @@ from .registry import (
 # ===========================================================================
 
 def build_ir_schema(domain: str) -> dict[str, Any]:
-    """生成某 domain 的 IR JSON Schema（draft-07，含 $defs 递归）。"""
-    exact = field_names(domain, Kind.EXACT)
-    status = field_names(domain, Kind.STATUS)
-    range_fields = field_names(domain, Kind.RANGE)
-    sort_keys = sort_keys_for_domain(domain)
+    """生成某 domain 的 IR JSON Schema（draft-07，含 $defs 递归）。
 
-    defs: dict[str, Any] = {
+    educ 域使用独立 schema（对齐 educ_search_all tool_schema），与 vod 完全分离。
+    """
+    if domain == "educ":
+        return _build_educ_ir_schema()
+    return _build_vod_ir_schema()
+
+
+def _build_vod_ir_schema() -> dict[str, Any]:
+    """影视 (vod) 域 IR schema —— 含 action/playback/sort(4键)。"""
+    exact = field_names("vod", Kind.EXACT)
+    status = field_names("vod", Kind.STATUS)
+    range_fields = field_names("vod", Kind.RANGE)
+    sort_keys = sort_keys_for_domain("vod")
+
+    defs: dict[str, Any] = _build_bool_defs(exact, status, range_fields)
+
+    schema: dict[str, Any] = {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "vod_planner_ir",
+        "type": "object",
+        "properties": {
+            "domain": {"const": "vod"},
+            "action": {"type": "string", "enum": ["search", "play"]},
+            "query": {"$ref": "#/$defs/Node"},
+        },
+        "required": ["domain", "query"],
+        "additionalProperties": False,
+        "$defs": defs,
+    }
+
+    if sort_keys:
+        schema["properties"]["sort"] = {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "key": {"type": "string", "enum": sort_keys},
+                    "order": {"type": "string", "enum": ["asc", "desc"]},
+                },
+                "required": ["key", "order"],
+                "additionalProperties": False,
+            },
+        }
+
+    schema["properties"]["playback"] = {
+        "type": "object",
+        "properties": {k: {"type": "integer", "minimum": 0} for k in PLAYBACK_FIELDS},
+        "additionalProperties": False,
+    }
+
+    return schema
+
+
+# ---------------------------------------------------------------------------
+# educ 域使用的落地字段名（对齐 educ_search_all tool_schema 0729-v1）
+# ---------------------------------------------------------------------------
+_EDUC_EXACT_FIELDS: list[str] = [
+    "title", "content_type", "children_second_genre", "children_third_genre",
+    "training_objectives", "role", "multiple_intelligences", "country",
+    "company", "language", "gender", "festival", "prize", "sub_prize",
+    "features", "grade",
+]
+
+_EDUC_STATUS_FIELDS: list[str] = ["is_fee"]
+
+_EDUC_RANGE_FIELDS: list[str] = ["age_range", "release_year"]
+
+_EDUC_SORT_KEYS: list[str] = ["rate", "hot", "new"]
+
+
+def _build_educ_ir_schema() -> dict[str, Any]:
+    """少儿 (educ) 域 IR schema —— 对齐 educ_search_all tool_schema。
+
+    与 vod 的关键差异：
+      * 无 action 字段（educ 不区分 search/play）
+      * 无 playback 字段（educ 不使用 series/video_index/voiceStartPos）
+      * 字段名使用 tool_schema 落地名：age_range（非 canonical "age"）、is_fee（非 canonical "fee"）
+      * sort 为对象格式 {"rate":{"order":"desc"}}（对齐 tool_schema），非数组
+    """
+    defs: dict[str, Any] = _build_bool_defs(
+        _EDUC_EXACT_FIELDS, _EDUC_STATUS_FIELDS, _EDUC_RANGE_FIELDS
+    )
+
+    schema: dict[str, Any] = {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "educ_planner_ir",
+        "type": "object",
+        "properties": {
+            "query": {"$ref": "#/$defs/Node"},
+            "sort": {
+                "type": "object",
+                "description": "排序规则，可选 rate(评分)、hot(热度)、new(发布时间)。",
+                "properties": {
+                    "rate": {
+                        "type": "object",
+                        "properties": {"order": {"type": "string", "enum": ["asc", "desc"]}},
+                        "required": ["order"],
+                        "additionalProperties": False,
+                    },
+                    "hot": {
+                        "type": "object",
+                        "properties": {"order": {"type": "string", "enum": ["asc", "desc"]}},
+                        "required": ["order"],
+                        "additionalProperties": False,
+                    },
+                    "new": {
+                        "type": "object",
+                        "properties": {"order": {"type": "string", "enum": ["asc", "desc"]}},
+                        "required": ["order"],
+                        "additionalProperties": False,
+                    },
+                },
+                "additionalProperties": False,
+                "minProperties": 1,
+            },
+        },
+        "required": ["query"],
+        "additionalProperties": False,
+        "$defs": defs,
+    }
+
+    return schema
+
+
+def _build_bool_defs(exact: list[str], status: list[str], range_fields: list[str]) -> dict[str, Any]:
+    """构建布尔节点 $defs（And/Or/Not/Leaf），vod 和 educ 共用结构逻辑。"""
+    return {
         "Node": {
             "oneOf": [
                 {"$ref": "#/$defs/And"},
@@ -80,43 +203,6 @@ def build_ir_schema(domain: str) -> dict[str, Any]:
         },
         "Leaf": {"oneOf": _leaf_variants(exact, status, range_fields)},
     }
-
-    schema: dict[str, Any] = {
-        "$schema": "http://json-schema.org/draft-07/schema#",
-        "title": f"{domain}_planner_ir",
-        "type": "object",
-        "properties": {
-            "domain": {"const": domain},
-            "action": {"type": "string", "enum": ["search", "play"]},
-            "query": {"$ref": "#/$defs/Node"},
-        },
-        "required": ["domain", "query"],
-        "additionalProperties": False,
-        "$defs": defs,
-    }
-
-    if sort_keys:
-        schema["properties"]["sort"] = {
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "key": {"type": "string", "enum": sort_keys},
-                    "order": {"type": "string", "enum": ["asc", "desc"]},
-                },
-                "required": ["key", "order"],
-                "additionalProperties": False,
-            },
-        }
-
-    if domain == "vod":
-        schema["properties"]["playback"] = {
-            "type": "object",
-            "properties": {k: {"type": "integer", "minimum": 0} for k in PLAYBACK_FIELDS},
-            "additionalProperties": False,
-        }
-
-    return schema
 
 
 def _leaf_variants(exact: list[str], status: list[str], range_fields: list[str]) -> list[dict]:
@@ -219,7 +305,15 @@ def build_audio_schema() -> dict[str, Any]:
 # ===========================================================================
 
 def build_device_schema() -> dict[str, Any]:
-    """设备控制域的 slot-fill schema —— 模型选工具 + 填 operation/object/value。"""
+    """设备控制域的 slot-fill schema（对齐 0731，17 工具）。
+
+    两类工具共用一个扁平 schema：
+      * 常规控制（16 个工具）：填 operation/object/value(可选)/date_time(可选)。
+      * solve_picture_sound_problem_control：只填 intent（画质/音效异常诊断枚举）。
+
+    因两类字段互斥，这里仅硬约束 tool 必填，其余字段设为可选（intent 带 enum 约束），
+    由 prompt + few-shot 引导模型按工具类型填对应字段；compile_device 再按工具落地。
+    """
     return {
         "$schema": "http://json-schema.org/draft-07/schema#",
         "title": "device_slot_fill",
@@ -228,22 +322,34 @@ def build_device_schema() -> dict[str, Any]:
             "tool": {
                 "type": "string",
                 "enum": DEVICE_TOOLS,
-                "description": "设备控制工具名（20 选 1）。",
+                "description": "设备控制工具名（17 选 1）。",
             },
             "operation": {
                 "type": "string",
-                "description": "操作类型，如：提高、降低、打开、关闭、设置、查询、切换。",
+                "description": "操作类型，如：提高、降低、打开、关闭、设置、查询、切换、快进、快退。"
+                               "（solve_picture_sound_problem_control 不填此字段）",
             },
             "object": {
                 "type": "string",
-                "description": "控制对象，如：音量、静音、亮度、WiFi、蓝牙、屏幕、电源等。",
+                "description": "控制对象，如：音量、亮度、关机、信号源、分屏、背光分区、无线网络、摄像头等。"
+                               "（solve_picture_sound_problem_control 不填此字段）",
             },
             "value": {
                 "type": "string",
-                "description": "参数值（可选），如数字（30）、百分比（50%）、模式名等。",
+                "description": "参数值（可选），如数字（30）、百分比（50%）、hdmi1、标准模式、10秒等；无则不填。",
+            },
+            "date_time": {
+                "type": "string",
+                "description": "定时时间（可选），仅定时开关机/熄屏场景填写，如「30分钟」「22:00」；无则不填。",
+            },
+            "intent": {
+                "type": "string",
+                "enum": AI_PICTURE_SOUND_INTENTS,
+                "description": "仅 solve_picture_sound_problem_control 使用：画质/音效异常诊断意图枚举；"
+                               "其他工具不填此字段。",
             },
         },
-        "required": ["tool", "operation", "object"],
+        "required": ["tool"],
         "additionalProperties": False,
     }
 
@@ -286,12 +392,37 @@ ALL_INTENTS = [
 ]
 
 
-def build_route_schema(vod_only: bool = False) -> dict[str, Any]:
-    """路由 schema。vod_only=True 时只包含影视域工具。"""
+def build_intent_split_schema() -> dict[str, Any]:
+    """意图拆分 schema —— 判断用户请求是否包含多个独立意图，并拆分为子请求。"""
+    return {
+        "$schema": "http://json-schema.org/draft-07/schema#",
+        "title": "intent_split",
+        "type": "object",
+        "properties": {
+            "multi": {"type": "boolean", "description": "是否包含多个独立意图"},
+            "sub_queries": {
+                "type": "array",
+                "items": {"type": "string"},
+                "minItems": 1,
+                "maxItems": 5,
+                "description": "拆分后的子请求列表（单意图时只有一个元素等于原请求）",
+            },
+        },
+        "required": ["multi", "sub_queries"],
+        "additionalProperties": False,
+    }
+
+
+def build_route_schema(vod_only: bool = False, educ_only: bool = False) -> dict[str, Any]:
+    """路由 schema。vod_only/educ_only=True 时只包含对应单域工具。"""
     if vod_only:
         all_tools = sorted(ROUTE_TOOLS["vod"])
         all_domains = ["vod"]
         intents = ["search", "slow_search", "relate", "personalized", "history", "play"]
+    elif educ_only:
+        all_tools = sorted(ROUTE_TOOLS["educ"])
+        all_domains = ["educ"]
+        intents = ["search", "slow_search", "relate", "history", "play"]
     else:
         all_tools = sorted({t for tools in ROUTE_TOOLS.values() for t in tools})
         all_domains = sorted(ROUTE_TOOLS.keys())

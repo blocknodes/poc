@@ -44,22 +44,20 @@ from .prompts import (
 IR_TOOLS = {
     "vod_search", "vod_search_all",
     "vod_relate_search",
-    "educ_search", "educ_slow_search_data_search",
+    "educ_search",
     "educ_relate_recommend",
 }
 
 # 有声域工具（route 命中这些进入 audio slot-fill 阶段）
 AUDIO_TOOLS = {"audio_search", "audio_chat_qa"}
 
-# 设备域工具（route 命中这些进入 device slot-fill 阶段）
+# 设备域工具（route 命中这些进入 device slot-fill 阶段）—— 对齐 0731 taxonomy
 DEVICE_TOOLS = {
-    "volume_control", "power_control", "signal_source_control",
-    "screen_display_control", "camera_control", "network_control",
-    "bluetooth_control", "input_lang_control", "image_quality_control",
-    "sound_mode_control", "projection_control", "media_center_control",
-    "demo_control", "personalization_control", "scene_mode_control",
-    "screen_safety_control", "playback_control", "ambient_light_control",
-    "system_settings_control", "ai_picture_sound_control",
+    "numeric_adjust", "power_control", "timer_control", "source_switch",
+    "playback_control", "video_picture_save_share", "mode_control",
+    "screen_layout", "screen_lift_rotation", "demo_control", "display_control",
+    "audio_control", "smart_camera", "network_control", "screensaver_control",
+    "common_control", "solve_picture_sound_problem_control",
 }
 
 # 简单 slot-fill 工具（route 后直接结束，harness 侧独立处理参数）
@@ -71,7 +69,55 @@ SIMPLE_TOOLS = {
 # 慢链路工具（route 后直接结束，只传 query 原文）
 SLOW_SEARCH_TOOLS = {
     "vod_slow_search_data_search",
+    "educ_slow_search_data_search",
 }
+
+# ---------------------------------------------------------------------------
+# 少儿(educ) 域判定 —— 确定性兜底
+# 评测/上游约定：动画/动漫/卡通/绘本/儿歌/启蒙 等儿童向内容一律归 educ。
+# 模型有时误判到 vod，这里用高精度信号词 + 常见低幼 IP 做 vod→educ 纠偏。
+# 仅在全域路由（非 vod_only）时生效，不影响影视单域评测。
+# ---------------------------------------------------------------------------
+EDUC_KEYWORDS = (
+    "动画", "动漫", "卡通", "绘本", "儿歌", "启蒙", "早教", "点读", "幼儿",
+    "宝宝", "婴幼", "低幼", "亲子", "儿童", "小朋友", "学龄前", "幼儿园",
+    "少儿", "小小", "认知", "童话", "睡前故事",
+)
+EDUC_IP_NAMES = (
+    "汪汪队", "小猪佩奇", "佩奇", "超级飞侠", "奥特曼", "宝宝巴士", "帮帮龙",
+    "萌鸡小队", "瑞奇宝宝", "巴啦啦", "熊出没", "熊大", "熊二", "光头强",
+    "小马宝莉", "海底小纵队", "猪猪侠", "铠甲勇士", "火火兔", "贝乐虎",
+    "碰碰狐", "巧虎", "托马斯", "珀利", "蜡笔小新", "大头儿子", "喜羊羊",
+    "花园宝宝", "天线宝宝", "爱探险的朵拉", "朵拉", "海绵宝宝", "芭比",
+    "彼得兔", "艾莎公主", "安娜公主", "阿拉丁", "丑小鸭", "小羊肖恩",
+    "玛莎和熊", "迷你特工队", "尼克狐", "罗小黑", "布鲁伊", "小伶玩具",
+    "巴布工程师", "巴巴爸爸", "细胞总动员", "奶龙", "依娜和恰恰",
+    "钶龙战记", "爆裂飞车", "帮帮熊", "汽车世界", "沃福一家",
+    # 补充：动画电影/儿童向IP
+    "宝贝赳赳", "超级土豆", "长征先锋", "娜斯佳", "大神侦探诸葛",
+    "间谍过家家", "间谍过家家", "刺猬索尼克", "索尼克",
+    "坏蛋联盟", "超能一家人", "大鱼海棠", "波妞", "狮子王",
+    "吞噬星空", "JOJO", "jojo", "开心锤锤",
+)
+# vod 意图 → educ 对应工具（保留意图，仅切换域/工具族）
+VOD_TO_EDUC_TOOL = {
+    "vod_search": "educ_search",
+    "vod_search_all": "educ_search",
+    "vod_slow_search_data_search": "educ_slow_search_data_search",
+    "vod_relate_search": "educ_relate_recommend",
+    "vod_history": "educ_history",
+    "vod_personalized_search": "educ_search",
+}
+
+
+def looks_like_educ(query: str) -> bool:
+    """query 是否带有明确的少儿/动画信号（高精度）。"""
+    q = (query or "").lower()
+    if any(k in query for k in EDUC_KEYWORDS):
+        return True
+    if any(ip.lower() in q for ip in EDUC_IP_NAMES):
+        return True
+    return False
 
 # 阶段常量
 PHASE_ROUTE = "route"
@@ -137,12 +183,13 @@ class PlannerAgent:
 
     def __init__(self, query: str, memory_hint: str = "", max_repairs: int = 2,
                  route_only: bool = False, vod_only: bool = False,
-                 use_eb_prompt: bool = True):
+                 educ_only: bool = False, use_eb_prompt: bool = True):
         self.query = query or ""
         self.memory_hint = memory_hint or ""
         self.max_repairs = int(max_repairs)
         self.route_only = route_only
         self.vod_only = vod_only
+        self.educ_only = educ_only
         self.use_eb_prompt = use_eb_prompt
 
         self.phase = PHASE_ROUTE
@@ -165,7 +212,7 @@ class PlannerAgent:
 
     # ---- 供两处调用者拿 prompt ----
     def system_prompt(self) -> str:
-        return route_system_prompt(vod_only=self.vod_only)
+        return route_system_prompt(vod_only=self.vod_only, educ_only=self.educ_only)
 
     def first_observation(self) -> str:
         return route_observation(self.query, self.memory_hint)
@@ -189,6 +236,13 @@ class PlannerAgent:
         self.routed_tool = route.get("tool")
         self.intent = route.get("intent")
         self.confidence = route.get("confidence")
+
+        # ---- 确定性兜底：动画/少儿信号 → 纠偏到 educ 域（仅全域路由生效）----
+        if (not self.vod_only and self.domain == "vod"
+                and self.routed_tool in VOD_TO_EDUC_TOOL
+                and looks_like_educ(self.query)):
+            self.domain = "educ"
+            self.routed_tool = VOD_TO_EDUC_TOOL[self.routed_tool]
 
         # route_only 模式：路由后直接结束
         if self.route_only:
@@ -267,7 +321,7 @@ class PlannerAgent:
             errs = ["输出不是合法 JSON"]
         else:
             try:
-                ir = parse_ir(raw)
+                ir = parse_ir(raw, domain_hint=self.domain)
                 errs = validate_ir(ir)
                 ir_ok = not errs
             except IRError as e:

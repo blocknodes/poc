@@ -1,0 +1,4020 @@
+﻿业务域,query,分类,intent,少儿意图,备注,期望工具,期望参数,,,,,,,,,,,,,,,,
+少儿\多tab, 教孩子情绪管理的绘本动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+    ""retext"": ""教孩子情绪管理的绘本动画"",
+    ""query"": {
+        ""and"": [
+            {
+                ""or"": [
+                    {
+                        ""field"": ""children_third_genre"",
+                        ""value"": ""情绪管理""
+                    },
+                    {
+                        ""field"": ""training_objectives"",
+                        ""value"": ""情绪管理""
+                    }
+                ]
+            },
+            {
+				""field"": ""content_type"",
+				""value"": ""动画""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,0~3 岁宝宝看的启蒙动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""0~3 岁宝宝看的启蒙动画片"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""title"",
+                ""value"": ""启蒙""
+            },
+            {
+                ""field"": ""age_range"",
+                ""from"": ""0"",
+                ""to"": ""3""
+            },
+            {
+				""field"": ""content_type"",
+				""value"": ""动画片""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,10 到 12 岁儿童的经典卡通,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""0~3 岁宝宝看的启蒙动画片"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""title"",
+                ""value"": ""经典卡通""
+            },
+            {
+                ""field"": ""age_range"",
+                ""from"": ""10"",
+                ""to"": ""12""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,2010年2019年比较火的冒险动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+    ""retext"": ""2010年2019年比较火的冒险动画片"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""children_third_genre"",
+                ""value"": ""冒险""
+            },
+            {
+				""field"": ""content_type"",
+				""value"": ""动画""
+            },
+            {
+                ""or"": [
+                    {
+                        ""field"": ""release_year"",
+                        ""from"": ""20100101"",
+                        ""to"": ""20101231""
+                    },
+                    {
+                        ""field"": ""release_year"",
+                        ""from"": ""20190101"",
+                        ""to"": ""20191231""
+                    },
+                ]
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,2025年的免费重生动漫,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+    ""retext"": ""2025年的免费重生动漫"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""title"",
+                ""value"": ""重生""
+            },
+            {
+                ""field"": ""release_year"",
+                ""from"": ""20250101"",
+                ""to"": ""20251231""
+            },
+            {
+                ""field"": ""children_second_genre"",
+                ""value"": ""少儿动漫""
+            },
+            {
+                ""field"": ""is_fee"",
+                ""value"": ""0""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,22年至今播出的科幻冒险动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+    ""retext"": ""22年至今播出的科幻冒险动画"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""children_third_genre"",
+                ""value"": ""科幻""
+            },
+            {
+                ""field"": ""children_third_genre"",
+                ""value"": ""冒险""
+            },
+            {
+				""field"": ""content_type"",
+				""value"": ""动画""
+            },
+            {
+                ""field"": ""release_year"",
+                ""from"": ""20220101"",
+                ""to"": ""20221231""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,23年以后的动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+    ""retext"": ""23年以后的动画片"",
+    ""query"": {
+        ""and"": [
+            {
+				""field"": ""content_type"",
+				""value"": ""动画""
+            },
+            {
+                ""field"": ""release_year"",
+                ""from"": ""20230101"",
+                ""to"": ""20231231""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,4~5岁逻辑思维启蒙动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""4~5岁逻辑思维启蒙动画"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""title"",
+                ""value"": ""逻辑思维启蒙""
+            },
+            {
+				""field"": ""content_type"",
+				""value"": ""动画""
+            },
+            {
+                ""field"": ""age_range"",
+                ""from"": ""4"",
+                ""to"": ""5""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,6到7岁儿童适合的成长主题动画,模糊搜索,confirm_vague_search,,其他,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,9岁小女孩喜欢看的动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""9岁小女孩喜欢看的动画片"",
+    ""query"": {
+        ""and"": [
+            {
+				""field"": ""content_type"",
+				""value"": ""动画""
+            },
+            {
+                ""or"": [
+                    {
+                        ""field"": ""gender"",
+                        ""value"": ""女""
+                    },
+                    {
+                        ""field"": ""gender"",
+                        ""value"": ""通用""
+                    }
+                ]
+            },
+            {
+                ""field"": ""age_range"",
+                ""from"": ""9"",
+                ""to"": ""9""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,按我家娃的喜好推荐一些动画,个性化推荐,confirm_personalized_recommend,educ_vague_search_personalized_recommend,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,奥特曼免费的不要钱的,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""奥特曼免费的不要钱的"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""奥特曼""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,帮我播放钶龙战记,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""帮我播放钶龙战记"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""钶龙战记""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,帮我来点奇幼幼园英语版不要钱,精确搜索,multi_tab_search,educ_keyword_search,分词有问题,educ_search,,,,,,,,,,,,,,,,,
+少儿\多tab,帮我搜索2023年推出的动漫作品,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+    ""retext"": ""帮我搜索2023年推出的动漫作品"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""release_year"",
+                ""from"": ""20230101"",
+                ""to"": ""20231231""
+            },
+            {
+                ""field"": ""children_second_genre"",
+                ""value"": ""少儿动漫""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,帮我调到免费的长征先锋,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""帮我调到免费的长征先锋"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""长征先锋""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,帮我找一个动画片儿背古诗的,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""帮我找一个动画片儿背古诗的"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""children_third_genre"",
+                ""value"": ""古诗词""
+            },
+            {
+				""field"": ""content_type"",
+				""value"": ""动画""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,帮我找《佩奇》。,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""帮我找《佩奇》。"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""小猪佩奇""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,宝宝巴士免费少儿,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,,,,,,,,,,,,,,,,,
+少儿\多tab,宝宝多大可以看动画,问答,confirm_qa,confirm_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,宝可梦是哪个公司出品的动画片,问答,confirm_qa,confirm_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,芭比系列全部免费,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""芭比系列全部免费"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""芭比""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,巴布工程师的角色设定有哪些特点？,问答,confirm_qa,confirm_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,贝瓦儿歌开始,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""贝瓦儿歌开始"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""贝瓦儿歌""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,彼得兔全屏播放,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""彼得兔全屏播放"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""彼得兔""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放艾莎公主和安娜公主,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放艾莎公主和安娜公主"",
+  ""query"": {
+  ""or"": [
+  {
+  ""field"": ""role"",
+  ""value"": ""艾莎公主""
+  },
+  {
+  ""field"": ""role"",
+  ""value"": ""安娜公主""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""艾莎公主""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""安娜公主""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放奥特曼卡片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放奥特曼卡片"",
+  ""query"": {
+    ""field"": ""title"",
+    ""value"": ""奥特曼卡片""
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放阿拉丁神灯故事,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""播放阿拉丁神灯故事"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""title"",
+                ""value"": ""阿拉丁神灯""
+            },
+            {
+                ""field"": ""children_second_genre"",
+                ""value"": ""故事""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放阿巳与小铃铛的故事,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""播放阿巳与小铃铛的故事"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""title"",
+                ""value"": ""阿巳与小铃铛""
+            },
+            {
+                ""field"": ""children_second_genre"",
+                ""value"": ""故事""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放宝宝巴士奇妙学古诗,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放宝宝巴士奇妙学古诗"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""宝宝巴士奇妙学古诗""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放宝宝动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放宝宝动画片"",
+  ""query"": {
+				""field"": ""content_type"",
+				""value"": ""动画""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放暴暴龙,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放暴暴龙"",
+  ""query"": {
+  ""or"": [
+  {
+  ""field"": ""role"",
+  ""value"": ""暴暴龙""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""暴暴龙""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放宝贝JOJO之认知启蒙,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""播放宝贝JOJO之认知启蒙"",
+    ""query"": {
+        ""or"": [
+            {
+                ""field"": ""title"",
+                ""value"": ""认知启蒙""
+            },
+            {
+                ""field"": ""title"",
+                ""value"": ""超级宝贝jojo""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放爆裂飞车二,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放爆裂飞车二"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""爆裂飞车2""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放巴巴爸爸的视频,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放巴巴爸爸的视频"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""巴巴爸爸""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放爸爸去哪儿的视频,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放爸爸去哪儿的视频"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""爸爸去哪儿""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放布鲁伊中文版不用会员,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放布鲁伊中文版不用会员"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""布鲁伊""
+  },
+  {
+  ""field"": ""language"",
+  ""value"": ""普通话""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放不要会员的锤锤,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放不要会员的锤锤"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""开心锤锤""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放成人动画片开心锤锤免费,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放成人动画片开心锤锤免费"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""开心锤锤""
+  },
+  {
+				""field"": ""content_type"",
+				""value"": ""动画""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放丑小鸭,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放丑小鸭"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""丑小鸭""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放第三集小马宝莉,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放第三集小马宝莉"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""小马宝莉""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放第一个超级宝贝JOJO,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放第一个超级宝贝JOJO"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""超级宝贝jojo""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放斗罗大陆动漫版,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放斗罗大陆动漫版"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""斗罗大陆""
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""少儿动漫""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放斗罗大陆动漫版,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放斗罗大陆动漫版"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""斗罗大陆""
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""少儿动漫""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放儿童消防车,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""播放儿童消防车"",
+    ""query"": {
+        ""field"": ""title"",
+        ""value"": ""消防车""
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放搞笑视频光头强,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放搞笑视频光头强"",
+  ""query"": {
+  ""and"": [
+  {
+  ""or"": [
+  {
+  ""field"": ""role"",
+  ""value"": ""光头强""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""光头强""
+  }
+  ]
+  },
+  {
+  ""field"": ""children_third_genre"",
+  ""value"": ""搞笑""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放鬼灭之刃普通话版,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放鬼灭之刃普通话版"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""鬼灭之刃""
+  },
+  {
+  ""field"": ""language"",
+  ""value"": ""普通话""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放国语版汪汪队电影,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放国语版汪汪队电影"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""汪汪队""
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""动画电影""
+  },
+  {
+  ""field"": ""language"",
+  ""value"": ""普通话""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放海底小纵队第五季立刻播放,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放海底小纵队第五季立刻播放"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""海底小纵队""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""第五季""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放海绵宝宝第八季,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放海绵宝宝第八季"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""海绵宝宝""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""第八季""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放好饿的毛毛虫,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放好饿的毛毛虫"",
+  ""query"": {
+    ""field"": ""title"",
+    ""value"": ""好饿的毛毛虫""
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放好看的动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放好看的动画片"",
+  ""query"": {
+				""field"": ""content_type"",
+				""value"": ""动画""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放旧版的汪汪队,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放旧版的汪汪队"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""汪汪队""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放积木玩具,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放积木玩具"",
+  ""query"": {
+    ""field"": ""title"",
+    ""value"": ""积木玩具""
+  }
+}",,,,,,,,,,,,,,,,
+,播放六一儿童节免费动画,,,educ_keyword_search,,educ_search,"{
+    ""retext"": ""播放六一儿童节免费动画"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""festival"",
+                ""value"": ""六一儿童节""
+            },
+            {
+                ""field"": ""is_fee"",
+                ""value"": ""0""
+            },
+            {
+				""field"": ""content_type"",
+				""value"": ""动画""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放历史收藏里面的名侦探柯南,历史记录,multitab_history,educ_history,,educ_history,,,,,,,,,,,,,,,,,
+少儿\多tab,播放罗小黑战记二,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放罗小黑战记二"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""罗小黑战记2""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放玛莎和熊第七季,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放玛莎和熊第七季"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""玛莎和熊""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""第七季""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放免费宝宝巴士汉字,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""播放免费宝宝巴士汉字"",
+    ""query"": {
+        ""and"": [
+            {
+                ""or"": [
+                    {
+                        ""field"": ""title"",
+                        ""value"": ""宝宝巴士""
+                    },
+                    {
+                        ""field"": ""children_third_genre"",
+                        ""value"": ""汉字""
+                    }
+                ]
+            },
+            {
+                ""field"": ""is_fee"",
+                ""value"": ""0""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放免费的安娜小公主,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放免费的安娜小公主"",
+  ""query"": {
+    ""and"": [
+      {
+        ""or"": [
+          {
+            ""field"": ""role"",
+            ""value"": ""安娜""
+          },
+          {
+            ""field"": ""title"",
+            ""value"": ""小公主""
+          },
+          {
+            ""field"": ""title"",
+            ""value"": ""安娜""
+          }
+        ]
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": ""0""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放免费的道奇,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放免费的道奇"",
+  ""query"": {
+  ""and"": [
+  {
+  ""or"": [
+  {
+  ""field"": ""role"",
+  ""value"": ""道奇""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""道奇""
+  }
+  ]
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放免费的第3集的巴啦啦小魔仙,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放免费的第3集的巴啦啦小魔仙"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""巴啦啦小魔仙""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放免费的儿童螺丝钉,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放免费的儿童螺丝钉"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""螺丝钉""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": ""0""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放免费的搞笑动漫,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放免费的搞笑动漫"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""children_third_genre"",
+  ""value"": ""搞笑""
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""少儿动漫""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放免费的迷你特工队全集,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""播放免费的迷你特工队全集"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""title"",
+                ""value"": ""迷你特工队全集""
+            },
+            {
+                ""field"": ""is_fee"",
+                ""value"": ""0""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放免费的汪汪队大卡车,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放免费的汪汪队大卡车"",
+  ""query"": {
+    ""and"": [
+      {
+        ""or"": [
+          {
+            ""field"": ""title"",
+            ""value"": ""大卡车""
+          },
+          {
+            ""field"": ""title"",
+            ""value"": ""汪汪队""
+          }
+        ]
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": ""0""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放免费的小羊肖恩大电影,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放免费的小羊肖恩大电影"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""小羊肖恩大电影""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放免费的熊猫姐姐,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""播放免费的熊猫姐姐"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""title"",
+                ""value"": ""熊猫姐姐""
+            },
+            {
+                ""field"": ""is_fee"",
+                ""value"": ""0""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放免费动画片消防车,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放免费动画片消防车"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""消防车""
+      },
+      {
+				""field"": ""content_type"",
+				""value"": ""动画""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": ""0""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放免费儿童古诗,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""播放免费儿童古诗"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""children_third_genre"",
+                ""value"": ""古诗词""
+            },
+            {
+                ""field"": ""is_fee"",
+                ""value"": ""0""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放免费少儿的恐龙,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放免费少儿的恐龙"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""children_third_genre"",
+        ""value"": ""恐龙""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": ""0""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放免费少儿节目小猪佩奇,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放免费少儿节目小猪佩奇"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""小猪佩奇""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放奶龙动画片儿,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放奶龙动画片儿"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""奶龙""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放哪吒二动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放哪吒二动画片"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""哪吒之魔童闹海""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放尼克狐尼克,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放尼克狐尼克"",
+  ""query"": {
+  ""or"": [
+  {
+  ""field"": ""role"",
+  ""value"": ""狐尼克""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""狐尼克""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放普通话的芭比,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放普通话的芭比"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""芭比""
+  },
+  {
+  ""field"": ""language"",
+  ""value"": ""普通话""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放卡通动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""播放卡通动画片"",
+    ""query"": {
+        ""or"": [
+            {
+                ""field"": ""content_type"",
+                ""value"": ""动画""
+            },
+            {
+                ""field"": ""content_type"",
+                ""value"": ""卡通""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放汽车世界之颜色乐园第三季,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""播放汽车世界之颜色乐园第三季"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""title"",
+                ""value"": ""汽车世界之颜色乐园""
+            },
+            {
+                ""field"": ""title"",
+                ""value"": ""第三季""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放瑞奇宝宝全集,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放瑞奇宝宝全集"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""瑞奇宝宝""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放汪汪队立大功第四季第2集,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放汪汪队立大功第四季第2集"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""汪汪队立大功""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""第四季""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放玩具动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放玩具动画片"",
+  ""query"": {
+  ""and"": [
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""玩具""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放完美世界动漫版,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放完美世界动漫版"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""少儿动漫""
+  },
+  {
+  ""field"": ""company"",
+  ""value"": ""完美世界""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放挖土机系列动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放挖土机系列动画片"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""挖土机""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放沃福一家英语版,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放沃福一家英语版"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""沃福一家""
+  },
+  {
+  ""field"": ""language"",
+  ""value"": ""英文版""
+  },
+  {
+  ""field"": ""language"",
+  ""value"": ""英文""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放我刚看的动画片,历史记录,multitab_history,educ_history,,educ_history,,,,,,,,,,,,,,,,,
+少儿\多tab,播放我没看过的动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放我没看过的动画片"",
+  ""query"": {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放我是不白吃日常篇第8集,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放我是不白吃日常篇第8集"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""我是不白吃日常篇""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放消防车动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放消防车动画片"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""消防车""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放小公主戴安娜免费的英文版,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放小公主戴安娜免费的英文版"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""小公主戴安娜""
+  },
+  {
+  ""field"": ""language"",
+  ""value"": ""英文版""
+  },
+  {
+  ""field"": ""language"",
+  ""value"": ""英文""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放小恐龙巴布,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放小恐龙巴布"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""小恐龙巴布""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放小伶玩具的视频,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放小伶玩具的视频"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""小伶玩具""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放小猪佩奇,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放小猪佩奇"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""小猪佩奇""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放小猪佩奇第七季第一集中文版,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放小猪佩奇第七季第一集中文版"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""小猪佩奇""
+  },
+  {
+  ""field"": ""language"",
+  ""value"": ""普通话""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""第七季""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放细胞总动员,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放细胞总动员"",
+  ""query"": {
+    ""field"": ""title"",
+    ""value"": ""细胞总动员""
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放影视奶龙,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放影视奶龙"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""奶龙""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放英文儿童启蒙动漫,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""播放英文儿童启蒙动漫"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""title"",
+                ""value"": ""启蒙""
+            },
+            {
+                ""field"": ""children_second_genre"",
+                ""value"": ""少儿动漫""
+            },
+            {
+                ""field"": ""language"",
+                ""value"": ""英文""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放英语版jojo,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放英语版jojo"",
+  ""query"": {
+    ""and"": [
+      {
+        ""or"": [
+          {
+            ""field"": ""role"",
+            ""value"": ""jojo""
+          },
+          {
+            ""field"": ""title"",
+            ""value"": ""jojo""
+          }
+        ]
+      },
+      {
+        ""field"": ""language"",
+        ""value"": ""英文版""
+      },
+      {
+        ""field"": ""language"",
+        ""value"": ""英文""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放依娜和恰恰第二季,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放依娜和恰恰第二季"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""依娜和恰恰""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""第二季""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放依娜和恰恰第一集开始播放,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放依娜和恰恰第一集开始播放"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""依娜和恰恰""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放一下米小圈上学记,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放一下米小圈上学记"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""米小圈上学记""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放幼儿园跳个舞我长大了,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放幼儿园跳个舞我长大了"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""我长大了""
+      },
+      {
+        ""field"": ""children_third_genre"",
+        ""value"": ""舞蹈""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放早教内容,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放早教内容"",
+  ""query"": {
+    ""field"": ""children_second_genre"",
+    ""value"": ""早教""
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,播放蜘蛛侠少儿,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""播放蜘蛛侠少儿"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""蜘蛛侠""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,播放最近的少儿历史记录,历史记录,educ_history,educ_history,,educ_history,"{
+  ""retext"": ""播放最近的少儿历史记录"",
+  ""query"": {
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,不带英语的小砾工程家族,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""不带英语的小砾工程家族"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""小砾与工程家族""
+      },
+      {
+        ""or"": [
+          {
+            ""field"": ""children_second_genre"",
+            ""value"": ""英语""
+          },
+          {
+            ""field"": ""language"",
+            ""value"": ""英语""
+          }
+        ]
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,不掏钱的动物神探队,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""不掏钱的动物神探队"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""动物神探队""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,不要钱的细菌动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""不要钱的细菌动画片"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""细菌""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,超级宝贝JOJO全屏播放第1集,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""超级宝贝JOJO全屏播放第1集"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""超级宝贝jojo""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,查找我的磁力拼搭世界,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""查找我的磁力拼搭世界"",
+  ""query"": {
+    ""field"": ""title"",
+    ""value"": ""我的磁力拼搭世界""
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,从酷喵上播放小品一家人,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""从酷喵上播放小品一家人"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""小品一家人""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,促进孩子社交智能发展的少儿节目,模糊搜索,educ_vague_search,educ_vague_search,其他,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,弹珠玩具闯关冒险适合多大孩子,问答,confirm_qa,confirm_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,打开动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""打开动画"",
+  ""query"": {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,打开动画片史努比,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""打开动画片史努比"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""史努比""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,打开海底小纵队第四季,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""打开海底小纵队第四季"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""海底小纵队""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""第四季""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,打开恐龙世界看,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""打开恐龙世界看"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""恐龙世界""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,打开免费的儿童现代舞视频,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,,,,,,,,,,,,,,,,,
+少儿\多tab,打开免费少儿猫和老鼠,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""打开免费少儿猫和老鼠"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""猫和老鼠""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": ""0""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,打开少儿频道宝贝JOJO,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""打开少儿频道宝贝JOJO"",
+  ""query"": {
+    ""field"": ""title"",
+    ""value"": ""超级宝贝jojo""
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,打开所有植物大战僵尸的动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""打开所有植物大战僵尸的动画片"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""植物大战僵尸""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,打开一周内的少儿历史记录,历史记录,educ_history,educ_history,,educ_history,"{
+  ""retext"": ""打开一周内的少儿历史记录"",
+  ""query"": {
+        ""field"":""time"",
+        ""from"":""2026-07-31 17:00:00"",
+        ""to"":""2026-07-25 17:00:00""
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,打开植物大战僵尸英文版,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""打开植物大战僵尸英文版"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""title"",
+                ""value"": ""植物大战僵尸""
+            },
+            {
+                ""field"": ""language"",
+                ""value"": ""英文版""
+            },
+            {
+                ""field"": ""language"",
+                ""value"": ""英文""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,大中华寻宝记动画片2,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""大中华寻宝记动画片2"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""大中华寻宝记""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,第2集免费监狱兔,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""第2集免费监狱兔"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""监狱兔""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,低龄儿童看的动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""低龄儿童看的动画"",
+  ""query"": {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,迪士尼出品的动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""迪士尼出品的动画片"",
+  ""query"": {
+  ""and"": [
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  },
+  {
+  ""or"": [
+  {
+  ""field"": ""company"",
+  ""value"": ""迪士尼""
+  },
+  {
+  ""field"": ""company"",
+  ""value"": ""迪士尼电影公司""
+  },
+  {
+  ""field"": ""company"",
+  ""value"": ""华特迪士尼动画工作室""
+  },
+  {
+  ""field"": ""company"",
+  ""value"": ""尼克罗迪恩动画工作室""
+  }
+  ]
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,迪士尼动画电影作品,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""迪士尼动画电影作品"",
+  ""query"": {
+  ""and"": [
+  {
+  ""or"": [
+  {
+  ""field"": ""company"",
+  ""value"": ""迪士尼""
+  },
+  {
+  ""field"": ""company"",
+  ""value"": ""迪士尼电影公司""
+  },
+  {
+  ""field"": ""company"",
+  ""value"": ""华特迪士尼动画工作室""
+  },
+  {
+  ""field"": ""company"",
+  ""value"": ""尼克罗迪恩动画工作室""
+  }
+  ]
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""动画电影""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,动画电影,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""动画电影"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""动画电影""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,动画片播放美人鱼,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""动画片播放美人鱼"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""美人鱼""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,动画片启蒙,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,,,,,,,,,,,,,,,,,
+少儿\多tab,动画片小鸭子,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""动画片小鸭子"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""小鸭子""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,动画片中国版,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+  ""retext"": ""动画片中国版"",
+  ""query"": {
+  ""and"": [
+  {
+  ""or"": [
+  {
+  ""field"": ""country"",
+  ""value"": ""内地""
+  },
+  {
+  ""field"": ""country"",
+  ""value"": ""中国澳门""
+  },
+  {
+  ""field"": ""country"",
+  ""value"": ""中国香港""
+  },
+  {
+  ""field"": ""country"",
+  ""value"": ""中国台湾""
+  }
+  ]
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,动画视频疯狂动物城,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""动画视频疯狂动物城"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""疯狂动物城""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,豆瓣评分8.0以上的动漫作品,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""豆瓣评分8.0以上的动漫作品"",
+  ""query"": {
+  ""field"": ""children_second_genre"",
+  ""value"": ""少儿动漫""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,哆啦a梦卡通版,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""哆啦a梦卡通版"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""哆啦a梦""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""卡通""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,儿童英语卡通,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""儿童英语卡通"",
+    ""query"": {
+        ""and"": [
+            {
+				""field"": ""content_type"",
+				""value"": ""卡通""
+            },
+            {
+                ""field"": ""language"",
+                ""value"": ""英文""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,俄罗斯拍的动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+  ""retext"": ""俄罗斯拍的动画"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""country"",
+  ""value"": ""俄罗斯""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,放百变布鲁可,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""放百变布鲁可"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""百变布鲁可""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,放飞天小女警,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""放飞天小女警"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""飞天小女警""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,放光头强熊大,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""放光头强熊大"",
+  ""query"": {
+  ""or"": [
+  {
+  ""field"": ""role"",
+  ""value"": ""光头强""
+  },
+  {
+  ""field"": ""role"",
+  ""value"": ""熊大""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""光头强""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""熊大""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,放卡通电影,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""放卡通电影"",
+  ""query"": {
+  ""and"": [
+  {
+	""field"": ""content_type"",
+	""value"": ""卡通""
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""动画电影""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,凡人修仙传动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""凡人修仙传动画"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""凡人修仙传""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,愤怒的小鸟的电影,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""愤怒的小鸟的电影"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""愤怒的小鸟""
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""动画电影""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,刚才看的动画片,历史记录,multitab_history,educ_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,给我播放适合6岁的小朋友看的绘本,模糊搜索,educ_vague_search,educ_vague_search,其他,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,给我放个艾莎公主的故事,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""给我放个艾莎公主的故事"",
+    ""query"": {
+        ""and"": [
+            {
+                ""or"": [
+                    {
+                        ""field"": ""role"",
+                        ""value"": ""艾莎公主""
+                    },
+                    {
+                        ""field"": ""title"",
+                        ""value"": ""艾莎公主""
+                    }
+                ]
+            },
+            {
+                ""field"": ""children_second_genre"",
+                ""value"": ""故事""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,给我放免费的猪猪侠之超星萌宠第2集,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""给我放免费的猪猪侠之超星萌宠第2集"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""猪猪侠之超星萌宠""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,给我放一集帮帮龙动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""给我放一集帮帮龙动画片"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""帮帮龙""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,给我看宝宝巴士亲子互动,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""给我看宝宝巴士亲子互动"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""宝宝巴士亲子互动""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,给我找一些我爱看的少儿视频,个性化推荐,educ_vague_search_personalized_recommend,educ_vague_search_personalized_recommend,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,根据我的喜好推荐动画片,个性化推荐,confirm_personalized_recommend,educ_vague_search_personalized_recommend,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,跟瑞奇宝宝相似的低幼认知类动画,相关推荐,educ_relate_recommend,educ_relate_recommend,,educ_relate_recommend,"{
+  ""retext"": ""跟瑞奇宝宝相似的低幼认知类动画"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""瑞奇宝宝""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,跟《闪闪小超人》相似动画推荐给我,相关推荐,multi_tab_relate_recommend,educ_relate_recommend,,educ_relate_recommend,"{
+  ""retext"": ""跟《闪闪小超人》相似动画推荐给我"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""闪闪小超人""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,关于月球的绘本故事,模糊搜索,educ_vague_search,educ_vague_search,其他,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,海底小纵队VIP,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""海底小纵队VIP"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""海底小纵队""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""1""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,海信小聚播放动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""海信小聚播放动画片"",
+  ""query"": {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,海信小聚我要看不花钱的宝贝赳赳,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""海信小聚我要看不花钱的宝贝赳赳"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""宝贝赳赳""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,孩子的英语启蒙什么时候开始比较好,问答,confirm_qa,educ_knowledge_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,好看的亲子卡通推荐,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""好看的亲子卡通推荐"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""children_third_genre"",
+  ""value"": ""亲子""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""卡通""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,和消防员山姆同一类型的动画片,相关推荐,multi_tab_relate_recommend,educ_relate_recommend,,educ_relate_recommend,"{
+  ""retext"": ""和消防员山姆同一类型的动画片"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""消防员山姆""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,还在更新中的动漫,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""还在更新中的动漫"",
+  ""query"": {
+  ""field"": ""children_second_genre"",
+  ""value"": ""少儿动漫""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,回到刚才看的那个英文绘本,历史记录,educ_history,educ_history,,educ_history,,落域到TRADITION_ART_TOPIC,,,,,,,,,,,,,,,
+少儿\多tab,获得奖项的动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""获得奖项的动画"",
+  ""query"": {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+ }",落域到TRADITION_ART_TOPIC,,,,,,,,,,,,,,,
+少儿\多tab,胡巴电影,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""胡巴电影"",
+  ""query"": {
+  ""and"": [
+  {
+  ""or"": [
+  {
+  ""field"": ""role"",
+  ""value"": ""胡巴""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""胡巴""
+  }
+  ]
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""动画电影""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,呼叫超级土豆全集播放,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""呼叫超级土豆全集播放"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""呼叫超级土豆""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,讲述戴安娜和哥哥各类趣事的动画片,模糊搜索,confirm_vague_search,,剧情,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,经典的卡通,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""经典的卡通"",
+  ""query"": {}
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,今年播出的国产动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"
+{
+  ""retext"": ""今年播出的国产动画"",
+  ""query"": {
+  ""and"": [
+  {
+  ""or"": [
+  {
+  ""field"": ""country"",
+  ""value"": ""内地""
+  },
+  {
+  ""field"": ""country"",
+  ""value"": ""中国澳门""
+  },
+  {
+  ""field"": ""country"",
+  ""value"": ""中国香港""
+  },
+  {
+  ""field"": ""country"",
+  ""value"": ""中国台湾""
+  }
+  ]
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  },
+  {
+  ""field"": ""release_year"",
+                        ""from"": ""20260101"",
+                        ""to"": ""20261231""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,今年上映的动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""今年上映的动画片"",
+    ""query"": {
+        ""and"": [
+            {
+				""field"": ""content_type"",
+				""value"": ""动画""
+            },
+            {
+                ""field"": ""release_year"",
+                ""from"": ""20260101"",
+                ""to"": ""20261231""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,记录小学生小品与家人、同学间的搞笑日常的动画片,模糊搜索,confirm_vague_search,educ_vague_search,剧情,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,记录依娜恰恰成长，传递生活知识的动画片,模糊搜索,confirm_vague_search,educ_vague_search,剧情,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,继续播放白雪公主,精确搜索,multi_tab_search,educ_history,,educ_search,"{
+  ""retext"": ""继续播放白雪公主"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""白雪公主""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,继续播放聪明一休,精确搜索,multi_tab_search,educ_history,,educ_search,"{
+  ""retext"": ""继续播放聪明一休"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""聪明的一休""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,继续播放刚刚的超级宝贝,历史记录,multitab_history,educ_history,,educ_history,,,,,,,,,,,,,,,,,
+少儿\多tab,继续播放坏蛋联盟二,精确搜索,multi_tab_search,educ_history,,educ_search,"{
+  ""retext"": ""继续播放坏蛋联盟二"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""坏蛋联盟""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,继续观看刚才读的绘本,历史记录,educ_history,educ_history,,educ_history,,,,,,,,,,,,,,,,,
+少儿\多tab,开始播放第1集萌鸡小队,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""开始播放第1集萌鸡小队"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""萌鸡小队""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,看CCTV14的快乐星猫,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""看CCTV14的快乐星猫"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""快乐星猫""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,看第1集娜斯佳,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""看第1集娜斯佳"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""娜斯佳""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,看动画片时间太长怎么办,问答,confirm_qa,confirm_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,看个动漫吧，不是日本的,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+  ""retext"": ""看个动漫吧，不是日本的"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""country"",
+  ""value"": ""日本""
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""少儿动漫""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,看光头强的故事吧,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""看光头强的故事吧"",
+    ""query"": {
+        ""and"": [
+            {
+                ""or"": [
+                    {
+                        ""field"": ""role"",
+                        ""value"": ""光头强""
+                    },
+                    {
+                        ""field"": ""title"",
+                        ""value"": ""光头强""
+                    }
+                ]
+            },
+            {
+                ""field"": ""children_second_genre"",
+                ""value"": ""故事""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,看库洛米的动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""看库洛米的动画片"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""库洛米""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,看免费的小公主娜吉娅,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""看免费的小公主娜吉娅"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""小公主娜吉娅""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": ""0""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,看宇宙护卫队全集,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""看宇宙护卫队全集"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""宇宙护卫队""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,看浙江卫视的动画片喜羊羊和灰太狼,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""看浙江卫视的动画片喜羊羊和灰太狼"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""喜羊羊与灰太狼""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,科幻题材的动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""科幻题材的动画"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""children_third_genre"",
+  ""value"": ""科幻""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,科普教育类的少儿动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""科普教育类的少儿动画"",
+  ""query"": {
+  ""and"": [
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""科普""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,科普类动画片儿,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""科普类动画片儿"",
+  ""query"": {
+  ""and"": [
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""科普""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,可以根据我喜好推荐的动漫视频吗？,个性化推荐,confirm_personalized_recommend,educ_vague_search_personalized_recommend,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,恐龙的卡通电影推荐,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""恐龙的卡通电影推荐"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""children_third_genre"",
+  ""value"": ""恐龙""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""卡通""
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""动画电影""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,类似大卫不可以的绘本,相关推荐,educ_relate_recommend,educ_relate_recommend,,educ_relate_recommend,"{
+  ""retext"": ""类似大卫不可以的绘本"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""大卫不可以""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,类似小猪佩奇的动画片,相关推荐,multi_tab_relate_recommend,educ_relate_recommend,,educ_relate_recommend,"{
+  ""retext"": ""类似小猪佩奇的动画片"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""小猪佩奇""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,类似《土豆逗大话语文》的启蒙视频推荐,相关推荐,educ_relate_recommend,educ_relate_recommend,,educ_relate_recommend,"{
+  ""retext"": ""类似《土豆逗大话语文》的启蒙视频推荐"",
+  ""query"": {
+  ""or"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""土豆逗大话语文""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""启蒙""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,螺丝钉全屏,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""螺丝钉全屏"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""螺丝钉""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,猫咪演绎中国历史事件，寓教于乐的动画,模糊搜索,confirm_vague_search,confirm_vague_search,剧情,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,免费播送妈妈咪鸭,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""免费播送妈妈咪鸭"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""妈妈咪鸭""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,免费的JOJO大全,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""免费的JOJO大全"",
+  ""query"": {
+  ""and"": [
+  {
+  ""or"": [
+  {
+  ""field"": ""role"",
+  ""value"": ""jojo""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""jojo""
+  }
+  ]
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,免费的关于逆袭的动漫,模糊搜索,confirm_vague_search,,其他,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,免费的海底小纵队不要英语的,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""免费的海底小纵队不要英语的"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""海底小纵队""
+  },
+  {
+  ""or"": [
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""英语""
+  },
+  {
+  ""field"": ""language"",
+  ""value"": ""英语""
+  }
+  ]
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,免费的挖掘机动漫,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""免费的挖掘机动漫"",
+  ""query"": {}
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,免费高分动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""免费高分动画"",
+  ""query"": {
+  ""and"": [
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,免费少儿节目宝宝巴士,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""免费少儿节目宝宝巴士"",
+  ""query"": {
+    ""and"": [
+      {
+        ""field"": ""title"",
+        ""value"": ""宝宝巴士""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": ""0""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,免费玩具汪汪队,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,,,,,,,,,,,,,,,,,
+少儿\多tab,米奇动画片少儿版,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""米奇动画片少儿版"",
+  ""query"": {
+  ""and"": [
+  {
+  ""or"": [
+  {
+  ""field"": ""role"",
+  ""value"": ""米奇""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""米奇""
+  }
+  ]
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,奶龙与小七守护村庄，与暴暴龙展开对决的动画片,模糊搜索,confirm_vague_search,,剧情,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,你看起来好像很好吃的故事内容是什么？,问答,confirm_qa,confirm_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,尼斯大冒险的评分高不高,问答,confirm_qa,confirm_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,嗯，神奇宝物找一下吧,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""嗯，神奇宝物找一下吧"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""神奇宝物""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,评分在8.5到9分之间的动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""评分在8.5到9分之间的动画片"",
+  ""query"": {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,卡通版的狐妖小红娘,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""卡通版的狐妖小红娘"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""狐妖小红娘""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""卡通""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,请帮忙找儿童卡通三字经,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""请帮忙找儿童卡通三字经"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""三字经""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""卡通""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,请帮我播放大耳朵图图的故事,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""请帮我播放大耳朵图图的故事"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""title"",
+                ""value"": ""大耳朵图图""
+            },
+            {
+                ""field"": ""children_second_genre"",
+                ""value"": ""故事""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,请播放超级宝贝JOJO第2季2019年版,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,,,,,,,,,,,,,,,,,
+少儿\多tab,请播放弹珠轨道,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""请播放弹珠轨道"",
+    ""query"": {
+        ""field"": ""title"",
+        ""value"": ""弹珠轨道""
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,请播放电影波妞,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""请播放电影波妞"",
+  ""query"": {
+  ""and"": [
+  {
+  ""or"": [
+  {
+  ""field"": ""role"",
+  ""value"": ""波妞""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""波妞""
+  }
+  ]
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""动画电影""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,请播放免费的垃圾车的视频,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""请播放免费的垃圾车的视频"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""title"",
+                ""value"": ""垃圾车""
+            },
+            {
+                ""field"": ""is_fee"",
+                ""value"": ""0""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,请播放益智早教,精确搜索,educ_keyword_search,educ_keyword_search,查询使用and连接是否正确,educ_search,"{
+    ""retext"": ""请播放益智早教"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""children_third_genre"",
+                ""value"": ""益智儿歌""
+            },
+            {
+                ""field"": ""children_third_genre"",
+                ""value"": ""真人益智""
+            },
+            {
+                ""field"": ""children_third_genre"",
+                ""value"": ""益智故事""
+            },
+            {
+                ""field"": ""children_third_genre"",
+                ""value"": ""益智动画""
+            },
+            {
+                ""field"": ""children_second_genre"",
+                ""value"": ""早教""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,请播放幼儿少儿绘本,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""请播放幼儿少儿绘本"",
+    ""query"": {
+        ""field"": ""children_second_genre"",
+        ""value"": ""绘本""
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,请放免费的小猴子啵啵,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""请放免费的小猴子啵啵"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""小猴子啵啵""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,请给我播放新的汪汪队,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""请给我播放新的汪汪队"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""汪汪队""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,请给我放疯狂动物城故事,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""请给我放疯狂动物城故事"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""title"",
+                ""value"": ""疯狂动物城""
+            },
+            {
+                ""field"": ""children_second_genre"",
+                ""value"": ""故事""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,请继续播放猪屁登,精确搜索,multi_tab_search,educ_history,,educ_search,"{
+  ""retext"": ""请继续播放猪屁登"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""猪屁登""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,汽车星球第3集,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""汽车星球第3集"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""汽车星球""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,趣趣知知鸟，接着播放,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""趣趣知知鸟，接着播放"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""趣趣知知鸟""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,热播动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""热播动画片"",
+  ""query"": {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,热门动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""热门动画"",
+    ""query"": {
+		""field"": ""content_type"",
+		""value"": ""动画""
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,热血动漫,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""热血动漫"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""children_third_genre"",
+  ""value"": ""热血""
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""少儿动漫""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,日本的卡通动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+  ""retext"": ""日本的卡通动画"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""country"",
+  ""value"": ""日本""
+  },
+  {
+	""or"": [
+		{
+			""field"": ""content_type"",
+			""value"": ""动画""
+		},
+		{
+			""field"": ""content_type"",
+			""value"": ""卡通""
+		}
+	]
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,日本动漫2021年上映的,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+    ""retext"": ""日本动漫2021年上映的"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""country"",
+                ""value"": ""日本""
+            },
+            {
+                ""field"": ""release_year"",
+                ""from"": ""20210101"",
+                ""to"": ""20211231""
+            },
+            {
+                ""field"": ""children_second_genre"",
+                ""value"": ""少儿动漫""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,如果历史是一群喵有哪些历史人物角色？,问答,confirm_qa,confirm_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,如何根据孩子的年龄选择动画片？,问答,confirm_qa,confirm_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,如何正确引导孩子看待动画片中的冲突情节？,问答,confirm_qa,confirm_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,上周看的少儿动画片,历史记录,educ_history,educ_history,,educ_history,"{
+ ""retext"": ""上周看的少儿动画片"",
+ ""query"": {
+ ""field"":""time"",
+ ""from"":""2026-07-31 17:00:00"",
+ ""to"":""2026-07-25 17:00:00""
+ }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,少儿电影,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""少儿电影"",
+  ""query"": {
+  ""field"": ""children_second_genre"",
+  ""value"": ""动画电影""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,少儿英语节目,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""少儿英语节目"",
+  ""query"": {
+    ""or"": [
+      {
+        ""field"": ""children_second_genre"",
+        ""value"": ""英语""
+      },
+      {
+        ""field"": ""language"",
+        ""value"": ""英语""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,少儿中文jojo,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""少儿中文jojo"",
+  ""query"": {
+    ""and"": [
+      {
+        ""or"": [
+          {
+            ""field"": ""role"",
+            ""value"": ""jojo""
+          },
+          {
+            ""field"": ""title"",
+            ""value"": ""jojo""
+          }
+        ]
+      },
+      {
+        ""field"": ""language"",
+        ""value"": ""普通话""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,适合2岁小孩看的卡通,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""适合2岁小孩看的卡通"",
+  ""query"": {}
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,适合儿童看的动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""适合儿童看的动画片"",
+  ""query"": {
+	""field"": ""content_type"",
+	""value"": ""卡通""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,适合我看的少儿动画,模糊搜索,confirm_vague_search,,其他,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,狮子王中文的也不是vip,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""狮子王中文的也不是vip"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""狮子王""
+  },
+  {
+  ""field"": ""language"",
+  ""value"": ""普通话""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,搜索newtv极光里面的泰迦奥特曼,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""搜索newtv极光里面的泰迦奥特曼"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""泰迦奥特曼""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,搜索newtv极光里面的泰迦奥特曼,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""搜索newtv极光里面的泰迦奥特曼"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""泰迦奥特曼""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,搜索宝宝学习自我认知的少儿动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""搜索宝宝学习自我认知的少儿动画"",
+  ""query"": {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,搜索宝贝JOJO适龄启蒙亲子共学,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,,,,,,,,,,,,,,,,,
+少儿\多tab,搜索不要VIP的吞噬星空,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""搜索不要VIP的吞噬星空"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""吞噬星空""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,搜索动画类的电影,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""搜索动画类的电影"",
+  ""query"": {
+  ""and"": [
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""动画电影""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,搜索儿童数学思维相关的动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""搜索儿童数学思维相关的动画片"",
+  ""query"": {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,搜索消防员山姆,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""搜索消防员山姆"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""消防员山姆""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,搜索小砾工程队,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""搜索小砾工程队"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""小砾与工程家族""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,搜索优酷里面的动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""搜索优酷里面的动画片"",
+  ""query"": {
+  ""and"": [
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  },
+  {
+  ""field"": ""company"",
+  ""value"": ""优酷""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,搜索正式版的星卡梦少女视频,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""搜索正式版的星卡梦少女视频"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""星卡梦少女""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,搜索最新的动漫,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""搜索最新的动漫"",
+  ""query"": {
+  ""field"": ""children_second_genre"",
+  ""value"": ""少儿动漫""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,搜益智类的动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""搜益智类的动画片"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""children_third_genre"",
+  ""value"": ""益智儿歌""
+  },
+  {
+  ""field"": ""children_third_genre"",
+  ""value"": ""真人益智""
+  },
+  {
+  ""field"": ""children_third_genre"",
+  ""value"": ""益智故事""
+  },
+  {
+  ""field"": ""children_third_genre"",
+  ""value"": ""益智动画""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,搜正在连载中的动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""搜正在连载中的动画片"",
+  ""query"": {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,唐老鸭第29集,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""唐老鸭第29集"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""唐老鸭""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,腾讯动漫出品的动漫,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""腾讯动漫出品的动漫"",
+  ""query"": {
+  ""field"": ""children_second_genre"",
+  ""value"": ""少儿动漫""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,腾讯视频请搜索免费的奥特曼,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""腾讯视频请搜索免费的奥特曼"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""奥特曼""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,调一个免费的托马斯火车,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""调一个免费的托马斯火车"",
+  ""query"": {
+    ""and"": [
+      {
+        ""or"": [
+          {
+            ""field"": ""role"",
+            ""value"": ""托马斯小火车""
+          },
+          {
+            ""field"": ""title"",
+            ""value"": ""托马斯小火车""
+          }
+        ]
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": ""0""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,提高宝宝英语口语的启蒙动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""提高宝宝英语口语的启蒙动画"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""启蒙""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,提升孩子口语表达的少儿节目,模糊搜索,educ_vague_search,educ_vague_search,其他,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,推荐孩子喜欢的绘本故事,个性化推荐,educ_vague_search_personalized_recommend,educ_vague_search_personalized_recommend,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,推荐汽车星球相似的动画,相关推荐,multi_tab_relate_recommend,educ_relate_recommend,,educ_relate_recommend,"{
+  ""retext"": ""推荐汽车星球相似的动画"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""汽车星球""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,推荐我喜欢的动漫类型,个性化推荐,confirm_personalized_recommend,educ_vague_search_personalized_recommend,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,推荐与小品一家人类似题材的少儿视频,相关推荐,educ_relate_recommend,educ_relate_recommend,,educ_relate_recommend,"{
+  ""retext"": ""推荐与小品一家人类似题材的少儿视频"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""小品一家人""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,汪汪队放全屏,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""汪汪队放全屏"",
+  ""query"": {}
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,"汪汪队小砾工程队不用VIP中文版的
+改写为（汪汪队小砾与工程家族免费国语版的）",精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""\""汪汪队小砾工程队不用VIP中文版的"",
+  ""query"": {
+  ""and"": [
+  {
+  ""or"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""汪汪队""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""小砾与工程家族""
+  }
+  ]
+  },
+  {
+  ""field"": ""language"",
+  ""value"": ""普通话""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,为我播放刺猬索尼克,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""为我播放刺猬索尼克"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""刺猬索尼克""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,为我搜索大鱼海棠,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""为我搜索大鱼海棠"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""大鱼海棠""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,为我找符合我偏好的卡通片,个性化推荐,confirm_personalized_recommend,educ_vague_search_personalized_recommend,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,我今年4岁了，你猜我喜欢看什么,个性化推荐,educ_vague_search_personalized_recommend,educ_vague_search_personalized_recommend,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,我们要看小魔仙,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我们要看小魔仙"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""巴啦啦小魔仙""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我想看大卫不可以的故事,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""我想看大卫不可以的故事"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""title"",
+                ""value"": ""大卫不可以""
+            },
+            {
+                ""field"": ""children_second_genre"",
+                ""value"": ""故事""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,我想看第三集的汪汪队免费的,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我想看第三集的汪汪队免费的"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""汪汪队""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我想看僵小鱼,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我想看僵小鱼"",
+  ""query"": {
+  ""or"": [
+  {
+  ""field"": ""role"",
+  ""value"": ""僵小鱼""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""僵小鱼""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我想看今年新出的动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+    ""retext"": ""我想看今年新出的动画片"",
+    ""query"": {
+        ""and"": [
+            {
+				""field"": ""content_type"",
+				""value"": ""动画""
+            },
+            {
+                ""field"": ""release_year"",
+                ""from"": ""20260101"",
+                ""to"": ""20261231""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,我想看美国的超级英雄主题动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+  ""retext"": ""我想看美国的超级英雄主题动画"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""超级英雄""
+  },
+  {
+  ""field"": ""country"",
+  ""value"": ""美国""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我想看免费版的汪汪队第2集,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我想看免费版的汪汪队第2集"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""汪汪队""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我想看免费的有天才威的熊出没,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我想看免费的有天才威的熊出没"",
+  ""query"": {
+  ""and"": [
+  {
+  ""or"": [
+  {
+  ""field"": ""role"",
+  ""value"": ""天才威""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""天才威""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""熊出没""
+  }
+  ]
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我想看正版奶龙,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我想看正版奶龙"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""奶龙""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我想要看恐龙救援队,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我想要看恐龙救援队"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""恐龙救援队""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我要VIP的小猪佩奇,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我要VIP的小猪佩奇"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""小猪佩奇""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""1""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我要看宝宝巴士,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我要看宝宝巴士"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""宝宝巴士""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我要看大神侦探诸葛99,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我要看大神侦探诸葛99"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""大神探诸葛九九""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我要看哆啦A梦日文版,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我要看哆啦A梦日文版"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""哆啦a梦""
+  },
+  {
+  ""field"": ""language"",
+  ""value"": ""日语""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我要看儿童益智,精确搜索,educ_direct_page,educ_direct_page,,educ_search,,,,,,,,,,,,,,,,,
+少儿\多tab,我要看海底小纵队的第3分钟,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我要看海底小纵队的第3分钟"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""海底小纵队""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我要看和医生有关的动画片,模糊搜索,confirm_vague_search,,其他,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,我要看绘本故事,精确搜索,educ_vague_search,educ_vague_search,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,我要看间谍过家家普通话第一季,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我要看间谍过家家普通话第一季"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""间谍过家家""
+  },
+  {
+  ""field"": ""language"",
+  ""value"": ""普通话""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我要看美国的赛车总动员,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+  ""retext"": ""我要看美国的赛车总动员"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""赛车总动员""
+  },
+  {
+  ""field"": ""country"",
+  ""value"": ""美国""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我要看免费的爆笑虫子动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我要看免费的爆笑虫子动画片"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""爆笑虫子""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我要看免费的父与子,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""我要看免费的父与子"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""title"",
+                ""value"": ""父与子""
+            },
+            {
+                ""field"": ""is_fee"",
+                ""value"": ""0""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,我要看免费猪猪侠和超级飞侠的视频,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我要看免费猪猪侠和超级飞侠的视频"",
+  ""query"": {
+  ""and"": [
+  {
+  ""or"": [
+  {
+  ""field"": ""role"",
+  ""value"": ""猪猪侠""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""猪猪侠""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""超级飞侠""
+  }
+  ]
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我要看派大星秀第一季,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我要看派大星秀第一季"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""派大星秀""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""第一季""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我要看少儿免费的动画片大货车,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我要看少儿免费的动画片大货车"",
+  ""query"": {
+    ""and"": [
+      {
+		""field"": ""content_type"",
+		""value"": ""动画""
+      },
+      {
+        ""field"": ""is_fee"",
+        ""value"": ""0""
+      }
+    ]
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,我要看鲨鱼一家视频,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我要看鲨鱼一家视频"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""鲨鱼一家""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我要看所有非人哉,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我要看所有非人哉"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""非人哉""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我要看土豆逗严肃科普,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我要看土豆逗严肃科普"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""土豆逗严肃科普""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我要看兔子警官第2季,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我要看兔子警官第2季"",
+  ""query"": {
+  ""and"": [
+  {
+  ""or"": [
+  {
+  ""field"": ""role"",
+  ""value"": ""兔子警官""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""兔子警官""
+  }
+  ]
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""第2季""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我要看小丸子,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我要看小丸子"",
+  ""query"": {
+  ""or"": [
+  {
+  ""field"": ""role"",
+  ""value"": ""小丸子""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""小丸子""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我要看樱桃小丸子日语版,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""我要看樱桃小丸子日语版"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""樱桃小丸子""
+  },
+  {
+  ""field"": ""language"",
+  ""value"": ""日语""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,我昨天看过的少儿视频,历史记录,educ_history,educ_history,,educ_history,"{
+  ""retext"": ""我昨天看过的少儿视频"",
+  ""query"": {
+        ""field"":""time"",
+        ""from"":""2026-07-30 23:59:59"",
+        ""to"":""2026-07-30 00:00:00""
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,想看来自未来的机器猫，用口袋里的神奇道具帮大雄解决麻烦的动画片,模糊搜索,confirm_vague_search,confirm_vague_search,剧情,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,小聚小聚打开免费的动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""小聚小聚打开免费的动画片"",
+  ""query"": {
+  ""and"": [
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,小聚小聚放一个亚刻奥特曼,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""小聚小聚放一个亚刻奥特曼"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""亚刻奥特曼""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,小聚小聚我要看萌鸡小队第6集,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""小聚小聚我要看萌鸡小队第6集"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""萌鸡小队""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,"小时候看过的,有一个宝葫芦的动画片叫什么",模糊搜索,confirm_vague_search,,剧情,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,小猪佩奇第6集播放,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""小猪佩奇第6集播放"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""小猪佩奇""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,辛普森一家中文版,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""辛普森一家中文版"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""辛普森一家""
+  },
+  {
+  ""field"": ""language"",
+  ""value"": ""普通话""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,演免费的小小工程车,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""演免费的小小工程车"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""小小工程车""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,英语动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""英语动画"",
+  ""query"": {
+  ""and"": [
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  },
+  {
+  ""or"": [
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""英语""
+  },
+  {
+  ""field"": ""language"",
+  ""value"": ""英语""
+  }
+  ]
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,英语启蒙动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+    ""retext"": ""英语启蒙动画片"",
+    ""query"": {
+        ""and"": [
+            {
+                ""field"": ""training_objectives"",
+                ""value"": ""英语启蒙""
+            },
+            {
+			""field"": ""content_type"",
+			""value"": ""动画""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,一周内看过的所有动画,历史记录,multitab_history,educ_history,,educ_history,"{
+ ""retext"": ""一周内看过的所有动画"",
+ ""query"": {
+ ""field"":""time"",
+ ""from"":""2026-07-31 17:00:00"",
+ ""to"":""2026-07-25 17:00:00""
+ }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,幼儿节奏启蒙动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""幼儿节奏启蒙动画"",
+  ""query"": {}
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,有几只小猪踩泥坑，这是哪个动画片,模糊搜索,confirm_vague_search,confirm_vague_search,剧情,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,有没有超能一家人幕后花絮,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""有没有超能一家人幕后花絮"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""超能一家人""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,有没有两只熊和一个伐木工，天天在森林里搞笑打闹的动画片,模糊搜索,confirm_vague_search,confirm_vague_search,剧情,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,有没有美国的 3D 动画电影,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+  ""retext"": ""有没有美国的 3D 动画电影"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""country"",
+  ""value"": ""美国""
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""动画电影""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,有没有描写友情互助的动画作品,模糊搜索,confirm_vague_search,,其他,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,有没有欧美动漫,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+  ""retext"": ""有没有欧美动漫"",
+  ""query"": {
+  ""and"": [
+  {
+  ""or"": [
+  {
+  ""field"": ""country"",
+  ""value"": ""英国""
+  },
+  {
+  ""field"": ""country"",
+  ""value"": ""法国""
+  },
+  {
+  ""field"": ""country"",
+  ""value"": ""德国""
+  },
+  {
+  ""field"": ""country"",
+  ""value"": ""美国""
+  }
+  ]
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""少儿动漫""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,有没有亲子温情的动画视频,模糊搜索,confirm_vague_search,,其他,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,有没有什么好看的动漫,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""有没有什么好看的动漫"",
+  ""query"": {
+  ""field"": ""children_second_genre"",
+  ""value"": ""少儿动漫""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,有没有苏菲亚快乐生活的内容,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""有没有苏菲亚快乐生活的内容"",
+  ""query"": {
+    ""field"": ""title"",
+    ""value"": ""苏菲亚快乐生活""
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,有没有像小猪佩奇那样语速慢的英文动画,相关推荐,educ_relate_recommend,educ_relate_recommend,,educ_relate_recommend,"{
+  ""retext"": ""有没有像小猪佩奇那样语速慢的英文动画"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""小猪佩奇""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  },
+  {
+  ""field"": ""language"",
+  ""value"": ""英文""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,有没有像小猪佩奇那样语速慢的英文动画,相关推荐,educ_relate_recommend,educ_relate_recommend,,educ_relate_recommend,"{
+  ""retext"": ""有没有像小猪佩奇那样语速慢的英文动画"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""小猪佩奇""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  },
+  {
+  ""field"": ""language"",
+  ""value"": ""英文""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,有哪些方法可以转移孩子对动画片的注意力？,问答,confirm_qa,confirm_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,有哪些绘本适合3岁宝宝阅读？,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,,,,,,,,,,,,,,,,,
+少儿\多tab,有哪些绘本适合情绪管理？,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+    ""retext"": ""有哪些绘本适合情绪管理？"",
+    ""query"": {
+        ""or"": [
+            {
+                ""field"": ""children_third_genre"",
+                ""value"": ""情绪管理""
+            },
+            {
+                ""field"": ""training_objectives"",
+                ""value"": ""情绪管理""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,有什么推荐的动漫,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""有什么推荐的动漫"",
+  ""query"": {
+  ""field"": ""children_second_genre"",
+  ""value"": ""少儿动漫""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,云视听小电视最火的动漫,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""云视听小电视最火的动漫"",
+  ""query"": {
+  ""field"": ""children_second_genre"",
+  ""value"": ""少儿动漫""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,在哔哩哔哩里面看开心锤锤,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""在哔哩哔哩里面看开心锤锤"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""开心锤锤""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,在哔哩哔哩里面看开心锤锤,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""在哔哩哔哩里面看开心锤锤"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""开心锤锤""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,早教启蒙,精确搜索,educ_keyword_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""早教启蒙"",
+  ""query"": {
+    ""field"": ""children_second_genre"",
+    ""value"": ""早教""
+  }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,咱们裸熊第二季,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""咱们裸熊第二季"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""咱们裸熊""
+  },
+  {
+  ""field"": ""title"",
+  ""value"": ""第二季""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,怎么判断动画片是否适合孩子,问答,confirm_qa,confirm_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,找当前最火几部动漫电影,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""找当前最火几部动漫电影"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""动画电影""
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""少儿动漫""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,找到免费阿奇幼幼园动画片免费的,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""找到免费阿奇幼幼园动画片免费的"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""title"",
+  ""value"": ""阿奇幼幼园""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  },
+  {
+  ""field"": ""is_fee"",
+  ""value"": ""0""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,找符合孩子爱好的少儿启蒙内容推荐给我,个性化推荐,educ_vague_search_personalized_recommend,educ_vague_search_personalized_recommend,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,找几部精准我的喜好的少儿作品,个性化推荐,educ_vague_search_personalized_recommend,educ_vague_search_personalized_recommend,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,找几部适合3岁宝宝看的动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""找几部适合3岁宝宝看的动画片"",
+  ""query"": {}
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,找机甲主题的卡通给孩子看,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""找机甲主题的卡通给孩子看"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""children_third_genre"",
+  ""value"": ""机甲""
+  },
+  {
+	""field"": ""content_type"",
+	""value"": ""动画""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,找兔子警官和狐狸一起在动物城市里查案，打破大家偏见的动画片,模糊搜索,confirm_vague_search,confirm_vague_search,剧情,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,找些适合2岁宝宝的认知动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""找些适合2岁宝宝的认知动画"",
+  ""query"": {}
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,找一些日本的悬疑推理动漫,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+  ""retext"": ""找一些日本的悬疑推理动漫"",
+  ""query"": {
+  ""and"": [
+  {
+  ""field"": ""children_third_genre"",
+  ""value"": ""推理""
+  },
+  {
+  ""field"": ""children_third_genre"",
+  ""value"": ""冒险""
+  },
+  {
+  ""field"": ""country"",
+  ""value"": ""日本""
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""少儿动漫""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,这句台词“在学校里总能遇到新鲜事！”是哪个动画片的,模糊搜索,confirm_vague_search,confirm_vague_search,台词,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,直接播放炫卡斗士,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""直接播放炫卡斗士"",
+  ""query"": {
+  ""field"": ""title"",
+  ""value"": ""炫卡斗士""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,中国动漫集团出品的卡通片（中国动漫集团出品的动漫）,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+  ""retext"": ""\""中国动漫集团出品的卡通片"",
+  ""query"": {
+  ""and"": [
+  {
+  ""or"": [
+  {
+  ""field"": ""country"",
+  ""value"": ""内地""
+  },
+  {
+  ""field"": ""country"",
+  ""value"": ""中国澳门""
+  },
+  {
+  ""field"": ""country"",
+  ""value"": ""中国香港""
+  },
+  {
+  ""field"": ""country"",
+  ""value"": ""中国台湾""
+  }
+  ]
+  },
+  {
+  ""field"": ""children_second_genre"",
+  ""value"": ""少儿动漫""
+  }
+  ]
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,中央14台的动画片,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""中央14台的动画片"",
+  ""query"": {
+    ""field"": ""content_type"",
+	""value"": ""动画""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,最近很火的动画,精确搜索,multi_tab_search,educ_keyword_search,,educ_search,"{
+  ""retext"": ""最近很火的动画"",
+  ""query"": {
+    ""field"": ""content_type"",
+  ""value"": ""动画""
+  }
+ }",,,,,,,,,,,,,,,,
+少儿\多tab,最近几年国产动画电影,精确搜索,multi_tab_search,educ_keyword_search,,educ_search_all,"{
+    ""retext"": ""最近几年国产动画电影"",
+    ""query"": {
+        ""and"": [
+            {
+                ""or"": [
+                    {
+                        ""field"": ""country"",
+                        ""value"": ""内地""
+                    },
+                    {
+                        ""field"": ""country"",
+                        ""value"": ""中国澳门""
+                    },
+                    {
+                        ""field"": ""country"",
+                        ""value"": ""中国香港""
+                    },
+                    {
+                        ""field"": ""country"",
+                        ""value"": ""中国台湾""
+                    }
+                ]
+            },
+            {
+                ""field"": ""release_year"",
+                ""from"": ""20240101"",
+                ""to"": ""20261231""
+            },
+            {
+                ""field"": ""children_second_genre"",
+                ""value"": ""动画电影""
+            }
+        ]
+    }
+}",,,,,,,,,,,,,,,,
+少儿\多tab,“变身！小小科学家”的动画片,模糊搜索,confirm_vague_search,confirm_vague_search,台词,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,“超级飞侠，出发！”的动画电影 ,模糊搜索,confirm_vague_search,confirm_vague_search,台词,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,“大卫，你太淘气了！”是哪个绘本的台词,模糊搜索,educ_vague_search,educ_vague_search,台词,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,“海底报告，海底报告”是哪部动画,模糊搜索,confirm_vague_search,confirm_vague_search,台词,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,“海底小纵队里谁是队长。”,问答,confirm_qa,confirm_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,“米奇妙妙屋里住了多少小动物”,问答,confirm_qa,confirm_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,“米奇平时都喜欢吃什么。” ,问答,confirm_qa,confirm_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,“你的愿望就是我的命令。”的绘本是哪个,模糊搜索,educ_vague_search,educ_vague_search,台词,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,“我是乐迪！每时每刻，准时送达！”的动画片是哪个,模糊搜索,confirm_vague_search,confirm_vague_search,台词,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,“我是佩奇，这是我的弟弟乔治” 来自哪部动画,模糊搜索,confirm_vague_search,confirm_vague_search,台词,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,“小猪佩奇今年多大了？”,问答,confirm_qa,confirm_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,“真相只有一个！”是哪部动漫的经典台词,模糊搜索,confirm_vague_search,confirm_vague_search,台词,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,“知识就是力量”是哪个绘本里的,模糊搜索,confirm_vague_search,confirm_vague_search,台词,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,“《超级飞侠》的总部在哪里？”,问答,confirm_qa,confirm_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,“《汪汪队立大功》里有几只狗狗？”,问答,confirm_qa,confirm_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,
+少儿\多tab,“《熊出没》主要讲了什么故事？”,问答,confirm_qa,confirm_qa,,educ_slow_search_data_search、educ_slow_search_data_construction,,,,,,,,,,,,,,,,,

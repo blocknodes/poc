@@ -23,7 +23,7 @@ from planner.grammar import build_audio_schema, build_device_schema, build_ir_sc
 
 
 def make_stub():
-    """根据 schema title 决定回什么 JSON（覆盖四域）。"""
+    """根据 schema title 决定回什么 JSON（覆盖四域 + 意图拆分）。"""
     def responder(messages, guided_json):
         title = (guided_json or {}).get("title", "")
 
@@ -34,6 +34,40 @@ def make_stub():
                 last_user = m.get("content", "")
                 break
 
+        # ---- 意图拆分阶段 ----
+        if title == "intent_split":
+            query_part = ""
+            if "用户请求：" in last_user:
+                query_part = last_user.split("用户请求：")[-1].split("\n")[0].strip()
+            else:
+                query_part = last_user
+
+            # 检测多意图信号词
+            multi_signals = ["同时", "然后", "再", "还要", "另外", "顺便", "并且"]
+            has_multi_signal = any(s in query_part for s in multi_signals)
+
+            # 跨域检测（设备+内容 / 设备+设备 不同操作）
+            device_kws = ["音量", "声音", "亮度", "蓝牙", "关机", "暂停", "快进",
+                          "护眼", "氛围灯", "HDMI", "调亮", "调暗", "静音", "关灯"]
+            content_kws = ["搜", "播放", "看", "找", "电影", "电视剧", "综艺",
+                           "动漫", "纪录片", "听", "评书"]
+            has_device = any(k in query_part for k in device_kws)
+            has_content = any(k in query_part for k in content_kws)
+
+            if has_multi_signal and has_device and has_content:
+                # 简单拆分：在信号词处切
+                for sig in multi_signals:
+                    if sig in query_part:
+                        parts = query_part.split(sig, 1)
+                        sub_queries = [p.strip() for p in parts if p.strip()]
+                        if len(sub_queries) >= 2:
+                            return json.dumps({"multi": True, "sub_queries": sub_queries})
+                # fallback: 整体拆
+                return json.dumps({"multi": True, "sub_queries": [query_part]})
+
+            # 单意图
+            return json.dumps({"multi": False, "sub_queries": [query_part]})
+
         if title == "planner_route":
             # 简单关键词路由
             if "听" in last_user or "评书" in last_user or "相声" in last_user or "有声" in last_user:
@@ -41,13 +75,14 @@ def make_stub():
                                    "tool": "audio_search", "confidence": 0.9})
             if any(k in last_user for k in ["音量", "声音", "静音", "关机",
                                              "亮度", "蓝牙", "WiFi", "暂停", "快进",
-                                             "护眼", "氛围灯", "HDMI"]):
+                                             "护眼", "氛围灯", "HDMI", "调亮", "调暗",
+                                             "屏幕亮", "关灯"]):
                 if "暂停" in last_user or "快进" in last_user or "快退" in last_user:
                     tool = "playback_control"
                 elif "关机" in last_user:
                     tool = "power_control"
-                elif "亮度" in last_user:
-                    tool = "image_quality_control"
+                elif "亮度" in last_user or "调亮" in last_user or "调暗" in last_user or "屏幕亮" in last_user:
+                    tool = "screen_display_control"
                 elif "蓝牙" in last_user:
                     tool = "bluetooth_control"
                 elif "WiFi" in last_user:
@@ -89,8 +124,10 @@ def make_stub():
                     return json.dumps({"tool": "volume_control", "operation": "降低", "object": "音量"})
                 else:
                     return json.dumps({"tool": "volume_control", "operation": "设置", "object": "音量", "value": "50"})
-            if "亮度" in query_part:
-                return json.dumps({"tool": "image_quality_control", "operation": "设置", "object": "亮度", "value": "50"})
+            if "亮度" in query_part or "调亮" in query_part or "屏幕亮" in query_part:
+                return json.dumps({"tool": "screen_display_control", "operation": "提高", "object": "屏幕亮度"})
+            if "调暗" in query_part:
+                return json.dumps({"tool": "screen_display_control", "operation": "降低", "object": "屏幕亮度"})
             if "蓝牙" in query_part:
                 return json.dumps({"tool": "bluetooth_control", "operation": "打开", "object": "蓝牙"})
             if "护眼" in query_part:
@@ -126,6 +163,12 @@ DEMO_QUERIES = [
     "播放三国演义评书",
     "声音大一点",
     "暂停",
+]
+
+# 多意图示例
+DEMO_MULTI_QUERIES = [
+    "声音大一点同时搜刘德华的免费电影",
+    "帮我调亮屏幕然后播放三国演义评书",
 ]
 
 
@@ -389,6 +432,32 @@ def run_query(planner, query, debug=False):
     print()
 
 
+def run_query_multi(planner, query):
+    """运行多意图 query 并输出结果。"""
+    print(f"{'='*60}")
+    print(f"用户：{query}")
+    print(f"{'─'*60}")
+    results = planner.plan_multi(query)
+    if len(results) > 1:
+        print(f"\n  ▶ 拆分为 {len(results)} 个并发工具（同一 stepId，可并行执行）")
+    else:
+        print(f"\n  ▶ 单意图（1 个工具）")
+    for i, res in enumerate(results):
+        print(f"\n  ┌── Tool {i+1} (stepId=step_1) ─────────────────")
+        print(f"  │ domain:     {res.domain}")
+        print(f"  │ intent:     {res.intent}")
+        print(f"  │ tool:       {res.tool_name}")
+        print(f"  │ parameters: {json.dumps(res.parameters, ensure_ascii=False, indent=4)}")
+        if res.slot_fill:
+            print(f"  │ slot_fill:  {json.dumps(res.slot_fill, ensure_ascii=False)}")
+        if res.ir:
+            print(f"  │ IR:         {json.dumps(res.ir, ensure_ascii=False)}")
+        if res.notes:
+            print(f"  │ notes:      {res.notes}")
+        print(f"  └{'─'*44}")
+    print()
+
+
 def main():
     parser = argparse.ArgumentParser(description="电视端 AI Planner demo（4域：影视/少儿/有声/设备）")
     parser.add_argument("--live", action="store_true", help="连接真实 vLLM（需 VLLM_BASE_URL / VLLM_MODEL）")
@@ -428,6 +497,20 @@ def main():
 
     for query in queries:
         run_query(planner, query, debug=args.debug)
+
+    # 多意图 demo（仅在无自定义 query 或自定义 query 含多意图信号时展示）
+    if not args.query:
+        print(f"\n{'━'*60}")
+        print(f"  ★ 多意图并发规划 demo（plan_multi）")
+        print(f"{'━'*60}\n")
+        for query in DEMO_MULTI_QUERIES:
+            run_query_multi(planner, query)
+    elif args.query:
+        # 自定义 query 也尝试 plan_multi
+        print(f"\n{'━'*60}")
+        print(f"  ★ plan_multi 结果")
+        print(f"{'━'*60}\n")
+        run_query_multi(planner, args.query)
 
 
 if __name__ == "__main__":

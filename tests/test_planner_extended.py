@@ -41,10 +41,10 @@ def test_route_schema_has_all_domains():
 def test_route_schema_has_device_tools():
     s = build_route_schema()
     tools = s["properties"]["tool"]["enum"]
-    assert "volume_control" in tools
+    assert "numeric_adjust" in tools
     assert "power_control" in tools
     assert "playback_control" in tools
-    assert "ai_picture_sound_control" in tools
+    assert "solve_picture_sound_problem_control" in tools
 
 
 def test_route_schema_has_audio_tools():
@@ -124,36 +124,37 @@ def test_device_schema_shape():
     assert "operation" in s["properties"]
     assert "object" in s["properties"]
     assert "value" in s["properties"]
-    assert len(s["properties"]["tool"]["enum"]) == 20
+    assert len(s["properties"]["tool"]["enum"]) == 17
 
 
 def test_compile_device_volume():
-    slot = {"tool": "volume_control", "operation": "提高", "object": "音量"}
+    slot = {"tool": "numeric_adjust", "operation": "提高", "object": "音量"}
     tool, params = compile_device(slot)
-    assert tool == "volume_control"
+    assert tool == "numeric_adjust"
     assert params["operation"] == "提高"
     assert params["object"] == "音量"
     assert "value" not in params
 
 
 def test_compile_device_volume_with_value():
-    slot = {"tool": "volume_control", "operation": "设置", "object": "音量", "value": "30"}
+    slot = {"tool": "numeric_adjust", "operation": "设置", "object": "音量", "value": "30"}
     tool, params = compile_device(slot)
-    assert tool == "volume_control"
+    assert tool == "numeric_adjust"
     assert params["value"] == "30"
 
 
 def test_compile_device_power():
-    slot = {"tool": "power_control", "operation": "关闭", "object": "电源"}
+    slot = {"tool": "power_control", "operation": "打开", "object": "关机"}
     tool, params = compile_device(slot)
     assert tool == "power_control"
-    assert params["operation"] == "关闭"
+    assert params["operation"] == "打开"
+    assert params["object"] == "关机"
 
 
 def test_compile_device_invalid_tool_fallback():
     slot = {"tool": "invalid", "operation": "打开", "object": "蓝牙"}
     tool, params = compile_device(slot)
-    assert tool == "system_settings_control"  # fallback
+    assert tool == "common_control"  # fallback
 
 
 # ============================================================
@@ -283,9 +284,9 @@ def _make_device_stub():
         title = (guided_json or {}).get("title", "")
         if title == "planner_route":
             return json.dumps({"domain": "device", "intent": "device_control",
-                               "tool": "volume_control", "confidence": 0.95})
+                               "tool": "numeric_adjust", "confidence": 0.95})
         if title == "device_slot_fill":
-            return json.dumps({"tool": "volume_control", "operation": "提高",
+            return json.dumps({"tool": "numeric_adjust", "operation": "提高",
                                "object": "音量"})
         return json.dumps({})
     return responder
@@ -294,7 +295,7 @@ def _make_device_stub():
 def test_harness_device_end_to_end():
     planner = Planner(VLLMClient(responder=_make_device_stub()))
     res = planner.plan("声音大一点")
-    assert res.tool_name == "volume_control"
+    assert res.tool_name == "numeric_adjust"
     assert res.domain == "device"
     assert res.parameters["operation"] == "提高"
     assert res.parameters["object"] == "音量"
