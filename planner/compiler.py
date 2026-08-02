@@ -379,7 +379,7 @@ def _educ_normalize_language(node: Any) -> None:
 
 def _educ_strip_redundant_content_type(node: Any, query_text: str) -> None:
     """移除 educ 中冗余的 content_type（动画/动画片）。
-    
+
     保留条件：用户明确说了"动画片"/"卡通"/"动画"（作为修饰语跟在名词后时保留）。
     移除条件：用户没有显式提到这些词（模型自行脑补的）。
     """
@@ -389,7 +389,7 @@ def _educ_strip_redundant_content_type(node: Any, query_text: str) -> None:
     keep_ct = bool(_re_module.search(r'动画|卡通', query_text)) and "动漫" not in query_text
     if keep_ct:
         return  # 用户明确提到了，保留
-    
+
     # 仅在 and/or 容器内移除叶子，不改单叶根
     if not isinstance(node, dict):
         return
@@ -473,7 +473,7 @@ def _strip_field_value(node: Any, field_name: str, value: str) -> Any:
 
 def _educ_strip_role(params: dict[str, Any]) -> None:
     """从 educ query 中移除**独立的** role 字段叶子。
-    
+
     保留条件：role 在 OR 内且同 OR 还有 title（即 or[role:X, title:X] 模式）。
     移除条件：role 单独出现在 AND 中或其他位置（模型多余产出）。
     """
@@ -1794,6 +1794,42 @@ _FLAT_TO_NESTED_FALLBACK = {
     "educ_slow_search_data_search": "educ_search",
 }
 
+# nested/relate → 对应的 slow_search 工具（用于 EB compiler层强制重路由）
+_NESTED_TO_FLAT = {
+    "vod_search": "vod_slow_search_data_search",
+    "vod_search_all": "vod_slow_search_data_search",
+    "vod_relate_search": "vod_slow_search_data_search",
+    "educ_search": "educ_slow_search_data_search",
+    "educ_relate_recommend": "educ_slow_search_data_search",
+}
+
+# ---------------------------------------------------------------------------
+# EB compiler层：间接/关系引用检测
+# ---------------------------------------------------------------------------
+import re as _re_module
+
+# 关系词模式：匹配需要知识推理的间接人物引用
+# 只用强关系词（永远不会是电影/节目标题的词），确保零误判
+# 弱关系词（父亲/母亲/儿子/女儿/哥哥等可能出现在片名中）交给 prompt 层处理
+_RELATION_WORDS = (
+    r'(?:老公|老婆|丈夫|妻子|前夫|前妻|男友|女友|男朋友|女朋友|'
+    r'搭档|经纪人|师傅|师父|徒弟)'
+)
+_RELATION_SUFFIX = r'(?:的|演|拍|导|主演|参演|出演|唱的|写的)'
+_RELATION_PATTERN = _re_module.compile(_RELATION_WORDS + _RELATION_SUFFIX)
+
+
+def _has_indirect_relation(query_text: str) -> bool:
+    """检测 query 中是否包含间接/关系引用（需要知识推理的人物关系描述）。
+
+    例如："孙俪老公的电影" → True（需推理 孙俪老公=邓超）
+          "刘德华的免费电影" → False（直接人名，无需推理）
+
+    仅匹配强关系词（老公/老婆/前妻/师傅/搭档/经纪人等），这些词不可能是片名。
+    弱关系词（父亲/儿子等）可能出现在片名中，交给 prompt 层引导模型判断。
+    """
+    return bool(_RELATION_PATTERN.search(query_text))
+
 
 def compile_ir(ir: IR, tool_name: str) -> dict[str, Any]:
     if tool_name == "vod_relate_search":
@@ -1821,6 +1857,15 @@ def compile_with_fallback(ir: IR, tool_name: str, *, retext: str = "",
     Experience Bank compiler层规则受全局 ExperienceBankConfig 控制。
     """
     cfg = _EB_CONFIG
+
+    # EB compiler层兜底：间接/关系引用 → 强制 slow_search
+    # 当 query 含"XX的老公/老婆/儿子/女儿/师傅..."等关系词时，
+    # 模型不应做知识推理，应交给 slow_search 只传 query 原文。
+    if cfg.enabled and retext and tool_name not in _FLAT_TOOLS:
+        if _has_indirect_relation(retext):
+            flat_tool = _NESTED_TO_FLAT.get(tool_name)
+            if flat_tool:
+                return flat_tool, {"query": retext}
 
     # 慢链路：新版 vod_slow_search 只需传 query（用户原文），服务端自行解析
     if tool_name in _FLAT_TOOLS:

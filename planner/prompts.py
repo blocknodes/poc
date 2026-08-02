@@ -125,6 +125,8 @@ domain=vod → 见下方 vod 判定规则。
   - 剧情/台词/名场面出处查询
   - 剧集问答（集数/更新状态/票房）、待播/时效
   - 复杂模糊描述
+  - **间接/关系引用**：通过人物关系描述（XX的老公/老婆/儿子/女儿/师傅/同学/搭档/前妻/妈妈/爸爸/哥哥/弟弟）来指代演员/导演/人物，需要知识推理才能确定具体人名
+    - "孙俪老公的电影"、"黄晓明前妻的电视剧"、"成龙儿子的片"、"周杰伦老婆演的"
 【search】其余可直接检索的明确条件（默认） → tool=vod_search：
   - 明确名称/演员/分类/地区/年份/免费/出品方/频道/奖项
   - 热度/口碑排序
@@ -167,6 +169,8 @@ slow_search 命中条件（任一即 slow_search）：
   - 剧情/台词/名场面出处（"那句台词出自哪""骑蓝色大鸟的电影"）
   - 剧集问答（更新了几集/票房多少）、待播/时效
   - 复杂模糊描述
+  - **间接/关系引用**：通过人物关系（XX的老公/老婆/儿子/女儿/师傅/同学/搭档/前妻/妈妈/爸爸）来指代演员/导演，需知识推理
+    - "孙俪老公的电影"、"黄晓明前妻的电视剧"、"成龙儿子的片"、"周杰伦老婆演的"
 
 注意：
   - "播放/放/看/想看/要看/打开/收看" + **具体片名** → play
@@ -690,6 +694,9 @@ _ROUTE_FEWSHOTS_VOD: list[tuple[str, dict]] = [
     ("骑着白马的王子的电影", _r("vod", "slow_search", "vod_slow_search_data_search")),
     ("西游记86版的", _r("vod", "slow_search", "vod_slow_search_data_search")),
     ("适合情侣看的电影", _r("vod", "slow_search", "vod_slow_search_data_search")),
+    ("孙俪老公的电影", _r("vod", "slow_search", "vod_slow_search_data_search")),
+    ("黄晓明前妻的电视剧", _r("vod", "slow_search", "vod_slow_search_data_search")),
+    ("成龙儿子演的片", _r("vod", "slow_search", "vod_slow_search_data_search")),
     # relate
     ("类似流浪地球的电影", _r("vod", "relate", "vod_relate_search")),
     # personalized
@@ -738,6 +745,7 @@ _ROUTE_FEWSHOTS: list[tuple[str, dict]] = [
     ("刘德华的免费电影", _r("vod", "search", "vod_search")),
     ("播放甄嬛传第二季第三集", _r("vod", "play", "vod_search")),
     ("骑着蓝色大鸟的人的电影", _r("vod", "slow_search", "vod_slow_search_data_search")),
+    ("孙俪老公的电影", _r("vod", "slow_search", "vod_slow_search_data_search")),
     ("类似流浪地球的电影", _r("vod", "relate", "vod_relate_search")),
     ("给我推荐点好看的", _r("vod", "personalized", "vod_personalized_search")),
     ("最近看过什么", _r("vod", "history", "vod_history")),
