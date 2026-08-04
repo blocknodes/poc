@@ -412,7 +412,7 @@
     ]
   }
 }",,,,,,,,,,,,,,,,,
-影视,光线传媒2025年有哪些电影,,vod_keyword_search,出品,vod_search,,"{
+影视,光线传媒2025年有哪些电影,,vod_keyword_search,出品,vod_search_all,,"{
   ""action"": ""search"",
   ""retext"": ""光线传媒2025年有哪些电影"",
   ""query"": {
@@ -654,6 +654,11 @@
         ""value"": ""恋爱体验""
       }
     ]
+  },
+  ""sort"": {
+    ""hot"": {
+      ""order"": ""desc""
+    }
   }
 }","好看的语义丢失？
 ",,,,,,,,,,,,,,,,
@@ -732,13 +737,13 @@
   }
 }",,,,,,,,,,,,,,,,,
 影视,帮我放VIP能看的电影,,vod_keyword_search,付费,vod_search,,"{
-  ""action"": ""search"",
+  ""action"": ""play"",
   ""retext"": ""帮我放VIP能看的电影"",
   ""query"": {
     ""and"": [
       {
         ""field"": ""category"",
-        ""value"": ""电视剧""
+        ""value"": ""电影""
       },
       {
         ""field"": ""is_fee"",
@@ -759,13 +764,13 @@
         ""operator"": ""or""
       },
       {
-        ""field"": ""fee"",
+        ""field"": ""is_fee"",
         ""value"": 1
       }
     ]
   }
 }",,,,,,,,,,,,,,,,,
-影视,付费才能看的电视剧,,vod_qa（问答类语料）,付费,vod_slow_search,,"{
+影视,付费才能看的电视剧,,vod_qa（问答类语料）,付费,vod_search,,"{
   ""action"": ""search"",
   ""retext"": ""付费才能看的电视剧"",
   ""query"": {
@@ -956,7 +961,7 @@
           ""恐怖"",
           ""悬疑""
         ],
-        ""operator"": ""or""
+        ""operator"": ""and""
       },
       {
         ""field"": ""is_fee"",
@@ -1065,7 +1070,7 @@
     ]
   }
 }",,,,,,,,,,,,,,,,,
-影视,香港破案片,,vod_keyword_search,类型,vod_search,,"{
+影视,香港破案片,,vod_keyword_search,类型,vod_search_all,,"{
   ""action"": ""search"",
   ""retext"": ""香港破案片"",
   ""query"": {
@@ -1232,8 +1237,8 @@
     ]
   }
 }",,,,,,,,,,,,,,,,,
-影视,"打开腾讯视频播放白日提灯
-（搜索newtv极光的白日提灯）",,vod_keyword_search,平台,vod_search_all,,"{
+影视,"
+搜索newtv极光的白日提灯",,vod_keyword_search,平台,vod_search_all,,"{
   ""action"": ""search"",
   ""retext"": ""搜索newtv极光的白日提灯"",
   ""query"": {
@@ -1285,7 +1290,7 @@
       ""order"": ""desc""
     }
   }
-}",,,,,,,,,,,,,,,,,
+}",vender_name 不再在vod_search中了,,,,,,,,,,,,,,,,
 影视,搜索浙江卫视的王牌对王牌,,vod_keyword_search,频道,vod_search_all,,"{
   ""action"": ""search"",
   ""retext"": ""搜索浙江卫视的王牌对王牌"",
@@ -1359,11 +1364,9 @@
         ""field"": ""definition"",
         ""value"": ""is_4k""
       },
-      {
-        ""not"": {
+     {
           ""field"": ""area"",
           ""value"": ""外国""
-        }
       },
       {
         ""field"": ""category"",
@@ -1519,7 +1522,7 @@
     ""and"": [
       {
         ""field"": ""gender"",
-        ""value"": ""女性""
+        ""value"": ""女生""
       },
       {
         ""field"": ""category"",
@@ -1802,7 +1805,7 @@
     ]
   }
 }",,,,,,,,,,,,,,,,,
-影视,免费的粤语电视剧,,vod_keyword_search,语言,vod_search,,"{
+影视,免费的粤语电视剧,,vod_keyword_search,语言,vod_search_all,,"{
   ""action"": ""search"",
   ""retext"": ""免费的粤语电视剧"",
   ""query"": {
@@ -1957,7 +1960,7 @@
     ""and"": [
       {
         ""field"": ""is_over"",
-        ""value"": 0
+        ""value"": 1
       },
       {
         ""field"": ""category"",
@@ -2014,7 +2017,7 @@
 }",,,,,,,,,,,,,,,,,
 影视,辩论赛经典视频,,vod_vague_search,辩论赛,vod_search,parser句法不完备 但标签系统支持 辩论,"{
   ""action"": ""search"",
-  ""retext"": ""我们的当打之年花絮"",
+  ""retext"": ""辩论赛经典视频"",
   ""query"": {
     
         ""field"": ""tag"",
@@ -2299,7 +2302,7 @@
           ""金秀贤"",
           ""金智媛""
         ],
-        ""operator"": ""and""
+        ""operator"": ""or""
       },
       {
         ""field"": ""category"",

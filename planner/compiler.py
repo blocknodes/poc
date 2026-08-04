@@ -1994,12 +1994,10 @@ def _post_process_with_query_text(params: dict[str, Any], query_text: str,
                 del sort_obj["rate"]
                 if not sort_obj:
                     del params["sort"]
-        # 3d: "好看的" 单独出现不加 sort（主观修饰不是排序意图）
-        if (_re.search(r'好看的', query_text) and not _re.search(r'最好看|好评|口碑', query_text)
-                and "sort" in params):
-            sort_obj = params.get("sort", {})
-            if isinstance(sort_obj, dict) and list(sort_obj.keys()) == ["rate"]:
-                del params["sort"]
+        # 3d: "好看的" → sort:hot:desc（"好看"映射为最热排序）
+        if (_re.search(r'好看', query_text) and not _re.search(r'最好看|好评|口碑', query_text)
+                and not has_explicit_score):
+            params["sort"] = {"hot": {"order": "desc"}}
 
     # --- 规则4: 多人 op 默认 (顿号/和字连接 → and) ---
     if cfg.value_normalize:
@@ -2025,15 +2023,15 @@ def _post_process_with_query_text(params: dict[str, Any], query_text: str,
     if cfg.name_normalize:
         _normalize_prize_names(query_node)
 
-    # --- 规则10: "最近/新上的" → sort:new:desc，删除 release_time range ---
+    # --- 规则10: "最新/最近/新上的" → sort:new:desc，删除 release_time range ---
     if cfg.sort_control:
-        if _re.search(r'最近|新上|新出', query_text) and not _re.search(r'\d{4}年', query_text):
+        if _re.search(r'最新|最近|新上|新出', query_text) and not _re.search(r'\d{4}年', query_text):
             if "release_time" in existing_fields:
                 _remove_field(query_node, "release_time")
-                if "sort" not in params:
-                    params["sort"] = {"new": {"order": "desc"}}
-                elif isinstance(params.get("sort"), dict) and "new" not in params["sort"]:
-                    params["sort"]["new"] = {"order": "desc"}
+            if "sort" not in params:
+                params["sort"] = {"new": {"order": "desc"}}
+            elif isinstance(params.get("sort"), dict) and "new" not in params["sort"]:
+                params["sort"]["new"] = {"order": "desc"}
 
 
 # ---------------------------------------------------------------------------
@@ -2347,6 +2345,7 @@ def _simplify_query(query: dict[str, Any]) -> dict[str, Any]:
         if isinstance(items, list):
             items = [_simplify_query(item) if isinstance(item, dict) else item
                      for item in items]
+            items = _merge_same_field_leaves(items, "and")
             if len(items) == 1:
                 return items[0]
             return {"and": items}
@@ -2355,12 +2354,71 @@ def _simplify_query(query: dict[str, Any]) -> dict[str, Any]:
         if isinstance(items, list):
             items = [_simplify_query(item) if isinstance(item, dict) else item
                      for item in items]
+            items = _merge_same_field_leaves(items, "or")
             if len(items) == 1:
                 return items[0]
             return {"or": items}
     if "not" in query and isinstance(query["not"], dict):
         query["not"] = _simplify_query(query["not"])
     return query
+
+
+# 可合并的字段集合（EXACT 类型且语义上支持多值）
+_MERGEABLE_FIELDS = frozenset({"tag", "actor", "director", "company", "area"})
+
+
+def _merge_same_field_leaves(items: list[dict[str, Any]], container_op: str) -> list[dict[str, Any]]:
+    """合并同一容器内同字段的多个单值叶子为 values 多值节点。
+
+    仅对 _MERGEABLE_FIELDS 中的字段生效。
+    container_op: "and" 或 "or"，决定合并后的 operator。
+    """
+    from collections import OrderedDict
+
+    # 按 field 名分组（仅含单 value 的叶子参与合并）
+    field_groups: OrderedDict[str, list[int]] = OrderedDict()
+    for i, item in enumerate(items):
+        if (isinstance(item, dict) and "field" in item
+                and item.get("field") in _MERGEABLE_FIELDS
+                and "value" in item and "values" not in item
+                and "from" not in item and "to" not in item):
+            field_groups.setdefault(item["field"], []).append(i)
+
+    # 只处理出现 ≥2 次的字段
+    merge_indices: set[int] = set()
+    merged_nodes: list[tuple[int, dict[str, Any]]] = []  # (first_index, merged_node)
+    for field_name, indices in field_groups.items():
+        if len(indices) < 2:
+            continue
+        values = []
+        for idx in indices:
+            values.append(items[idx]["value"])
+            merge_indices.add(idx)
+        merged_node: dict[str, Any] = {
+            "field": field_name,
+            "values": values,
+            "operator": container_op,
+        }
+        merged_nodes.append((indices[0], merged_node))
+
+    if not merge_indices:
+        return items
+
+    # 重建列表：保持原始顺序，合并节点放在第一次出现的位置
+    result: list[dict[str, Any]] = []
+    merged_placed: set[int] = set()
+    for i, item in enumerate(items):
+        if i in merge_indices:
+            # 检查是否是某个合并组的首位
+            for first_idx, node in merged_nodes:
+                if first_idx == i and first_idx not in merged_placed:
+                    result.append(node)
+                    merged_placed.add(first_idx)
+                    break
+        else:
+            result.append(item)
+
+    return result
 
 
 # ===========================================================================
