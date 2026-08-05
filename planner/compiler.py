@@ -379,7 +379,7 @@ def _educ_normalize_language(node: Any) -> None:
 
 def _educ_strip_redundant_content_type(node: Any, query_text: str) -> None:
     """移除 educ 中冗余的 content_type（动画/动画片）。
-
+    
     保留条件：用户明确说了"动画片"/"卡通"/"动画"（作为修饰语跟在名词后时保留）。
     移除条件：用户没有显式提到这些词（模型自行脑补的）。
     """
@@ -389,7 +389,7 @@ def _educ_strip_redundant_content_type(node: Any, query_text: str) -> None:
     keep_ct = bool(_re_module.search(r'动画|卡通', query_text)) and "动漫" not in query_text
     if keep_ct:
         return  # 用户明确提到了，保留
-
+    
     # 仅在 and/or 容器内移除叶子，不改单叶根
     if not isinstance(node, dict):
         return
@@ -473,7 +473,7 @@ def _strip_field_value(node: Any, field_name: str, value: str) -> Any:
 
 def _educ_strip_role(params: dict[str, Any]) -> None:
     """从 educ query 中移除**独立的** role 字段叶子。
-
+    
     保留条件：role 在 OR 内且同 OR 还有 title（即 or[role:X, title:X] 模式）。
     移除条件：role 单独出现在 AND 中或其他位置（模型多余产出）。
     """

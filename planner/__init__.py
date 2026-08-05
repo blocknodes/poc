@@ -14,9 +14,11 @@
 """
 from .compiler import ExperienceBankConfig, get_experience_bank_config, set_experience_bank_config
 from .harness import Planner, PlanResult
+from .retrieve_client import RetrieveClient, RetrieveConfig, RetrieveResult
 from .vllm_client import VLLMClient, VLLMConfig
 
 __all__ = [
     "Planner", "PlanResult", "VLLMClient", "VLLMConfig",
+    "RetrieveClient", "RetrieveConfig", "RetrieveResult",
     "ExperienceBankConfig", "get_experience_bank_config", "set_experience_bank_config",
 ]

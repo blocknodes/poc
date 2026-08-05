@@ -56,40 +56,58 @@ class TestCase:
     note: str = ""
 
 
+def _read_rows(path: str):
+    """读取 CSV 或 xlsx 文件，返回 DictReader 兼容的 dict 迭代器。"""
+    # 检测是否为 xlsx（PK magic bytes）
+    with open(path, "rb") as fb:
+        magic = fb.read(4)
+    if magic == b"PK\x03\x04":
+        import openpyxl
+        wb = openpyxl.load_workbook(path, read_only=True, data_only=True)
+        ws = wb.active
+        rows_iter = ws.iter_rows(values_only=True)
+        headers = [str(h).strip() if h else f"col_{i}" for i, h in enumerate(next(rows_iter))]
+        for row in rows_iter:
+            yield dict(zip(headers, [str(v).strip() if v is not None else "" for v in row]))
+        wb.close()
+    else:
+        with open(path, encoding="utf-8-sig") as f:
+            reader = csv.DictReader(f)
+            yield from reader
+
+
 def load_csv(path: str) -> list[TestCase]:
-    """从评测用例 CSV 加载测试用例。"""
+    """从评测用例 CSV/xlsx 加载测试用例。"""
     cases: list[TestCase] = []
-    with open(path, encoding="utf-8-sig") as f:
-        reader = csv.DictReader(f)
-        for i, row in enumerate(reader):
-            domain = (row.get("业务域") or "").strip()
-            if domain and domain != "影视":
-                continue  # 只处理影视域
+    for i, row in enumerate(_read_rows(path)):
+        domain = (row.get("业务域") or "").strip()
+        if domain and domain != "影视":
+            continue  # 只处理影视域
 
-            query = (row.get("query") or "").strip()
-            if not query:
-                continue
+        query = (row.get("query") or "").strip()
+        if not query:
+            continue
 
-            expected_tool = (row.get("期望工具") or "").strip()
-            if not expected_tool:
-                continue
+        expected_tool = (row.get("期望工具") or "").strip()
+        if not expected_tool:
+            continue
 
-            params_raw = (row.get("期望参数（对于慢链路部分语料 也给出了如果进入快链路的参数）") or "").strip()
-            expected_params = None
-            if params_raw:
-                try:
-                    expected_params = json.loads(params_raw)
-                except json.JSONDecodeError:
-                    pass  # 无法解析的参数跳过
+        params_raw = (row.get("期望参数（对于慢链路部分语料 也给出了如果进入快链路的参数）") or "").strip()
+        expected_params = None
+        if params_raw:
+            try:
+                expected_params = json.loads(params_raw)
+            except json.JSONDecodeError:
+                pass  # 无法解析的参数跳过
 
-            cases.append(TestCase(
-                query=query,
-                expected_tool=expected_tool,
-                expected_params=expected_params,
-                source_file=os.path.basename(path),
-                row_idx=i + 2,  # CSV 行号（1-indexed header + 1-indexed data）
-                note=(row.get("说明") or "").strip(),
-            ))
+        cases.append(TestCase(
+            query=query,
+            expected_tool=expected_tool,
+            expected_params=expected_params,
+            source_file=os.path.basename(path),
+            row_idx=i + 2,  # CSV 行号（1-indexed header + 1-indexed data）
+            note=(row.get("说明") or "").strip(),
+        ))
     return cases
 
 
@@ -395,12 +413,14 @@ class Predictor:
             self._init_live()
 
     def _init_live(self):
-        from planner import Planner, VLLMClient, VLLMConfig
-        base_url = os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1")
-        model = os.environ.get("VLLM_MODEL", "your-30b-moe")
-        client = VLLMClient(VLLMConfig(base_url=base_url, model=model))
+        from config import cfg, make_vllm_config, make_retrieve_config
+        from planner import Planner, VLLMClient
+        client = VLLMClient(make_vllm_config())
+        retrieve_config = make_retrieve_config()
         self._planner = Planner(client, vod_only=True,
-                                use_eb_prompt=self.use_eb_prompt)
+                                use_eb_prompt=self.use_eb_prompt,
+                                use_retrieve=cfg.retrieve_enabled,
+                                retrieve_config=retrieve_config)
 
     def predict(self, query: str) -> tuple[str, Optional[dict], str, list]:
         """返回 (tool_name, params, error_msg, trace)。"""

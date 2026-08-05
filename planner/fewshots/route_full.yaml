@@ -1,0 +1,113 @@
+version: "1.0"
+domain: null
+stage: route
+description: "全域路由 few-shot（vod/educ/audio/device）"
+
+shots:
+  # vod
+  - query: "刘德华的免费电影"
+    response: {domain: vod, intent: search, tool: vod_search, confidence: 0.9}
+    tags: [vod, search, actor, fee]
+
+  - query: "播放甄嬛传第二季第三集"
+    response: {domain: vod, intent: play, tool: vod_search, confidence: 0.9}
+    tags: [vod, play, title, playback]
+
+  - query: "骑着蓝色大鸟的人的电影"
+    response: {domain: vod, intent: slow_search, tool: vod_slow_search_data_search, confidence: 0.9}
+    tags: [vod, slow_search, semantic]
+
+  - query: "孙俪老公的电影"
+    response: {domain: vod, intent: slow_search, tool: vod_slow_search_data_search, confidence: 0.9}
+    tags: [vod, slow_search, relation_ref]
+
+  - query: "类似流浪地球的电影"
+    response: {domain: vod, intent: relate, tool: vod_relate_search, confidence: 0.9}
+    tags: [vod, relate]
+
+  - query: "给我推荐点好看的"
+    response: {domain: vod, intent: personalized, tool: vod_personalized_search, confidence: 0.9}
+    tags: [vod, personalized]
+
+  - query: "最近看过什么"
+    response: {domain: vod, intent: history, tool: vod_history, confidence: 0.9}
+    tags: [vod, history]
+
+  # educ — 动画/少儿一律 educ
+  - query: "最好看的少儿动画"
+    response: {domain: educ, intent: search, tool: educ_search, confidence: 0.9}
+    tags: [educ, search, sort]
+
+  - query: "拼音启蒙儿歌"
+    response: {domain: educ, intent: search, tool: educ_search, confidence: 0.9}
+    tags: [educ, search, genre]
+
+  - query: "播放汪汪队立大功第2集"
+    response: {domain: educ, intent: search, tool: educ_search, confidence: 0.9}
+    tags: [educ, play, title]
+
+  - query: "我要看宝宝巴士"
+    response: {domain: educ, intent: search, tool: educ_search, confidence: 0.9}
+    tags: [educ, play, title]
+
+  - query: "适合2岁小孩看的卡通"
+    response: {domain: educ, intent: search, tool: educ_search, confidence: 0.9}
+    tags: [educ, search, age]
+
+  - query: "免费的英语启蒙动画"
+    response: {domain: educ, intent: search, tool: educ_search, confidence: 0.9}
+    tags: [educ, search, fee, language]
+
+  - query: "播放小羊肖恩大电影"
+    response: {domain: educ, intent: search, tool: educ_search, confidence: 0.9}
+    tags: [educ, play, title]
+
+  - query: "有没有亲子温情的动画视频"
+    response: {domain: educ, intent: slow_search, tool: educ_slow_search_data_search, confidence: 0.9}
+    tags: [educ, slow_search, semantic]
+
+  - query: "适合我看的少儿动画"
+    response: {domain: educ, intent: slow_search, tool: educ_slow_search_data_search, confidence: 0.9}
+    tags: [educ, slow_search, personalized]
+
+  - query: "根据我的喜好推荐动画片"
+    response: {domain: educ, intent: slow_search, tool: educ_slow_search_data_search, confidence: 0.9}
+    tags: [educ, slow_search, personalized]
+
+  - query: "推荐我喜欢的动漫类型"
+    response: {domain: educ, intent: slow_search, tool: educ_slow_search_data_search, confidence: 0.9}
+    tags: [educ, slow_search, personalized]
+
+  - query: "有没有像小猪佩奇那样语速慢的英文动画"
+    response: {domain: educ, intent: relate, tool: educ_relate_recommend, confidence: 0.9}
+    tags: [educ, relate, title_ref]
+
+  - query: "和消防员山姆同一类型的动画片"
+    response: {domain: educ, intent: relate, tool: educ_relate_recommend, confidence: 0.9}
+    tags: [educ, relate, title_ref]
+
+  - query: "回到刚才看的那个英文绘本"
+    response: {domain: educ, intent: history, tool: educ_history, confidence: 0.9}
+    tags: [educ, history]
+
+  # audio
+  - query: "播放三国演义评书"
+    response: {domain: audio, intent: audio_play, tool: audio_search, confidence: 0.9}
+    tags: [audio, play]
+
+  - query: "熄屏听睡前故事"
+    response: {domain: audio, intent: audio_screen_off_play, tool: audio_search, confidence: 0.9}
+    tags: [audio, screen_off]
+
+  # device
+  - query: "声音大一点"
+    response: {domain: device, intent: device_control, tool: numeric_adjust, confidence: 0.9}
+    tags: [device, numeric]
+
+  - query: "暂停"
+    response: {domain: device, intent: device_control, tool: playback_control, confidence: 0.9}
+    tags: [device, playback]
+
+  - query: "切换到HDMI1"
+    response: {domain: device, intent: device_control, tool: source_switch, confidence: 0.9}
+    tags: [device, source]

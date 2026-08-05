@@ -13,6 +13,7 @@ from __future__ import annotations
 import json
 
 from .registry import Kind, fields_for_domain, sort_keys_for_domain, DEVICE_TOOLS
+from .fewshot_loader import load_fewshots
 
 # ===========================================================================
 # 意图拆分 —— 多意图检测与分解
@@ -40,30 +41,11 @@ INTENT_SPLIT_SYSTEM = """你是电视端 AI 请求分析器。判断用户请求
 拆分时保持每个子请求语义完整、自包含，能独立理解。
 只输出 JSON。"""
 
-_INTENT_SPLIT_FEWSHOTS: list[tuple[str, dict]] = [
-    ("帮我调亮屏幕同时搜刘德华的免费电影",
-     {"multi": True, "sub_queries": ["调亮屏幕", "搜刘德华的免费电影"]}),
-    ("把声音调大然后播放琅琊榜",
-     {"multi": True, "sub_queries": ["把声音调大", "播放琅琊榜"]}),
-    ("帮我关灯再搜个恐怖片",
-     {"multi": True, "sub_queries": ["关灯", "搜个恐怖片"]}),
-    ("暂停播放并且把音量调到20",
-     {"multi": True, "sub_queries": ["暂停播放", "把音量调到20"]}),
-    ("刘德华和梁朝伟的免费动作电影",
-     {"multi": False, "sub_queries": ["刘德华和梁朝伟的免费动作电影"]}),
-    ("播放琅琊榜第二季第三集",
-     {"multi": False, "sub_queries": ["播放琅琊榜第二季第三集"]}),
-    ("最近有什么好看的韩剧",
-     {"multi": False, "sub_queries": ["最近有什么好看的韩剧"]}),
-    ("类似甄嬛传的宫廷剧",
-     {"multi": False, "sub_queries": ["类似甄嬛传的宫廷剧"]}),
-]
-
-
 def intent_split_system_prompt() -> str:
     """意图拆分 system prompt。"""
-    shots = "\n\n".join(_render_fewshot(q, r) for q, r in _INTENT_SPLIT_FEWSHOTS)
-    return INTENT_SPLIT_SYSTEM + "\n\n# 示例：\n" + shots
+    shots = load_fewshots("intent_split")
+    shot_text = "\n\n".join(_render_fewshot(q, r) for q, r in shots)
+    return INTENT_SPLIT_SYSTEM + "\n\n# 示例：\n" + shot_text
 
 
 def intent_split_observation(query: str, memory_hint: str = "") -> str:
@@ -499,13 +481,13 @@ def route_system_prompt(vod_only: bool = False, educ_only: bool = False) -> str:
     """路由 system prompt。vod_only/educ_only=True 时只输出对应单域 prompt（评测用）。"""
     if vod_only:
         base = ROUTE_SYSTEM_VOD
-        shots = _ROUTE_FEWSHOTS_VOD
+        shots = load_fewshots("route", "vod")
     elif educ_only:
         base = ROUTE_SYSTEM_EDUC
-        shots = _ROUTE_FEWSHOTS_EDUC
+        shots = load_fewshots("route", "educ")
     else:
         base = ROUTE_SYSTEM
-        shots = _ROUTE_FEWSHOTS
+        shots = load_fewshots("route", "full")
     shot_text = "\n\n".join(_render_fewshot(q, r) for q, r in shots)
     return base + "\n\n# 示例：\n" + shot_text
 
@@ -548,7 +530,7 @@ def _ir_observation_vod(query: str, memory_hint: str = "",
     obs = system
 
     if use_experience_bank:
-        shots = few_shots or _IR_FEWSHOTS.get("vod", [])
+        shots = few_shots or load_fewshots("ir", "vod")
         if shots:
             shot_text = "\n\n".join(_render_fewshot(q, ir) for q, ir in shots)
             obs += "\n\n# 示例：\n" + shot_text
@@ -575,7 +557,7 @@ def _ir_observation_educ(query: str, memory_hint: str = "",
     obs = system
 
     if use_experience_bank:
-        shots = few_shots or _IR_FEWSHOTS.get("educ", [])
+        shots = few_shots or load_fewshots("ir", "educ")
         if shots:
             shot_text = "\n\n".join(_render_fewshot(q, ir) for q, ir in shots)
             obs += "\n\n# 示例：\n" + shot_text
@@ -590,9 +572,10 @@ def _ir_observation_educ(query: str, memory_hint: str = "",
 def audio_observation(query: str, memory_hint: str = "") -> str:
     """有声域 slot-fill observation。"""
     obs = AUDIO_SYSTEM
-    shots = "\n\n".join(_render_fewshot(q, r) for q, r in _AUDIO_FEWSHOTS)
+    shots = load_fewshots("slot_fill", "audio")
     if shots:
-        obs += "\n\n# 示例：\n" + shots
+        shot_text = "\n\n".join(_render_fewshot(q, r) for q, r in shots)
+        obs += "\n\n# 示例：\n" + shot_text
     obs += f"\n\n用户请求：{query}"
     if memory_hint:
         obs += f"\n上下文：{memory_hint}"
@@ -603,9 +586,10 @@ def audio_observation(query: str, memory_hint: str = "") -> str:
 def device_observation(query: str, memory_hint: str = "") -> str:
     """设备域 slot-fill observation。"""
     obs = DEVICE_SYSTEM
-    shots = "\n\n".join(_render_fewshot(q, r) for q, r in _DEVICE_FEWSHOTS)
+    shots = load_fewshots("slot_fill", "device")
     if shots:
-        obs += "\n\n# 示例：\n" + shots
+        shot_text = "\n\n".join(_render_fewshot(q, r) for q, r in shots)
+        obs += "\n\n# 示例：\n" + shot_text
     obs += f"\n\n用户请求：{query}"
     if memory_hint:
         obs += f"\n上下文：{memory_hint}"
@@ -658,399 +642,3 @@ def _educ_field_catalog() -> str:
         lines.append(f"  {name}[{kind}]: {desc}")
     return "\n".join(lines)
 
-
-# ===========================================================================
-# Few-shots —— 路由
-# ===========================================================================
-def _r(domain: str, intent: str, tool: str, conf: float = 0.9) -> dict:
-    return {"domain": domain, "intent": intent, "tool": tool, "confidence": conf}
-
-
-# 影视单域路由 few-shot（精简，覆盖边界）
-_ROUTE_FEWSHOTS_VOD: list[tuple[str, dict]] = [
-    # search
-    ("周润发的动作电影", _r("vod", "search", "vod_search")),
-    ("NHK纪录片", _r("vod", "search", "vod_search")),
-    ("高清欧美科幻电影", _r("vod", "search", "vod_search")),
-    ("获得百花奖最佳女主角的电影", _r("vod", "search", "vod_search")),
-    ("热门综艺", _r("vod", "search", "vod_search")),
-    # play — 有具体片名
-    ("播放甄嬛传第二季第三集", _r("vod", "play", "vod_search")),
-    ("放琅琊榜", _r("vod", "play", "vod_search")),
-    ("我想看京剧霸王别姬", _r("vod", "play", "vod_search")),
-    ("我要看速度与激情第30分钟", _r("vod", "play", "vod_search")),
-    ("收看浙江卫视的奔跑吧兄弟", _r("vod", "play", "vod_search")),
-    # search — 有动词但无具体片名（纯条件筛选）
-    ("打开付费的电视剧", _r("vod", "search", "vod_search")),
-    ("播放科幻电视剧", _r("vod", "search", "vod_search")),
-    ("我想看美剧", _r("vod", "search", "vod_search")),
-    ("我要看免费的电视剧", _r("vod", "search", "vod_search")),
-    ("看热门高分电影", _r("vod", "search", "vod_search")),
-    # search（有集数但无播放动词→search）
-    ("搜下庆余年第二季", _r("vod", "search", "vod_search")),
-    # search（"找/搜索" → search）
-    ("免费的武侠剧天龙八部", _r("vod", "search", "vod_search")),
-    # slow_search
-    ("骑着白马的王子的电影", _r("vod", "slow_search", "vod_slow_search_data_search")),
-    ("西游记86版的", _r("vod", "slow_search", "vod_slow_search_data_search")),
-    ("适合情侣看的电影", _r("vod", "slow_search", "vod_slow_search_data_search")),
-    ("孙俪老公的电影", _r("vod", "slow_search", "vod_slow_search_data_search")),
-    ("黄晓明前妻的电视剧", _r("vod", "slow_search", "vod_slow_search_data_search")),
-    ("成龙儿子演的片", _r("vod", "slow_search", "vod_slow_search_data_search")),
-    # relate
-    ("类似流浪地球的电影", _r("vod", "relate", "vod_relate_search")),
-    # personalized
-    ("根据我的喜好推荐电影", _r("vod", "personalized", "vod_personalized_search")),
-    # history
-    ("我最近看了什么电视剧", _r("vod", "history", "vod_history")),
-]
-
-# 少儿单域路由 few-shot
-_ROUTE_FEWSHOTS_EDUC: list[tuple[str, dict]] = [
-    # search — 有具体动画名
-    ("播放汪汪队立大功第2集", _r("educ", "play", "educ_search")),
-    ("我要看宝宝巴士", _r("educ", "play", "educ_search")),
-    ("放小猪佩奇", _r("educ", "play", "educ_search")),
-    ("播放小羊肖恩大电影", _r("educ", "play", "educ_search")),
-    ("打开超级飞侠第3季", _r("educ", "play", "educ_search")),
-    # search — 条件筛选无具体片名
-    ("最好看的少儿动画", _r("educ", "search", "educ_search")),
-    ("拼音启蒙儿歌", _r("educ", "search", "educ_search")),
-    ("适合2岁小孩看的卡通", _r("educ", "search", "educ_search")),
-    ("免费的英语启蒙动画", _r("educ", "search", "educ_search")),
-    ("国产动画片", _r("educ", "search", "educ_search")),
-    ("适合6岁女孩看的公主动画", _r("educ", "search", "educ_search")),
-    # search — 有动词但无具体片名（纯条件筛选）
-    ("我想看动画片", _r("educ", "search", "educ_search")),
-    ("我要看免费的动画", _r("educ", "search", "educ_search")),
-    # slow_search — 模糊/语义/个性化
-    ("有没有亲子温情的动画视频", _r("educ", "slow_search", "educ_slow_search_data_search")),
-    ("讲述两只熊和伐木工搞笑打闹的动画片", _r("educ", "slow_search", "educ_slow_search_data_search")),
-    ("根据我的喜好推荐动画片", _r("educ", "slow_search", "educ_slow_search_data_search")),
-    ("推荐我喜欢的动漫类型", _r("educ", "slow_search", "educ_slow_search_data_search")),
-    ("适合我看的少儿动画", _r("educ", "slow_search", "educ_slow_search_data_search")),
-    ("按我家娃的喜好推荐", _r("educ", "slow_search", "educ_slow_search_data_search")),
-    # relate — 必须有参考作品名
-    ("有没有像小猪佩奇那样语速慢的英文动画", _r("educ", "relate", "educ_relate_recommend")),
-    ("和消防员山姆同一类型的动画片", _r("educ", "relate", "educ_relate_recommend")),
-    ("类似汪汪队的动画", _r("educ", "relate", "educ_relate_recommend")),
-    # history
-    ("回到刚才看的那个英文绘本", _r("educ", "history", "educ_history")),
-    ("历史收藏里的动画片", _r("educ", "history", "educ_history")),
-]
-
-# 全域路由 few-shot
-_ROUTE_FEWSHOTS: list[tuple[str, dict]] = [
-    # vod
-    ("刘德华的免费电影", _r("vod", "search", "vod_search")),
-    ("播放甄嬛传第二季第三集", _r("vod", "play", "vod_search")),
-    ("骑着蓝色大鸟的人的电影", _r("vod", "slow_search", "vod_slow_search_data_search")),
-    ("孙俪老公的电影", _r("vod", "slow_search", "vod_slow_search_data_search")),
-    ("类似流浪地球的电影", _r("vod", "relate", "vod_relate_search")),
-    ("给我推荐点好看的", _r("vod", "personalized", "vod_personalized_search")),
-    ("最近看过什么", _r("vod", "history", "vod_history")),
-    # educ —— 动画/少儿一律 educ
-    ("最好看的少儿动画", _r("educ", "search", "educ_search")),
-    ("拼音启蒙儿歌", _r("educ", "search", "educ_search")),
-    ("播放汪汪队立大功第2集", _r("educ", "search", "educ_search")),
-    ("我要看宝宝巴士", _r("educ", "search", "educ_search")),
-    ("适合2岁小孩看的卡通", _r("educ", "search", "educ_search")),
-    ("免费的英语启蒙动画", _r("educ", "search", "educ_search")),
-    ("播放小羊肖恩大电影", _r("educ", "search", "educ_search")),
-    ("有没有亲子温情的动画视频", _r("educ", "slow_search", "educ_slow_search_data_search")),
-    ("适合我看的少儿动画", _r("educ", "slow_search", "educ_slow_search_data_search")),
-    ("根据我的喜好推荐动画片", _r("educ", "slow_search", "educ_slow_search_data_search")),
-    ("推荐我喜欢的动漫类型", _r("educ", "slow_search", "educ_slow_search_data_search")),
-    ("有没有像小猪佩奇那样语速慢的英文动画", _r("educ", "relate", "educ_relate_recommend")),
-    ("和消防员山姆同一类型的动画片", _r("educ", "relate", "educ_relate_recommend")),
-    ("回到刚才看的那个英文绘本", _r("educ", "history", "educ_history")),
-    # audio
-    ("播放三国演义评书", _r("audio", "audio_play", "audio_search")),
-    ("熄屏听睡前故事", _r("audio", "audio_screen_off_play", "audio_search")),
-    # device
-    ("声音大一点", _r("device", "device_control", "numeric_adjust")),
-    ("暂停", _r("device", "device_control", "playback_control")),
-    ("切换到HDMI1", _r("device", "device_control", "source_switch")),
-]
-
-# ===========================================================================
-# Few-shots —— IR（覆盖易错模式）
-# ===========================================================================
-_IR_FEWSHOTS: dict[str, list[tuple[str, dict]]] = {
-    "vod": [
-        # 基础 search（注意 "我想看" → action 由路由决定，这里演示 search）
-        ("我想看周星驰的免费喜剧",
-         {"domain": "vod", "action": "search",
-          "query": {"and": [
-              {"field": "actor", "value": "周星驰"},
-              {"field": "category", "value": "电影"},
-              {"field": "tag", "value": "喜剧"},
-              {"field": "fee", "value": 0}]}}),
-        # XX片 → category:电影 + tag 保持原词
-        ("陈凯歌导演的抗日片",
-         {"domain": "vod", "action": "search",
-          "query": {"and": [
-              {"field": "director", "value": "陈凯歌"},
-              {"field": "category", "value": "电影"},
-              {"field": "tag", "value": "抗日"}]}}),
-        # tag 保持原词
-        ("内地言情剧",
-         {"domain": "vod", "action": "search",
-          "query": {"and": [
-              {"field": "area", "value": "内地"},
-              {"field": "category", "value": "电视剧"},
-              {"field": "tag", "value": "言情"}]}}),
-        # play（有明确"播放"动词 + 集数）
-        ("播放琅琊榜第一季第五集",
-         {"domain": "vod", "action": "play",
-          "query": {"field": "title", "value": "琅琊榜"},
-          "playback": {"series": 1, "video_index": 5}}),
-        # play 无集数（不加 playback！）
-        ("放甄嬛传",
-         {"domain": "vod", "action": "play",
-          "query": {"field": "title", "value": "甄嬛传"}}),
-        # "我想看" + 具体片名 → play（由路由决定）
-        ("我想看京剧贵妃醉酒",
-         {"domain": "vod", "action": "play",
-          "query": {"and": [
-              {"field": "title", "value": "贵妃醉酒"},
-              {"field": "tag", "value": "京剧"}]}}),
-        # 戏曲子类型 → tag 不加 category:戏曲
-        ("请播放豫剧花木兰",
-         {"domain": "vod", "action": "play",
-          "query": {"and": [
-              {"field": "title", "value": "花木兰"},
-              {"field": "tag", "value": "豫剧"}]}}),
-        # 相声/小品 → tag 不加 category:综艺
-        ("相声满腹经纶",
-         {"domain": "vod", "action": "search",
-          "query": {"and": [
-              {"field": "tag", "value": "相声"},
-              {"field": "title", "value": "满腹经纶"}]}}),
-        # XX版 → tag 不是 language
-        ("院线版的唐人街探案",
-         {"domain": "vod", "action": "search",
-          "query": {"and": [
-              {"field": "title", "value": "唐人街探案"},
-              {"field": "tag", "value": "院线版"}]}}),
-        # 多值 OR（港台 → 香港+台湾）
-        ("日韩爱情电影",
-         {"domain": "vod", "action": "search",
-          "query": {"and": [
-              {"field": "area", "values": ["日本", "韩国"], "op": "or"},
-              {"field": "category", "value": "电影"},
-              {"field": "tag", "value": "爱情"}]}}),
-        # 多值 tag
-        ("免费的动作冒险电影",
-         {"domain": "vod", "action": "search",
-          "query": {"and": [
-              {"field": "category", "value": "电影"},
-              {"field": "tag", "values": ["动作", "冒险"], "op": "and"},
-              {"field": "fee", "value": 0}]}}),
-        # 多排除 → not(or(...))
-        ("电视剧，不要古装、不要韩国",
-         {"domain": "vod", "action": "search",
-          "query": {"and": [
-              {"field": "category", "value": "电视剧"},
-              {"not": {"or": [
-                  {"field": "tag", "value": "古装"},
-                  {"field": "area", "value": "韩国"}]}}]}}),
-        # sort 示例
-        ("免费又热门的电影",
-         {"domain": "vod", "action": "search",
-          "query": {"and": [
-              {"field": "category", "value": "电影"},
-              {"field": "fee", "value": 0}]},
-          "sort": [{"key": "hot", "order": "desc"}]}),
-        # sort new
-        ("最新上映的悬疑电视剧",
-         {"domain": "vod", "action": "search",
-          "query": {"and": [
-              {"field": "category", "value": "电视剧"},
-              {"field": "tag", "value": "悬疑"}]},
-          "sort": [{"key": "new", "order": "desc"}]}),
-        # title 数字拆分
-        ("给我放变形金刚3",
-         {"domain": "vod", "action": "play",
-          "query": {"field": "title", "value": "变形金刚"},
-          "playback": {"series": 3}}),
-        # 角色名 → role 字段
-        ("演孙悟空的电视剧",
-         {"domain": "vod", "action": "search",
-          "query": {"and": [
-              {"field": "role", "value": "孙悟空"},
-              {"field": "category", "value": "电视剧"}]}}),
-        # voiceStartPos 转换
-        ("我要看复仇者联盟第40分钟",
-         {"domain": "vod", "action": "play",
-          "query": {"field": "title", "value": "复仇者联盟"},
-          "playback": {"voiceStartPos": 2400}}),
-        # 不要推断 category
-        ("最新一期的快乐大本营",
-         {"domain": "vod", "action": "search",
-          "query": {"field": "title", "value": "快乐大本营"},
-          "sort": [{"key": "new", "order": "desc"}]}),
-        # 多演员 and
-        ("成龙、李连杰合作的电影",
-         {"domain": "vod", "action": "search",
-          "query": {"and": [
-              {"field": "actor", "values": ["成龙", "李连杰"], "op": "and"},
-              {"field": "category", "value": "电影"}]}}),
-        # 第N集 + 第N分钟 区分
-        ("看三体第5集第20分钟",
-         {"domain": "vod", "action": "play",
-          "query": {"field": "title", "value": "三体"},
-          "playback": {"video_index": 5, "voiceStartPos": 1200}}),
-    ],
-    "educ": [
-        # content_type:动画 when user says 动画片; is_fee:0 for 免费
-        ("免费的英语启蒙动画片",
-         {"query": {"and": [
-              {"field": "language", "value": "英文"},
-              {"field": "content_type", "value": "动画"},
-              {"field": "is_fee", "value": 0}]}}),
-        # 年龄条件 —— 使用 age_range + from/to
-        ("4到7岁的数学动画",
-         {"query": {"and": [
-              {"field": "children_second_genre", "value": "数学"},
-              {"field": "content_type", "value": "动画"},
-              {"field": "age_range", "from": "4", "to": "7"}]}}),
-        # 季/部 → title 拆分（集数忽略）
-        ("播放汪汪队立大功第四季第2集",
-         {"query": {"and": [
-              {"field": "title", "value": "汪汪队立大功"},
-              {"field": "title", "value": "第四季"}]}}),
-        # 集数忽略
-        ("播放萌鸡小队第6集",
-         {"query": {"field": "title", "value": "萌鸡小队"}}),
-        # 角色名只用 title（不加 role）
-        ("播放光头强",
-         {"query": {"field": "title", "value": "光头强"}}),
-        # 动漫 → content_type:动画; release_year 范围
-        ("2023年的免费重生动漫",
-         {"query": {"and": [
-              {"field": "title", "value": "重生"},
-              {"field": "release_year", "from": "20230101", "to": "20231231"},
-              {"field": "content_type", "value": "动画"},
-              {"field": "is_fee", "value": 0}]}}),
-        # 简单 title 搜索（无 content_type 因为没提动画）
-        ("播放免费的汪汪队大卡车",
-         {"query": {"and": [
-              {"field": "title", "value": "汪汪队大卡车"},
-              {"field": "is_fee", "value": 0}]}}),
-        # genre3 用于具体题材
-        ("科幻冒险动画",
-         {"query": {"and": [
-              {"field": "children_third_genre", "value": "科幻"},
-              {"field": "children_third_genre", "value": "冒险"},
-              {"field": "content_type", "value": "动画"}]}}),
-        # 语言归一
-        ("播放布鲁伊中文版不用会员",
-         {"query": {"and": [
-              {"field": "title", "value": "布鲁伊"},
-              {"field": "language", "value": "普通话"},
-              {"field": "is_fee", "value": 0}]}}),
-        # 故事 → children_second_genre
-        ("给我放个艾莎公主的故事",
-         {"query": {"and": [
-              {"field": "title", "value": "艾莎公主"},
-              {"field": "children_second_genre", "value": "故事"}]}}),
-        # 公司 → company; 语言归一
-        ("播放国语版汪汪队电影",
-         {"query": {"and": [
-              {"field": "title", "value": "汪汪队"},
-              {"field": "language", "value": "普通话"},
-              {"field": "children_second_genre", "value": "动画电影"}]}}),
-        # title 不要放描述词
-        ("热血动漫",
-         {"query": {"and": [
-              {"field": "children_third_genre", "value": "热血"},
-              {"field": "content_type", "value": "动画"}]}}),
-        # 迪士尼→company
-        ("迪士尼动画电影作品",
-         {"query": {"and": [
-              {"field": "company", "value": "迪士尼"},
-              {"field": "children_second_genre", "value": "动画电影"}]}}),
-        # sort 示例（对象格式）
-        ("热门的儿歌",
-         {"query": {"field": "children_second_genre", "value": "儿歌"},
-          "sort": {"hot": {"order": "desc"}}}),
-        # 不要会员 + 国产 → country 展开
-        ("不要会员的锤锤",
-         {"query": {"and": [
-              {"field": "title", "value": "锤锤"},
-              {"field": "is_fee", "value": 0}]}}),
-        # title 中文数字→阿拉伯: "XX二" → title:"XX2"
-        ("播放爆裂飞车二",
-         {"query": {"field": "title", "value": "爆裂飞车2"}}),
-        # 国产 → country 用 values+or 展开
-        ("国产动画片",
-         {"query": {"and": [
-              {"field": "country", "values": ["内地", "中国澳门", "中国香港", "中国台湾"], "op": "or"},
-              {"field": "content_type", "value": "动画"}]}}),
-        # 年龄范围 "0~3岁" → age_range
-        ("0到3岁宝宝看的启蒙动画片",
-         {"query": {"and": [
-              {"field": "age_range", "from": "0", "to": "3"},
-              {"field": "content_type", "value": "动画"}]}}),
-        # "今年" → release_year 今年全年
-        ("今年新出的动画片",
-         {"query": {"and": [
-              {"field": "content_type", "value": "动画"},
-              {"field": "release_year", "from": "20260101", "to": "20261231"}]}}),
-    ],
-}
-
-# ===========================================================================
-# Few-shots —— Audio / Device
-# ===========================================================================
-_AUDIO_FEWSHOTS: list[tuple[str, dict]] = [
-    ("播放三国演义评书",
-     {"tool": "audio_search", "query": "三国演义评书", "play_mode": "play"}),
-    ("熄屏听睡前故事",
-     {"tool": "audio_search", "query": "睡前故事", "play_mode": "screen_off_play", "screen_mode": "screen_standby"}),
-    ("这本书讲什么",
-     {"tool": "audio_chat_qa", "query": "这本书讲什么", "play_mode": "search"}),
-]
-
-_DEVICE_FEWSHOTS: list[tuple[str, dict]] = [
-    # numeric_adjust 幅值
-    ("声音大一点", {"tool": "numeric_adjust", "operation": "提高", "object": "音量"}),
-    ("把音量调到30", {"tool": "numeric_adjust", "operation": "设置", "object": "音量", "value": "30"}),
-    ("亮度调到50", {"tool": "numeric_adjust", "operation": "设置", "object": "亮度", "value": "50"}),
-    ("打开高刷新率", {"tool": "numeric_adjust", "operation": "打开", "object": "高刷新率"}),
-    # power / timer
-    ("关机", {"tool": "power_control", "operation": "打开", "object": "关机"}),
-    ("把电视关了", {"tool": "power_control", "operation": "打开", "object": "关机"}),
-    ("开机", {"tool": "power_control", "operation": "打开", "object": "开机"}),
-    ("30分钟后关机", {"tool": "timer_control", "operation": "打开", "object": "关机", "date_time": "30分钟"}),
-    ("晚上10点关机", {"tool": "timer_control", "operation": "打开", "object": "关机", "date_time": "22:00"}),
-    # source_switch
-    ("切换到HDMI1", {"tool": "source_switch", "operation": "设置", "object": "信号源", "value": "HDMI1"}),
-    ("打开前置HDMI", {"tool": "source_switch", "operation": "设置", "object": "信号源", "value": "前置HDMI"}),
-    # playback
-    ("快进10秒", {"tool": "playback_control", "operation": "快进", "value": "10秒"}),
-    ("暂停", {"tool": "playback_control", "operation": "停止", "object": "播放控制"}),
-    # mode
-    ("声音模式切换到影院模式", {"tool": "mode_control", "operation": "设置", "object": "声音模式", "value": "影院模式"}),
-    # screen_layout / lift
-    ("打开分屏", {"tool": "screen_layout", "operation": "打开", "object": "分屏"}),
-    ("画面缩小", {"tool": "screen_layout", "operation": "缩小", "object": "画面"}),
-    ("打开竖屏短视频", {"tool": "screen_lift_rotation", "operation": "打开", "object": "竖屏短视频"}),
-    # display / audio / demo / camera / screensaver / common 开关（object=功能名）
-    ("打开背光分区", {"tool": "display_control", "operation": "打开", "object": "背光分区"}),
-    ("打开全程HDR", {"tool": "display_control", "operation": "打开", "object": "全程HDR"}),
-    ("打开WAVES音效", {"tool": "audio_control", "operation": "打开", "object": "WAVES音效"}),
-    ("打开杜比全景声", {"tool": "audio_control", "operation": "打开", "object": "杜比全景声"}),
-    ("打开demo演示", {"tool": "demo_control", "operation": "打开", "object": "demo演示"}),
-    ("打开智慧之眼", {"tool": "smart_camera", "operation": "打开", "object": "智慧之眼"}),
-    ("打开ai壁纸", {"tool": "screensaver_control", "operation": "打开", "object": "ai壁纸"}),
-    ("打开NAS私有云", {"tool": "common_control", "operation": "打开", "object": "NAS私有云"}),
-    ("打开蓝牙", {"tool": "common_control", "operation": "打开", "object": "蓝牙设置"}),
-    # network
-    ("打开无线网络", {"tool": "network_control", "operation": "打开", "object": "无线网络"}),
-    ("打开wifi", {"tool": "network_control", "operation": "打开", "object": "网络设置"}),
-    # solve_picture_sound_problem_control（描述问题）
-    ("画面颜色太鲜艳了帮我调节一下", {"tool": "solve_picture_sound_problem_control", "intent": "colors_oversaturated"}),
-    ("人声听不清楚", {"tool": "solve_picture_sound_problem_control", "intent": "voice_not_clear"}),
-]

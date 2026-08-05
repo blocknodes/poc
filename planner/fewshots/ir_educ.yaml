@@ -1,0 +1,172 @@
+version: "1.0"
+domain: educ
+stage: ir
+description: "少儿 IR 生成 few-shot（覆盖易错模式）"
+
+shots:
+  # content_type + is_fee
+  - query: "免费的英语启蒙动画片"
+    response:
+      query:
+        and:
+          - {field: language, value: "英文"}
+          - {field: content_type, value: "动画"}
+          - {field: is_fee, value: 0}
+    tags: [search, language, content_type, fee]
+
+  # 年龄条件 — age_range
+  - query: "4到7岁的数学动画"
+    response:
+      query:
+        and:
+          - {field: children_second_genre, value: "数学"}
+          - {field: content_type, value: "动画"}
+          - {field: age_range, from: "4", to: "7"}
+    tags: [search, age_range, genre]
+
+  # 季/部 → title 拆分（集数忽略）
+  - query: "播放汪汪队立大功第四季第2集"
+    response:
+      query:
+        and:
+          - {field: title, value: "汪汪队立大功"}
+          - {field: title, value: "第四季"}
+    tags: [play, title, season_split, episode_ignore]
+
+  # 集数忽略
+  - query: "播放萌鸡小队第6集"
+    response:
+      query: {field: title, value: "萌鸡小队"}
+    tags: [play, title, episode_ignore]
+
+  # 角色名只用 title
+  - query: "播放光头强"
+    response:
+      query: {field: title, value: "光头强"}
+    tags: [play, title, no_role]
+
+  # 动漫 → content_type:动画 + release_year
+  - query: "2023年的免费重生动漫"
+    response:
+      query:
+        and:
+          - {field: title, value: "重生"}
+          - {field: release_year, from: "20230101", to: "20231231"}
+          - {field: content_type, value: "动画"}
+          - {field: is_fee, value: 0}
+    tags: [search, title, release_year, content_type, fee]
+
+  # 简单 title（无 content_type 因为没提动画）
+  - query: "播放免费的汪汪队大卡车"
+    response:
+      query:
+        and:
+          - {field: title, value: "汪汪队大卡车"}
+          - {field: is_fee, value: 0}
+    tags: [play, title, fee]
+
+  # genre3 用于具体题材
+  - query: "科幻冒险动画"
+    response:
+      query:
+        and:
+          - {field: children_third_genre, value: "科幻"}
+          - {field: children_third_genre, value: "冒险"}
+          - {field: content_type, value: "动画"}
+    tags: [search, genre3, content_type]
+
+  # 语言归一
+  - query: "播放布鲁伊中文版不用会员"
+    response:
+      query:
+        and:
+          - {field: title, value: "布鲁伊"}
+          - {field: language, value: "普通话"}
+          - {field: is_fee, value: 0}
+    tags: [play, title, language_normalize, fee]
+
+  # 故事 → children_second_genre
+  - query: "给我放个艾莎公主的故事"
+    response:
+      query:
+        and:
+          - {field: title, value: "艾莎公主"}
+          - {field: children_second_genre, value: "故事"}
+    tags: [play, title, genre2]
+
+  # 语言归一 + 电影
+  - query: "播放国语版汪汪队电影"
+    response:
+      query:
+        and:
+          - {field: title, value: "汪汪队"}
+          - {field: language, value: "普通话"}
+          - {field: children_second_genre, value: "动画电影"}
+    tags: [play, title, language, genre2_movie]
+
+  # title 不要放描述词
+  - query: "热血动漫"
+    response:
+      query:
+        and:
+          - {field: children_third_genre, value: "热血"}
+          - {field: content_type, value: "动画"}
+    tags: [search, genre3, no_title_for_description]
+
+  # 公司 → company
+  - query: "迪士尼动画电影作品"
+    response:
+      query:
+        and:
+          - {field: company, value: "迪士尼"}
+          - {field: children_second_genre, value: "动画电影"}
+    tags: [search, company, genre2]
+
+  # sort 示例（对象格式）
+  - query: "热门的儿歌"
+    response:
+      query: {field: children_second_genre, value: "儿歌"}
+      sort: {hot: {order: desc}}
+    tags: [search, genre2, sort]
+
+  # 免费 + title
+  - query: "不要会员的锤锤"
+    response:
+      query:
+        and:
+          - {field: title, value: "锤锤"}
+          - {field: is_fee, value: 0}
+    tags: [search, title, fee]
+
+  # title 中文数字→阿拉伯
+  - query: "播放爆裂飞车二"
+    response:
+      query: {field: title, value: "爆裂飞车2"}
+    tags: [play, title, chinese_number]
+
+  # 国产 → country values+or
+  - query: "国产动画片"
+    response:
+      query:
+        and:
+          - {field: country, values: ["内地", "中国澳门", "中国香港", "中国台湾"], op: or}
+          - {field: content_type, value: "动画"}
+    tags: [search, country_expand, content_type]
+
+  # 年龄范围
+  - query: "0到3岁宝宝看的启蒙动画片"
+    response:
+      query:
+        and:
+          - {field: age_range, from: "0", to: "3"}
+          - {field: content_type, value: "动画"}
+    tags: [search, age_range, content_type]
+
+  # "今年" → release_year
+  - query: "今年新出的动画片"
+    response:
+      query:
+        and:
+          - {field: content_type, value: "动画"}
+          - {field: release_year, from: "20260101", to: "20261231"}
+    tags: [search, content_type, release_year_current]

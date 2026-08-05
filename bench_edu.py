@@ -555,12 +555,14 @@ class Predictor:
             self._init_live()
 
     def _init_live(self):
-        from planner import Planner, VLLMClient, VLLMConfig
-        base_url = os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1")
-        model = os.environ.get("VLLM_MODEL", "your-30b-moe")
-        client = VLLMClient(VLLMConfig(base_url=base_url, model=model))
+        from config import cfg, make_vllm_config, make_retrieve_config
+        from planner import Planner, VLLMClient
+        client = VLLMClient(make_vllm_config())
+        retrieve_config = make_retrieve_config()
         # educ_only 模式：路由 schema/prompt 只包含少儿域工具
-        self._planner = Planner(client, educ_only=True, use_eb_prompt=self.use_eb_prompt)
+        self._planner = Planner(client, educ_only=True, use_eb_prompt=self.use_eb_prompt,
+                                use_retrieve=cfg.retrieve_enabled,
+                                retrieve_config=retrieve_config)
 
     def predict(self, query: str) -> tuple[str, Optional[dict], str, list]:
         if not self.live:

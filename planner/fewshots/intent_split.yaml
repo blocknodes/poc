@@ -1,0 +1,53 @@
+version: "1.0"
+domain: null
+stage: intent_split
+description: "多意图检测与分解 few-shot"
+
+shots:
+  - query: "帮我调亮屏幕同时搜刘德华的免费电影"
+    response:
+      multi: true
+      sub_queries: ["调亮屏幕", "搜刘德华的免费电影"]
+    tags: [multi, cross_domain]
+
+  - query: "把声音调大然后播放琅琊榜"
+    response:
+      multi: true
+      sub_queries: ["把声音调大", "播放琅琊榜"]
+    tags: [multi, cross_domain]
+
+  - query: "帮我关灯再搜个恐怖片"
+    response:
+      multi: true
+      sub_queries: ["关灯", "搜个恐怖片"]
+    tags: [multi, cross_domain]
+
+  - query: "暂停播放并且把音量调到20"
+    response:
+      multi: true
+      sub_queries: ["暂停播放", "把音量调到20"]
+    tags: [multi, same_domain]
+
+  - query: "刘德华和梁朝伟的免费动作电影"
+    response:
+      multi: false
+      sub_queries: ["刘德华和梁朝伟的免费动作电影"]
+    tags: [single, multi_condition]
+
+  - query: "播放琅琊榜第二季第三集"
+    response:
+      multi: false
+      sub_queries: ["播放琅琊榜第二季第三集"]
+    tags: [single, playback]
+
+  - query: "最近有什么好看的韩剧"
+    response:
+      multi: false
+      sub_queries: ["最近有什么好看的韩剧"]
+    tags: [single, search]
+
+  - query: "类似甄嬛传的宫廷剧"
+    response:
+      multi: false
+      sub_queries: ["类似甄嬛传的宫廷剧"]
+    tags: [single, relate]

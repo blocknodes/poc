@@ -460,7 +460,7 @@ def run_query_multi(planner, query):
 
 def main():
     parser = argparse.ArgumentParser(description="电视端 AI Planner demo（4域：影视/少儿/有声/设备）")
-    parser.add_argument("--live", action="store_true", help="连接真实 vLLM（需 VLLM_BASE_URL / VLLM_MODEL）")
+    parser.add_argument("--live", action="store_true", help="连接真实 vLLM（需 .env 或 VLLM_BASE_URL/VLLM_MODEL 环境变量）")
     parser.add_argument("--debug", action="store_true", help="打印中间过程（messages / schema / 模型输出）")
     parser.add_argument("--verbose", action="store_true",
                         help="完整打印每次 LLM 调用的输入输出（messages 全文 + schema 全文 + 模型完整返回）")
@@ -470,15 +470,18 @@ def main():
                         help="对话上下文 memory_hint（可选）")
     args = parser.parse_args()
 
+    from config import cfg, make_vllm_config, make_planner
+
     # 构造 client
     if args.live:
-        base_url = os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1")
-        model = os.environ.get("VLLM_MODEL", "your-30b-moe")
-        client = VLLMClient(VLLMConfig(base_url=base_url, model=model))
-        print(f"[LIVE] 连接 vLLM: {base_url} / {model}")
+        client = VLLMClient(make_vllm_config())
+        print(f"[LIVE] 连接 vLLM: {cfg.vllm_base_url} / {cfg.vllm_model}")
     else:
         client = VLLMClient(responder=make_stub())
         print("[STUB] 离线模式（stub responder）")
+
+    if cfg.retrieve_enabled:
+        print(f"[RETRIEVE] 检索层已开启: {cfg.retrieve_base_url}")
 
     # 构造 planner
     if args.verbose:
@@ -488,7 +491,7 @@ def main():
         planner = DebugPlanner(client)
         print("[DEBUG] 已开启 debug 模式")
     else:
-        planner = Planner(client)
+        planner = make_planner(client)
 
     print()
 

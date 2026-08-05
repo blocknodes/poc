@@ -1,0 +1,17 @@
+version: "1.0"
+domain: audio
+stage: slot_fill
+description: "有声域 slot-fill few-shot"
+
+shots:
+  - query: "播放三国演义评书"
+    response: {tool: audio_search, query: "三国演义评书", play_mode: play}
+    tags: [play, book]
+
+  - query: "熄屏听睡前故事"
+    response: {tool: audio_search, query: "睡前故事", play_mode: screen_off_play, screen_mode: screen_standby}
+    tags: [screen_off, story]
+
+  - query: "这本书讲什么"
+    response: {tool: audio_chat_qa, query: "这本书讲什么", play_mode: search}
+    tags: [qa, current_playing]

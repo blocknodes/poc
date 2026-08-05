@@ -46,6 +46,7 @@ from .grammar import (
 )
 from .ir import IRError, parse_ir
 from .prompts import intent_split_observation, intent_split_system_prompt
+from .retrieve_client import RetrieveClient, RetrieveConfig, RetrieveResult
 from .vllm_client import VLLMClient
 
 __all__ = ["Planner", "PlanResult", "IR_TOOLS"]
@@ -68,12 +69,19 @@ class PlanResult:
 
 class Planner:
     def __init__(self, client: VLLMClient, max_repairs: int = 2, vod_only: bool = False,
-                 educ_only: bool = False, use_eb_prompt: bool = True):
+                 educ_only: bool = False, use_eb_prompt: bool = True,
+                 use_retrieve: bool = False,
+                 retrieve_config: Optional[RetrieveConfig] = None):
         self.client = client
         self.max_repairs = max_repairs
         self.vod_only = vod_only
         self.educ_only = educ_only
         self.use_eb_prompt = use_eb_prompt
+        # 检索层开关：默认关闭，关闭时与原有逻辑完全一致
+        self.use_retrieve = use_retrieve
+        self._retrieve_client: Optional[RetrieveClient] = None
+        if self.use_retrieve:
+            self._retrieve_client = RetrieveClient(retrieve_config)
 
     def plan(self, query: str, memory_hint: str = "") -> PlanResult:
         agent = PlannerAgent(query, memory_hint=memory_hint, max_repairs=self.max_repairs,
@@ -82,10 +90,20 @@ class Planner:
 
         trace: list[dict] = []  # 记录每次 LLM 调用
 
+        # ---- [可选] 检索层召回 ----
+        retrieve_result: Optional[RetrieveResult] = None
+        if self.use_retrieve and self._retrieve_client is not None:
+            retrieve_result = self._retrieve_client.retrieve(query)
+            if retrieve_result and retrieve_result.raw:
+                trace.append({
+                    "stage": "retrieve",
+                    "output": retrieve_result.raw,
+                })
+
         # ---- 轨迹起点：system + 首个 observation ----
         messages = [
             {"role": "system", "content": agent.system_prompt()},
-            {"role": "user", "content": agent.first_observation()},
+            {"role": "user", "content": self._build_route_observation(agent, retrieve_result)},
         ]
 
         # ---- 阶段1：路由（约束解码）----
@@ -122,15 +140,15 @@ class Planner:
 
         # C) Audio slot-fill
         if step.phase == "audio":
-            return self._handle_audio(agent, messages, step, trace)
+            return self._handle_audio(agent, messages, step, trace, retrieve_result)
 
         # D) Device slot-fill
         if step.phase == "device":
-            return self._handle_device(agent, messages, step, trace)
+            return self._handle_device(agent, messages, step, trace, retrieve_result)
 
         # E) IR 生成 + 校验自修复
         if step.phase == "ir":
-            return self._handle_ir(agent, messages, step, query, trace)
+            return self._handle_ir(agent, messages, step, query, trace, retrieve_result)
 
         # F) 兜底
         return PlanResult(
@@ -244,9 +262,16 @@ class Planner:
         )
 
     def _handle_audio(self, agent: PlannerAgent, messages: list, step,
-                      trace: list[dict]) -> PlanResult:
+                      trace: list[dict],
+                      retrieve_result: Optional[RetrieveResult] = None) -> PlanResult:
         """有声域：slot-fill → compile_audio。"""
-        messages.append({"role": "user", "content": step.next_observation})
+        obs = step.next_observation
+        # 注入检索提示
+        if retrieve_result and self.use_retrieve:
+            hint = self._build_retrieve_hint_for_slotfill(retrieve_result, agent.routed_tool)
+            if hint:
+                obs = obs + "\n\n" + hint
+        messages.append({"role": "user", "content": obs})
         audio_schema = build_audio_schema()
         slot_raw = self.client.complete_json(messages, guided_json=audio_schema)
         messages.append({"role": "assistant", "content": json.dumps(slot_raw, ensure_ascii=False)})
@@ -272,9 +297,16 @@ class Planner:
         )
 
     def _handle_device(self, agent: PlannerAgent, messages: list, step,
-                       trace: list[dict]) -> PlanResult:
+                       trace: list[dict],
+                       retrieve_result: Optional[RetrieveResult] = None) -> PlanResult:
         """设备域：slot-fill → compile_device。"""
-        messages.append({"role": "user", "content": step.next_observation})
+        obs = step.next_observation
+        # 注入检索提示
+        if retrieve_result and self.use_retrieve:
+            hint = self._build_retrieve_hint_for_slotfill(retrieve_result, agent.routed_tool)
+            if hint:
+                obs = obs + "\n\n" + hint
+        messages.append({"role": "user", "content": obs})
         device_schema = build_device_schema()
         slot_raw = self.client.complete_json(messages, guided_json=device_schema)
         messages.append({"role": "assistant", "content": json.dumps(slot_raw, ensure_ascii=False)})
@@ -300,12 +332,19 @@ class Planner:
         )
 
     def _handle_ir(self, agent: PlannerAgent, messages: list, step, query: str,
-                   trace: list[dict]) -> PlanResult:
+                   trace: list[dict],
+                   retrieve_result: Optional[RetrieveResult] = None) -> PlanResult:
         """IR 生成 + 校验自修复 + 编译。"""
         ir_schema = build_ir_schema(agent.domain)
         repair_round = 0
         while not step.done:
-            messages.append({"role": "user", "content": step.next_observation})
+            obs = step.next_observation
+            # 首轮 IR 生成时注入检索提示（修复轮不再重复注入）
+            if repair_round == 0 and retrieve_result and self.use_retrieve:
+                hint = self._build_retrieve_hint_for_ir(retrieve_result, agent.routed_tool)
+                if hint:
+                    obs = obs + "\n\n" + hint
+            messages.append({"role": "user", "content": obs})
             ir_raw = self.client.complete_json(messages, guided_json=ir_schema)
             messages.append({"role": "assistant", "content": json.dumps(ir_raw, ensure_ascii=False)})
             stage_name = "ir_generate" if repair_round == 0 else f"ir_repair_{repair_round}"
@@ -361,6 +400,49 @@ class Planner:
             notes=notes,
             trace=trace,
         )
+
+    # ===========================================================================
+    # 检索层辅助方法（use_retrieve=False 时不会被调用）
+    # ===========================================================================
+
+    def _build_route_observation(self, agent: PlannerAgent,
+                                 retrieve_result: Optional[RetrieveResult]) -> str:
+        """构建路由阶段的 observation，可选注入检索提示。"""
+        obs = agent.first_observation()
+        if not self.use_retrieve or not retrieve_result:
+            return obs
+        tool_hint = retrieve_result.format_tool_hint()
+        if tool_hint:
+            obs = obs.rstrip() + "\n\n" + tool_hint + "\n（以上为检索系统参考建议，请结合语义综合判断。）"
+        return obs
+
+    def _build_retrieve_hint_for_ir(self, retrieve_result: RetrieveResult,
+                                    tool_name: Optional[str]) -> str:
+        """构建 IR 阶段的检索提示（参数 + 取值）。"""
+        parts: list[str] = []
+        param_hint = retrieve_result.format_parameter_hint(tool_name=tool_name)
+        if param_hint:
+            parts.append(param_hint)
+        value_hint = retrieve_result.format_value_hint()
+        if value_hint:
+            parts.append(value_hint)
+        if not parts:
+            return ""
+        return "\n".join(parts) + "\n（以上为检索系统参考建议，仅供参考，以用户请求语义为准。）"
+
+    def _build_retrieve_hint_for_slotfill(self, retrieve_result: RetrieveResult,
+                                          tool_name: Optional[str]) -> str:
+        """构建 slot-fill 阶段（audio/device）的检索提示。"""
+        parts: list[str] = []
+        param_hint = retrieve_result.format_parameter_hint(tool_name=tool_name)
+        if param_hint:
+            parts.append(param_hint)
+        value_hint = retrieve_result.format_value_hint()
+        if value_hint:
+            parts.append(value_hint)
+        if not parts:
+            return ""
+        return "\n".join(parts) + "\n（以上为检索系统参考建议，仅供参考。）"
 
 
 # ===========================================================================
