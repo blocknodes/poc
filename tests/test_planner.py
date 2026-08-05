@@ -248,7 +248,7 @@ def test_compile_relate_search():
 # 5. 慢链路直传 query
 # ===========================================================================
 def test_slow_search_passthrough():
-    """vod_slow_search_data_search 只传 query 原文。"""
+    """vod_fuzzy_search 只传 query 原文。"""
     ir_dict = {
         "domain": "vod", "action": "search",
         "query": {"and": [
@@ -258,9 +258,9 @@ def test_slow_search_passthrough():
     }
     ir = parse_ir(ir_dict)
     actual_tool, params = compile_with_fallback(
-        ir, "vod_slow_search_data_search", retext="射雕英雄传八三版的"
+        ir, "vod_fuzzy_search", retext="射雕英雄传八三版的"
     )
-    _assert(actual_tool == "vod_slow_search_data_search")
+    _assert(actual_tool == "vod_fuzzy_search")
     _assert(params == {"query": "射雕英雄传八三版的"},
             f"slow_search should only have query, got {params}")
 
@@ -303,10 +303,10 @@ def test_agent_route_to_ir():
 
 
 def test_agent_route_to_slow_search():
-    """路由到 vod_slow_search → 直接结束（passthrough）。"""
+    """路由到 vod_fuzzy_search → 直接结束（passthrough）。"""
     agent = PlannerAgent("骑着蓝色大鸟的人的电影")
     step = agent.observe({"domain": "vod", "intent": "slow_search",
-                          "tool": "vod_slow_search_data_search", "confidence": 0.9})
+                          "tool": "vod_fuzzy_search", "confidence": 0.9})
     _assert(step.done)
     _assert(step.info.get("reason") == "slow_search_passthrough")
 
@@ -375,7 +375,7 @@ def test_route_schema_contains_new_tools():
     schema = build_route_schema()
     tools = schema["properties"]["tool"]["enum"]
     _assert("vod_search" in tools)
-    _assert("vod_slow_search_data_search" in tools)
+    _assert("vod_fuzzy_search" in tools)
     _assert("vod_relate_search" in tools)
     _assert("vod_personalized_search" in tools)
     _assert("vod_history" in tools)
@@ -384,6 +384,8 @@ def test_route_schema_contains_new_tools():
             "old tool name vod_relate_recommend should be removed")
     _assert("vod_personalized_recommend" not in tools,
             "old tool name vod_personalized_recommend should be removed")
+    _assert("vod_slow_search_data_search" not in tools,
+            "old tool name vod_slow_search_data_search should be replaced by vod_fuzzy_search")
 
 
 # ===========================================================================

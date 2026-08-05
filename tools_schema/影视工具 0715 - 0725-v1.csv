@@ -1,11 +1,11 @@
-·,建议人,name_en,title,url,description,note（选填）,parameters,output,example
+﻿·,建议人,name_en,title,url,description,note（选填）,parameters,output,example,,,,,,,,,,
 ,岳文浩,"工具schema规范 
-工具里包含逻辑关系的按照dsl格式传参，如果没有则按照普通提槽格式传参",,,,,,,
+工具里包含逻辑关系的按照dsl格式传参，如果没有则按照普通提槽格式传参",,,,,,,,,,,,,,,,,
 智能体,要点：,"全局唯一，全系统不可重复，作为智能体路由分发工具的主键；
 命名风格统一：小写，禁止空格、中文、特殊符号；
 语义直观：一眼看懂工具能力，区分同模块不同动作；",简短概括工具功能,,"1、核心能力：工具能做什么；
 2、适用场景：智能体什么情况下必须调用；
- 3、禁用场景：什么情况禁止调用本工具，避免模型误调用；",,完整schema,,
+ 3、禁用场景：什么情况禁止调用本工具，避免模型误调用；",,完整schema,,,,,,,,,,,,
 影视,,vod_search_all,影视_媒资搜索_精确检索,http://10.18.217.60:31844/tool/call/video_search_all,影视媒资组合式搜索与起播工具(vod_search_all)。当用户表达搜索、查找、推荐或播放影视内容的意图时触发，包括按标题、演员、导演、分类、地区、语言、标签等维度筛选，以及按评分、热度、发布时间和播放量排序的场景。请求必须通过action指定操作类型：search表示搜索，play表示起播。支持24个精确匹配维度(title/actor/director/area/category/channel等)、2个状态维度(is_fee：0表示免费、1表示付费；is_over：0表示连载中、1表示已完结)、3个范围维度(age_range年龄范围、release_year发布时间范围，格式yyyyMMdd；rate评分范围0～10)，以及3个起播控制维度(series部数或季数、videoIndex集数或期数、voiceStartPos起播位置，单位为秒)。同一精确匹配维度包含多个值时，使用values数组传递，并通过operator指定逻辑关系：or表示任一值匹配，and表示所有值均需匹配，默认为or。不同维度之间通过BoolNode使用and(与)、or(或)、not(非)组合，支持任意嵌套。,,"{
   ""$schema"": ""http://json-schema.org/draft-07/schema#"",
   ""name"": ""vod_search_all"",
@@ -818,7 +818,7 @@
     ""output"": {
 //        
     }
-}"
+}",,,,,,,,,,
 ,,vod_search,影视_媒资搜索_精确检索,http://10.18.217.60:31844/tool/call/video_search,影视媒资组合式搜索与起播工具(vod_search)。当用户表达搜索、查找、筛选、推荐或播放影视内容的意图时触发，支持按标题、演员、导演、参与人员、奖项、角色、标签、受众、清晰度和分类等维度筛选，以及按评分、热度、发布时间和播放量排序。请求必须通过action指定操作类型：search表示搜索、筛选或推荐；play表示用户明确要求播放、起播或续播。支持10个精确匹配维度(title、actor、director、entertainer、prize、role、tag、target、definition、category)、2个状态维度(is_fee：0表示免费、1表示付费；is_over：0表示连载中、1表示已完结)、3个范围维度(age_range年龄范围、release_year发布时间范围，格式yyyyMMdd；rate评分范围0～10)，以及3个起播控制维度(series部数或季数、videoIndex集数或期数、voiceStartPos起播位置，单位为秒)。同一精确匹配维度包含多个值时，使用values数组传递，并通过operator指定逻辑关系：or表示任一值匹配，and表示所有值均需匹配，默认为or。不同维度之间通过BoolNode使用and(与)、or(或)、not(非)组合，支持任意嵌套。,,"{
   ""$schema"": ""http://json-schema.org/draft-07/schema#"",
   ""name"": ""vod_search"",
@@ -1568,24 +1568,24 @@
         ""message"",
         ""data""
     ]
-}",
-,仅慢链路,vod_slow_search,影视_媒资搜索_模糊搜索,,"影视媒资非明确的复杂语义搜索。用于处理用户以模糊、描述性、问答等方式表达影视查找意图的场景，包括剧情描述、台词描述、复杂组合条件等，系统将自然语言解析为结构化筛选参数后进行检索。\n适用场景：1. 剧情/画面描述类查询，如\""骑着蓝色大鸟的人的电影\""、\""主角在沙漠里找水的片子\""；2. 问答式查询，如\""刘德华今年多大了\""（解析为age条件）、\""最近有什么好看的\""（解析为date+rate条件）；3. 复杂组合描述，如\""那个演功夫片的胖子导演的高分电影\""、\""不是国产的、评分高的、最近几年的科幻片\""；4. 台词/对白相关的模糊查找。\n不适用场景：简单明确的查询不要使用该工具，如\""我想看刘德华的电影\""、\""播放甄嬛传\""、\""打开纪录片频道\""等直接指定了明确影视名称或分类的请求，应使用明确的媒资检索工具。\n关联工具：简单明确查询用vod_search。\n异常：无法解析用户意图时results返回空对象且status_code为200；参数格式错误时status_code为500。\n结果使用：results中各字段反映系统从用户自然语言中解析出的结构化筛选条件，用于确认解析意图并展示匹配内容。
+}",,,,,,,,,,,
+,仅慢链路,vod_fuzzy_search,影视_媒资搜索_模糊搜索,,"影视媒资模糊搜索工具。用于处理用户以模糊、描述性等方式表达影视查找意图的场景，包括剧情描述、台词描述、复杂组合条件等，系统将自然语言解析为结构化筛选参数后进行检索。\n适用场景：1. 剧情/画面描述类查询，如\""骑着蓝色大鸟的人的电影\""、\""主角在沙漠里找水的片子\""；2. 复杂组合描述，如\""那个演功夫片的胖子导演的高分电影\""、\""不是国产的、评分高的、最近几年的科幻片\""；3. 台词/对白相关的模糊查找。
 
 注意：增加媒资的总集次和更新集次信息",,"{
-  ""name"": ""vod_slow_search_data_search"",
-  ""title"": ""影视_媒资搜索_慢链路_数据搜索"",
+  ""name"": ""vod_fuzzy_search"",
+  ""title"": ""影视_媒资搜索_模糊搜索"",
   ""url"": ""https://api.example.com/vod/search"",
   ""method"": ""POST"",
-  ""description"": ""影视媒资慢链路语义搜索工具。用于处理用户以模糊、描述性、问答式或复杂组合条件表达的影视查找意图，包括剧情或画面描述、台词描述、人物特征、相对时间、评分范围及多条件组合等场景。调用时必须将用户的原始表达完整放入query，不得改写、总结或提前拆解为结构化槽位；服务内部负责语义理解、条件抽取和内容检索。简单明确的标题、演员、导演或分类查询应优先使用快速媒资检索工具；明确的播放请求不应使用本工具。"",
+  ""description"": ""影视媒资模糊搜索工具。用于处理用户以模糊、描述性等方式表达影视查找意图的场景，包括剧情描述、台词描述、复杂组合条件等，系统将自然语言解析为结构化筛选参数后进行检索。\n适用场景：1. 剧情/画面描述类查询，如\""骑着蓝色大鸟的人的电影\""、\""主角在沙漠里找水的片子\""；2. 复杂组合描述，如\""那个演功夫片的胖子导演的高分电影\""、\""不是国产的、评分高的、最近几年的科幻片\""；3. 台词/对白相关的模糊查找。"",
   ""parameters"": {
     ""type"": ""object"",
-    ""description"": ""慢链路搜索请求参数。直接传入用户原始表达，由服务内部完成语义理解、槽位抽取和检索条件生成。"",
+    ""description"": ""模糊搜索请求参数。由服务内部完成语义理解、槽位抽取和检索条件生成。"",
     ""properties"": {
       ""query"": {
         ""type"": ""string"",
         ""minLength"": 1,
         ""pattern"": "".*\\S.*"",
-        ""description"": ""用户输入的原始自然语言。必须保持用户原话，不得改写、总结、补充信息或提前转换为结构化条件。""
+        ""description"": ""模糊搜索子系统用户输入。""
       }
     },
     ""required"": [
@@ -1595,238 +1595,265 @@
   },
   ""output"": {
     ""type"": ""object"",
-    ""description"": ""慢链路语义解析和搜索结果。"",
+    ""description"": ""影视模糊搜索/切片检索响应结果"",
     ""properties"": {
-      ""results"": {
+      ""messageType"": {
+        ""type"": ""string"",
+        ""enum"": [""VIDEO""],
+        ""description"": ""消息类型，模糊搜索和切片检索固定为VIDEO""
+      },
+      ""intention"": {
+        ""type"": ""string"",
+        ""enum"": [
+          ""vod_vague_search"",
+          ""vod_clip_plot_aggregate_search"",
+          ""vod_clip_plot_search"",
+          ""vod_clip_lines_search"",
+          ""vod_clip_source_search""
+        ],
+        ""description"": ""业务意图：vod_vague_search表示影视模糊搜索;vod_clip_plot_aggregate_search表示剧情聚合检索;vod_clip_plot_search表示剧情精确检索;vod_clip_lines_search表示台词精确检索;vod_clip_source_search表示剧情台词溯源检索""
+      },
+      ""seq"": {
+        ""type"": ""integer"",
+        ""description"": ""返回数据包的序列号，从0开始递增""
+      },
+      ""finish"": {
+        ""type"": ""string"",
+        ""enum"": [""1"", ""0"", ""-1""],
+        ""description"": ""响应状态：1表示正常结束；0表示尚未结束（媒资超过6条时分包）；-1表示后端服务异常""
+      },
+      ""mediaData"": {
         ""type"": ""object"",
-        ""description"": ""从用户原始语料中解析出的结构化筛选条件及排序信息。无法提取有效条件时返回空对象。"",
+        ""description"": ""媒资响应数据"",
         ""properties"": {
-          ""actor"": {
+          ""ttscontent"": {
             ""type"": ""string"",
-            ""description"": ""演员筛选条件。支持单值、NOT排除、AND同时包含、OR任一包含，例如“刘德华”“NOT 刘德华”“刘德华 AND 吴京”“刘德华 OR 吴京”。""
+            ""description"": ""用于语音播报的提示语""
           },
-          ""age"": {
-            ""type"": ""string"",
-            ""description"": ""年龄范围条件，例如“6 TO 12”“* TO 12”“6 TO *”。""
+          ""data"": {
+            ""type"": ""object"",
+            ""description"": ""核心媒资信息，对应影视媒资信息响应接口(185520)的data结构"",
+            ""properties"": {
+              ""total"": {
+                ""type"": ""integer"",
+                ""description"": ""媒资总数""
+              },
+              ""titledata"": {
+                ""type"": ""string"",
+                ""description"": ""展示标题/回复文案""
+              },
+              ""viewtype"": {
+                ""type"": ""string"",
+                ""description"": ""展示类别，如searchviewnew""
+              },
+              ""loginfo"": {
+                ""type"": ""object"",
+                ""description"": ""日志埋点信息，包含agenttype、agentintent等"",
+                ""properties"": {}
+              },
+              ""content"": {
+                ""type"": ""object"",
+                ""description"": ""媒资内容"",
+                ""properties"": {
+                  ""isRecommend"": {
+                    ""type"": ""boolean"",
+                    ""description"": ""是否推荐""
+                  },
+                  ""isAllShortMedia"": {
+                    ""type"": ""boolean"",
+                    ""description"": ""是否全部短视频""
+                  },
+                  ""searchseq"": {
+                    ""type"": ""string"",
+                    ""description"": ""搜索序列号""
+                  },
+                  ""searchurl"": {
+                    ""type"": ""string"",
+                    ""description"": ""搜索url""
+                  },
+                  ""searchindex"": {
+                    ""type"": ""integer"",
+                    ""description"": ""搜索索引""
+                  },
+                  ""dataSource"": {
+                    ""type"": ""string"",
+                    ""description"": ""搜索来源，如AI推荐、普通搜索、兜底搜索""
+                  },
+                  ""luiInfo"": {
+                    ""type"": ""string"",
+                    ""description"": ""大模型LUI播报语，JSON字符串""
+                  },
+                  ""searchResultList"": {
+                    ""type"": ""array"",
+                    ""description"": ""搜索结果列表"",
+                    ""items"": {
+                      ""type"": ""object"",
+                      ""properties"": {
+                        ""total"": {
+                          ""type"": ""integer"",
+                          ""description"": ""当前tab媒资总数""
+                        },
+                        ""tipsfromjhk"": {
+                          ""type"": ""array"",
+                          ""description"": ""聚好看引导语""
+                        },
+                        ""data"": {
+                          ""type"": ""array"",
+                          ""description"": ""媒资详情列表"",
+                          ""items"": {
+                            ""type"": ""object""
+                          }
+                        },
+                        ""appType"": {
+                          ""type"": ""integer"",
+                          ""description"": ""应用类型""
+                        },
+                        ""appName"": {
+                          ""type"": ""string"",
+                          ""description"": ""应用名称""
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
           },
-          ""category"": {
+          ""iotinfocheck"": {
             ""type"": ""string"",
-            ""description"": ""一级影视分类，例如电影、电视剧、纪录片、综艺。""
+            ""description"": ""下发给终端的资源标识，终端可据此请求推荐接口""
           },
-          ""date"": {
+          ""multispeech"": {
             ""type"": ""string"",
-            ""description"": ""日期筛选或排序条件。支持日期区间、开放区间、相对时间及排序，例如“20200101 TO 20231231”“* TO 20231231”“20200101 TO *”“latest-3-Y”“latest-6-M”“latest-30-D”“desc”“asc”。""
+            ""description"": ""多轮语音参数""
           },
-          ""director"": {
+          ""ttsReplace"": {
             ""type"": ""string"",
-            ""description"": ""导演筛选条件。支持单值、NOT排除、AND同时包含、OR任一包含。""
+            ""description"": ""是否需要进行RTG替换""
           },
-          ""entertainer"": {
+          ""dataconfidence"": {
             ""type"": ""string"",
-            ""description"": ""参与人员筛选条件，包含配音、主持、嘉宾等。支持单值、NOT排除、AND同时包含、OR任一包含。""
-          },
-          ""is_fee"": {
-            ""type"": ""string"",
-            ""enum"": [
-              ""0"",
-              ""1""
-            ],
-            ""description"": ""收费状态：“0”表示免费，“1”表示收费。""
-          },
-          ""rate"": {
-            ""type"": ""string"",
-            ""description"": ""评分筛选或排序条件，例如“8 TO *”“* TO 6”“desc”“asc”。""
-          },
-          ""tag"": {
-            ""type"": ""string"",
-            ""description"": ""标签筛选条件。支持单值、NOT排除、AND同时满足、OR任一满足。""
-          },
-          ""play"": {
-            ""type"": ""string"",
-            ""enum"": [
-              ""desc"",
-              ""asc""
-            ],
-            ""description"": ""播放量排序：“desc”表示播放量高优先，“asc”表示播放量低优先。""
-          },
-          ""hot"": {
-            ""type"": ""string"",
-            ""enum"": [
-              ""desc"",
-              ""asc""
-            ],
-            ""description"": ""热度排序：“desc”表示热度高优先，“asc”表示热度低优先。""
-          },
-          ""country"": {
-            ""type"": ""string"",
-            ""description"": ""影视所属国家或地区。支持单值、NOT排除、AND同时满足、OR任一满足，例如“中国”“NOT 中国”“中国 OR 美国”。""
+            ""description"": ""数据置信度""
           },
           ""sort"": {
-            ""type"": ""array"",
-            ""items"": {
-              ""type"": ""string"",
-              ""enum"": [
-                ""rate"",
-                ""hot"",
-                ""date"",
-                ""play""
-              ]
-            },
-            ""uniqueItems"": true,
-            ""description"": ""实际生效的排序维度列表。""
+            ""type"": ""string"",
+            ""description"": ""媒资分类，相同用户界面下发相同的sort值""
+          },
+          ""priority"": {
+            ""type"": ""string"",
+            ""description"": ""终端处理优先级""
+          },
+          ""subsort"": {
+            ""type"": ""string"",
+            ""description"": ""媒资子分类""
+          },
+          ""screenoper"": {
+            ""type"": ""string"",
+            ""enum"": [""0"", ""1"", ""3""],
+            ""description"": ""终端屏幕控制参数：1开屏；0关屏；3特殊逻辑处理""
+          },
+          ""extradata"": {
+            ""type"": ""object"",
+            ""description"": ""与具体业务无关的扩展参数"",
+            ""properties"": {}
+          },
+          ""logId"": {
+            ""type"": ""string"",
+            ""description"": ""请求日志标识""
+          },
+          ""fullduplex"": {
+            ""type"": ""string"",
+            ""enum"": [""0"", ""1""],
+            ""description"": ""全双工参数：1启用；0不启用（默认）""
+          },
+          ""llmSemantic"": {
+            ""type"": ""object"",
+            ""description"": ""大模型识别出的业务意图信息"",
+            ""properties"": {
+              ""domain"": {
+                ""type"": ""string"",
+                ""description"": ""领域，如VIDEO_TOPIC""
+              },
+              ""intent"": {
+                ""type"": ""string"",
+                ""description"": ""意图，如vod_vague_search""
+              }
+            }
+          },
+          ""ttsPolishParam"": {
+            ""type"": ""object"",
+            ""description"": ""语音播报文本润色参数"",
+            ""properties"": {}
+          },
+          ""memoryContent"": {
+            ""type"": ""string"",
+            ""description"": ""记忆信息，JSON格式字符串；其中memoryQuery字段保存本轮查询条件""
+          },
+          ""vagueTtsContent"": {
+            ""type"": ""string"",
+            ""description"": ""模糊搜索回复语。第一包有值，第二包（若有）为空字符串""
+          },
+          ""debugLog"": {
+            ""type"": ""object"",
+            ""description"": ""调试日志信息"",
+            ""properties"": {}
           }
-        },
-        ""additionalProperties"": false
+        }
       },
-      ""status_code"": {
-        ""type"": ""integer"",
-        ""enum"": [
-          200,
-          500
-        ],
-        ""description"": ""响应状态码：200表示请求处理完成，500表示参数格式错误或服务异常。""
-      },
-      ""error_log"": {
-        ""type"": ""string"",
-        ""description"": ""错误信息，仅在status_code为500时返回。""
+      ""memoryData"": {
+        ""type"": ""array"",
+        ""description"": ""记忆存储数据，仅第一包携带"",
+        ""items"": {
+          ""type"": ""object"",
+          ""properties"": {
+            ""sort"": {
+              ""type"": ""string"",
+              ""description"": ""数据类别，固定为hisapp""
+            },
+            ""subsort"": {
+              ""type"": ""string"",
+              ""description"": ""数据子类，固定为video""
+            },
+            ""recognitionType"": {
+              ""type"": ""string"",
+              ""description"": ""识别类型""
+            },
+            ""text"": {
+              ""type"": ""string"",
+              ""description"": ""业务数据播报tts""
+            },
+            ""serviceId"": {
+              ""type"": ""string"",
+              ""description"": ""服务Id，固定为VIDEO_AGENT_SERVICE""
+            },
+            ""data"": {
+              ""type"": ""array"",
+              ""description"": ""媒资摘要列表"",
+              ""items"": {
+                ""type"": ""object"",
+                ""properties"": {
+                  ""mediaTitle"": { ""type"": ""string"" },
+                  ""mediaId"": { ""type"": ""integer"" },
+                  ""actor"": { ""type"": ""array"", ""items"": { ""type"": ""string"" } },
+                  ""director"": { ""type"": ""array"", ""items"": { ""type"": ""string"" } },
+                  ""childCategory"": { ""type"": ""array"", ""items"": { ""type"": ""string"" } },
+                  ""category"": { ""type"": ""string"" },
+                  ""doubanRate"": { ""type"": ""number"" },
+                  ""pubdate"": { ""type"": ""string"" },
+                  ""isClip"": { ""type"": ""boolean"" }
+                }
+              }
+            }
+          }
+        }
       }
     },
-    ""required"": [
-      ""results"",
-      ""status_code""
-    ],
-    ""additionalProperties"": false,
-    ""usage_hint"": ""results反映服务从用户原始语料中解析出的结构化筛选条件；sort表示实际生效的排序维度。结合status_code判断处理结果；status_code为200且results为空对象时，表示未从用户表达中提取到有效筛选条件。""
-  },
-  ""error_output"": {
-    ""type"": ""object"",
-    ""description"": ""参数格式错误或服务异常时的错误响应。"",
-    ""properties"": {
-      ""status_code"": {
-        ""type"": ""integer"",
-        ""const"": 500,
-        ""description"": ""错误状态码，固定为500。""
-      },
-      ""error_log"": {
-        ""type"": ""string"",
-        ""minLength"": 1,
-        ""description"": ""具体错误原因。""
-      }
-    },
-    ""required"": [
-      ""status_code"",
-      ""error_log""
-    ],
-    ""additionalProperties"": false
-  },
-  ""examples"": [
-    {
-      ""scenario"": ""剧情画面描述：骑着蓝色大鸟的人的电影"",
-      ""input"": {
-        ""query"": ""骑着蓝色大鸟的人的电影""
-      },
-      ""output"": {
-        ""results"": {
-          ""category"": ""电影"",
-          ""tag"": ""奇幻"",
-          ""sort"": []
-        },
-        ""status_code"": 200
-      }
-    },
-    {
-      ""scenario"": ""问答式查询：刘德华今年多大了"",
-      ""input"": {
-        ""query"": ""刘德华今年多大了""
-      },
-      ""output"": {
-        ""results"": {
-          ""actor"": ""刘德华"",
-          ""age"": ""60 TO *"",
-          ""sort"": []
-        },
-        ""status_code"": 200
-      }
-    },
-    {
-      ""scenario"": ""复杂组合描述：不是国产的、评分高的、最近几年的科幻片"",
-      ""input"": {
-        ""query"": ""不是国产的、评分高的、最近几年的科幻片""
-      },
-      ""output"": {
-        ""results"": {
-          ""category"": ""电影"",
-          ""country"": ""NOT 中国"",
-          ""tag"": ""科幻"",
-          ""rate"": ""8 TO *"",
-          ""date"": ""latest-3-Y"",
-          ""sort"": [
-            ""rate"",
-            ""date""
-          ]
-        },
-        ""status_code"": 200
-      }
-    },
-    {
-      ""scenario"": ""模糊人物描述：演功夫片的胖子导演的高分电影"",
-      ""input"": {
-        ""query"": ""那个演功夫片的胖子导演的高分电影""
-      },
-      ""output"": {
-        ""results"": {
-          ""category"": ""电影"",
-          ""tag"": ""功夫"",
-          ""rate"": ""desc"",
-          ""sort"": [
-            ""rate""
-          ]
-        },
-        ""status_code"": 200
-      }
-    },
-    {
-      ""scenario"": ""相对时间和收费状态：最近有什么好看的免费电视剧"",
-      ""input"": {
-        ""query"": ""最近有什么好看的免费电视剧""
-      },
-      ""output"": {
-        ""results"": {
-          ""category"": ""电视剧"",
-          ""date"": ""latest-1-Y"",
-          ""rate"": ""desc"",
-          ""is_fee"": ""0"",
-          ""sort"": [
-            ""date"",
-            ""rate""
-          ]
-        },
-        ""status_code"": 200
-      }
-    },
-    {
-      ""scenario"": ""无法提取有效影视筛选条件"",
-      ""input"": {
-        ""query"": ""随便看看""
-      },
-      ""output"": {
-        ""results"": {},
-        ""status_code"": 200
-      }
-    },
-    {
-      ""scenario"": ""参数格式错误：query为空"",
-      ""input"": {
-        ""query"": """"
-      },
-      ""output"": {
-        ""status_code"": 500,
-        ""error_log"": ""参数格式错误：query不能为空""
-      }
-    }
-  ]
-}",输出需要定义,
-,,vod_relate_search,影视媒资相关检索,,基于用户描述的参考媒资进行相关媒资检索，系统将自然语言解析为结构化的参考标题和筛选偏好参数，检索与该参考媒资类型、风格、题材相似的影视内容。\n适用场景：用户表达了\"想看类似XX的\"、\"有没有跟XX差不多的\"、\"推荐像XX一样的\"等相似性推荐意图时使用，如\"我想看类似琅琊榜的电视剧\"、\"推荐和流浪地球差不多的科幻片\"、\"有没有甄嬛传那种宫斗剧\"。\n不适用场景：用户直接指定明确影视名称要求播放时不要调用，如\"播放琅琊榜\"；复杂模糊描述类查询不要调用，如\"骑着蓝色大鸟的人的电影\"；简单分类浏览请求不要调用，如\"打开电影频道\"。\n关联工具：复杂语义搜索用vod_slow_search，明确查询用vod_search。\n异常：无法识别参考媒资时返回error_code=REFERENCE_NOT_FOUND；参数格式错误时返回error_code=INVALID_PARAMETER。\n结果使用：title为系统识别的参考媒资，用于检索相似内容；其余字段为用户附加的筛选偏好，用于在相似结果中进一步过滤。,,"{
+    ""required"": [""messageType"", ""intention"", ""seq"", ""finish""],
+    ""usage_hint"": ""模糊搜索/切片检索始终返回VIDEO类型。finish=0时为分包第一帧（含前6条媒资+vagueTtsContent+memoryData），需继续接收后续数据；finish=1时为最终帧（若为分包则含剩余媒资且vagueTtsContent为空）。媒资总数≤6条时只有一帧且finish=1。finish=-1表示后端服务异常。""
+  }
+}",流式返回,,,,,,,,,,,
+,仅慢链路,vod_slow_search_data_construction,影视_媒资搜索_慢链路,,提供了根据搜索媒资构建面向终端结构化数据的能力，分包返回,,依赖数据搜索输出定义,同精确检索,,,,,,,,,,,
+,,vod_relate_search,影视媒资相关检索,,"基于用户描述的参考媒资进行相关媒资检索，系统将自然语言解析为结构化的参考标题和筛选偏好参数，检索与该参考媒资类型、风格、题材相似的影视内容。\n适用场景：用户表达了\""想看类似XX的\""、\""有没有跟XX差不多的\""、\""推荐像XX一样的\""等相似性推荐意图时使用，如\""我想看类似琅琊榜的电视剧\""、\""推荐和流浪地球差不多的科幻片\""、\""有没有甄嬛传那种宫斗剧\""。\n不适用场景：用户直接指定明确影视名称要求播放时不要调用，如\""播放琅琊榜\""；复杂模糊描述类查询不要调用，如\""骑着蓝色大鸟的人的电影\""；简单分类浏览请求不要调用，如\""打开电影频道\""。\n关联工具：复杂语义搜索用vod_slow_search，明确查询用vod_search。\n异常：无法识别参考媒资时返回error_code=REFERENCE_NOT_FOUND；参数格式错误时返回error_code=INVALID_PARAMETER。\n结果使用：title为系统识别的参考媒资，用于检索相似内容；其余字段为用户附加的筛选偏好，用于在相似结果中进一步过滤。",,"{
   ""$schema"": ""http://json-schema.org/draft-07/schema#"",
   ""title"": ""vod_relate_search"",
   ""description"": ""影视媒资相关检索工具(vod_relate_search)。当用户基于某个影视标题、演员、导演或分类请求相似、相关内容时触发，例如“类似流浪地球的电影”“推荐一些刘德华主演的相关影片”。支持4个精确匹配维度(title、actor、director、category)。同一维度包含多个值时，使用values数组传递，并通过operator指定逻辑关系：or表示任一值匹配，and表示所有值均需匹配，默认为or。不同维度之间通过BoolNode使用and(与)、or(或)、not(非)组合，支持任意嵌套。本工具仅用于相关推荐，不负责内容起播。"",
@@ -1925,7 +1952,7 @@
             },
             {
               ""const"": ""category"",
-              ""description"": ""影视分类，例如电影、电视剧、纪录片、综艺、戏曲、新闻、资讯、片花、短视频、广告、正片。用于限制推荐内容的分类。""
+              ""description"": ""影视分类，例如电影、电视剧、纪录片、综艺、戏曲、新闻、资讯、片花、短视频、广告、正片、动漫。用于限制推荐内容的分类。""
             }
           ]
         },
@@ -1991,8 +2018,8 @@
       ""additionalProperties"": false
     }
   }
-}",同精确检索,
-,,vod_personalized_search,影视个性化媒资检索,,基于用户历史偏好进行个性化影视内容搜索，根据用户的观看记录、兴趣标签等画像信息检索用户可能感兴趣的媒资内容。\n适用场景：用户表达了个性化检索意图时使用，如\"推荐我喜欢的电影\"、\"给我推荐点好看的\"、\"推荐我喜欢的视频\"、\"有什么好看的推荐一下\"。可带分类参数如\"推荐我喜欢的综艺\"，也可不带分类如\"推荐我喜欢的视频\"。\n不适用场景：1. 用户指定了具体参考媒资要求相关检索时不要调用，如\"推荐类似琅琊榜的\"；2. 用户以模糊描述查找影视时不要调用，如\"骑着蓝色大鸟的人的电影\"；3.用户直接指定影视名称要求播放时不要调用，如\"播放琅琊榜\"。\n关联工具：相似媒资检索用vod_relate_search，复杂语义搜索用vod_slow_search，明确查询用vod_search。\n异常：用户无历史偏好数据时返回error_code=NO_USER_PREFERENCE；参数格式错误时返回error_code=INVALID_PARAMETER。\n结果使用：根据解析出的分类偏好从用户画像中匹配推荐内容；当未传category时基于用户整体兴趣进行推荐。,,"{
+}",同精确检索,,,,,,,,,,,
+,,vod_personalized_search,影视个性化媒资检索,,"基于用户历史偏好进行个性化影视内容搜索，根据用户的观看记录、兴趣标签等画像信息检索用户可能感兴趣的媒资内容。\n适用场景：用户表达了个性化检索意图时使用，如\""推荐我喜欢的电影\""、\""给我推荐点好看的\""、\""推荐我喜欢的视频\""、\""有什么好看的推荐一下\""。可带分类参数如\""推荐我喜欢的综艺\""，也可不带分类如\""推荐我喜欢的视频\""。\n不适用场景：1. 用户指定了具体参考媒资要求相关检索时不要调用，如\""推荐类似琅琊榜的\""；2. 用户以模糊描述查找影视时不要调用，如\""骑着蓝色大鸟的人的电影\""；3.用户直接指定影视名称要求播放时不要调用，如\""播放琅琊榜\""。\n关联工具：相似媒资检索用vod_relate_search，复杂语义搜索用vod_slow_search，明确查询用vod_search。\n异常：用户无历史偏好数据时返回error_code=NO_USER_PREFERENCE；参数格式错误时返回error_code=INVALID_PARAMETER。\n结果使用：根据解析出的分类偏好从用户画像中匹配推荐内容；当未传category时基于用户整体兴趣进行推荐。",,"{
   ""name"": ""vod_personalized_search"",
   ""title"": ""影视个性化媒资检索"",
   ""method"": ""POST"",
@@ -2003,7 +2030,7 @@
       ""category"": {
         ""type"": ""string"",
         ""description"": ""影视分类（可选）。指定推荐的分类范围，不传时基于用户整体兴趣推荐。"",
-        ""enum"": [""电影"",""电视剧"",""纪录片"",""综艺"",""戏曲"",""新闻"",""资讯"",""片花"",""短视频"",""广告"",""正片""]
+        ""enum"": [""电影"",""电视剧"",""纪录片"",""综艺"",""戏曲"",""新闻"",""资讯"",""片花"",""短视频"",""广告"",""正片"",""动漫""]
       }
     },
     ""required"": []
@@ -2065,8 +2092,8 @@
       }
     }
   ]
-}",同精确检索,
-,,vod_history,影视历史记录查询,,查询用户的历史观看记录，支持按影视分类和时间范围筛选，返回符合条件的历史记录。\n适用场景：用户表达了查看历史记录的意图时使用，如\"我看过的电影\"、\"最近看了什么\"、\"上个月看过的综艺\"、\"我的观看历史\"、\"查一下我的播放记录\"。\n不适用场景：1. 用户非历史记录媒资媒资查询时不要调用；2. 用户要求推荐内容时不要调用；3.用户要求播放某个具体影视时不要调用。\n关联工具：个性化推荐用vod_personalized_search，相似推荐用vod_relate_search。\n异常：用户无历史记录时返回error_code=NO_HISTORY_RECORD；参数格式错误时返回error_code=INVALID_PARAMETER。\n结果使用：category为系统解析的分类筛选条件，time为解析出的时间范围；根据这两个条件查询并返回用户的历史观看记录。,,"{
+}",同精确检索,,,,,,,,,,,
+,,vod_history,影视历史记录查询,,"查询用户的历史观看记录，支持按影视分类和时间范围筛选，返回符合条件的历史记录。\n适用场景：用户表达了查看历史记录的意图时使用，如\""我看过的电影\""、\""最近看了什么\""、\""上个月看过的综艺\""、\""我的观看历史\""、\""查一下我的播放记录\""。\n不适用场景：1. 用户非历史记录媒资媒资查询时不要调用；2. 用户要求推荐内容时不要调用；3.用户要求播放某个具体影视时不要调用。\n关联工具：个性化推荐用vod_personalized_search，相似推荐用vod_relate_search。\n异常：用户无历史记录时返回error_code=NO_HISTORY_RECORD；参数格式错误时返回error_code=INVALID_PARAMETER。\n结果使用：category为系统解析的分类筛选条件，time为解析出的时间范围；根据这两个条件查询并返回用户的历史观看记录。",,"{
   ""name"": ""vod_history"",
   ""title"": ""影视历史记录查询"",
   ""url"": ""[https://api.example.com/vod/history/query](https://api.example.com/vod/history/query)"",
@@ -2078,7 +2105,7 @@
       ""category"": {
         ""type"": ""string"",
         ""description"": ""影视分类。指定查询的历史记录分类范围，不传时查询所有分类的历史记录。"",
-        ""enum"": [""电影"",""电视剧"",""纪录片"",""综艺"",""戏曲"",""新闻"",""资讯"",""片花"",""短视频"",""广告"",""正片""]
+        ""enum"": [""电影"",""电视剧"",""纪录片"",""综艺"",""戏曲"",""新闻"",""资讯"",""片花"",""短视频"",""广告"",""正片"",""动漫""""]
       },
       ""time"": {
         ""type"": ""string"",
@@ -2287,4 +2314,381 @@
     ""required"": [
         ""data(历史记录 930)""
     ]
-}",
+}",,,,,,,,,,,
+,,vod_clip_search,影视_媒资搜索_切片媒资,,"影视媒资剧情及台词切片搜索。用于处理用户以模糊、描述性、问答等方式表达影视片段查找意图的场景，包括剧情片段描述、台词描述、名场面集锦、片段溯源等，系统将自然语言解析为结构化筛选参数后进行检索。通过intent参数区分四种检索意图：剧情聚合检索（名场面/集锦汇总）、剧情检索（具体剧情片段）、台词检索（具体台词片段）、剧情台词溯源检索（查找台词或剧情出处）。\n适用场景：1. 名场面/集锦类查询，如\""狂飙名场面汇总\""、\""甄嬛传经典场面集锦\""；2. 具体剧情片段查询，如\""安欣菜市场抓人片段\""、\""甄嬛雨中下跪片段\""；3. 具体台词片段查询，如\""播放甄嬛传里臣妾做不到啊片段\""、\""找一下哪吒我命由我不由天片段\""；4. 台词/剧情溯源查询，如\""我杀猪养你啊是哪个电视剧里的台词\""、\""华强买瓜出自哪部剧\""；5. 剧情/画面描述类查询，如\""骑着蓝色大鸟的人的电影\""、\""主角在沙漠里找水的片子\""；6. 复杂组合描述，如\""那个演功夫片的胖子导演的高分电影\""。\n不适用场景：简单明确的整部影视查询不要使用该工具，如\""我想看刘德华的电影\""、\""播放甄嬛传\""、\""打开纪录片频道\""等直接指定了明确影视名称或分类的请求，应使用明确的媒资检索工具。\n关联工具：简单明确查询用vod_search。\n异常：无法解析用户意图时results返回空对象且status_code为200；参数格式错误时status_code为500。\n结果使用：results中各字段反映系统从用户自然语言中解析出的结构化筛选条件，intent字段回显实际生效的检索意图，用于确认解析意图并展示匹配内容。",,"{
+  ""name"": ""vod_clip_search"",
+  ""title"": ""影视_媒资切片搜索"",
+  ""url"": ""https://api.example.com/vod/search"",
+  ""method"": ""POST"",
+  ""description"": ""功能：影视媒资剧情及台词切片搜索。用于处理用户以模糊、描述性、问答等方式表达影视片段查找意图的场景，包括剧情片段描述、台词描述、名场面集锦、片段溯源等，系统将自然语言解析为结构化筛选参数后进行检索。通过intent参数区分四种检索意图：剧情聚合检索（名场面/集锦汇总）、剧情检索（具体剧情片段）、台词检索（具体台词片段）、剧情台词溯源检索（查找台词或剧情出处）。"",
+  ""parameters"": {
+    ""type"": ""object"",
+    ""properties"": {
+      ""intent"": {
+        ""type"": ""string"",
+        ""description"": ""检索意图类型（必传）。plot_aggregate：剧情聚合检索；plot：具体剧情片段检索；lines：具体台词片段检索；source：剧情或台词出处溯源。"",
+        ""enum"": [
+          ""plot_aggregate"",
+          ""plot"",
+          ""lines"",
+          ""source""
+        ]
+      },
+      ""query"": {
+        ""type"": ""string"",
+        ""description"": ""用户原始输入语料（必传），完整保留用户的自然语言表达，不做改写或截断。它承载剧情/画面描述、台词内容或片段溯源问题，是切片语义检索的核心依据；可与title、actor、tag等结构化筛选条件共同使用。如：\""安欣菜市场抓人片段\""、\""甄嬛传里臣妾做不到啊\""、\""华强买瓜出自哪部剧\""。""
+      },
+      ""title"": {
+        ""type"": ""string"",
+        ""description"": ""媒资标题，如电影名、电视剧名、综艺名、动漫名、短视频标题等。""
+      },
+      ""actor"": {
+        ""type"": ""string"",
+        ""description"": ""演员名。支持单值、NOT排除、AND同时包含、OR任一包含。例如：\""刘德华\""、\""NOT 刘德华\""、\""刘德华 AND 吴京\""、\""刘德华 OR 吴京\""。""
+      },
+      ""age"": {
+        ""type"": ""string"",
+        ""description"": ""影视不使用该参数。年龄范围：\""6 TO 12\""、\""* TO 12\""、\""6 TO *\""。""
+      },
+      ""category"": {
+        ""type"": ""string"",
+        ""description"": ""一级分类筛选，如\""电影\""、\""电视剧\""、\""综艺\""、\""动漫\""等。""
+      },
+      ""date"": {
+        ""type"": ""string"",
+        ""description"": ""日期筛选或排序。支持：\""20200101 TO 20231231\""、\""* TO 20231231\""、\""20200101 TO *\""、\""latest-3-Y\""、\""latest-6-M\""、\""latest-30-D\""、\""desc\""、\""asc\""。""
+      },
+      ""director"": {
+        ""type"": ""string"",
+        ""description"": ""导演名，支持单值、NOT、AND、OR四种模式。""
+      },
+      ""entertainer"": {
+        ""type"": ""string"",
+        ""description"": ""参与人员，如配音、主持、嘉宾等；支持单值、NOT、AND、OR四种模式。""
+      },
+      ""is_fee"": {
+        ""type"": ""string"",
+        ""description"": ""是否收费筛选。"",
+        ""enum"": [
+          ""0"",
+          ""1""
+        ]
+      },
+      ""rate"": {
+        ""type"": ""string"",
+        ""description"": ""评分筛选与排序。支持：\""8 TO *\""、\""* TO 6\""、\""desc\""、\""asc\""。""
+      },
+      ""tag"": {
+        ""type"": ""string"",
+        ""description"": ""标签筛选。支持：\""动作\""、\""NOT 恐怖\""、\""动作 AND 喜剧\""。""
+      },
+      ""play"": {
+        ""type"": ""string"",
+        ""description"": ""播放量排序，支持\""desc\""或\""asc\""。""
+      },
+      ""hot"": {
+        ""type"": ""string"",
+        ""description"": ""热度排序，支持\""desc\""或\""asc\""。""
+      },
+      ""country"": {
+        ""type"": ""string"",
+        ""description"": ""影视所属国家或地区名，如\""中国\""、\""美国\""、\""韩国\""、\""日本\""等。""
+      }
+    },
+    ""required"": [
+      ""intent"",
+      ""query""
+    ]
+  },
+  ""output"": {
+    ""type"": ""object"",
+    ""properties"": {
+      ""results"": {
+        ""type"": ""object"",
+        ""description"": ""搜索结果，包含解析后的筛选条件回显及检索意图。"",
+        ""properties"": {
+          ""intent"": {
+            ""type"": ""string"",
+            ""description"": ""实际生效的检索意图，回显传入的intent值。"",
+            ""enum"": [
+              ""plot_aggregate"",
+              ""plot"",
+              ""lines"",
+              ""source""
+            ]
+          },
+          ""query"": {
+            ""type"": ""string"",
+            ""description"": ""实际参与切片语义检索的用户原始输入语料，回显传入的query值。""
+          },
+          ""actor"": {
+            ""type"": ""string"",
+            ""description"": ""演员筛选条件。""
+          },
+          ""age"": {
+            ""type"": ""string"",
+            ""description"": ""年龄范围条件。""
+          },
+          ""category"": {
+            ""type"": ""string"",
+            ""description"": ""一级分类。""
+          },
+          ""date"": {
+            ""type"": ""string"",
+            ""description"": ""日期条件或时间排序。""
+          },
+          ""director"": {
+            ""type"": ""string"",
+            ""description"": ""导演筛选条件。""
+          },
+          ""entertainer"": {
+            ""type"": ""string"",
+            ""description"": ""参与人员筛选条件。""
+          },
+          ""is_fee"": {
+            ""type"": ""string"",
+            ""description"": ""是否收费，\""0\""=免费，\""1\""=收费。""
+          },
+          ""rate"": {
+            ""type"": ""string"",
+            ""description"": ""评分条件或评分排序。""
+          },
+          ""tag"": {
+            ""type"": ""string"",
+            ""description"": ""标签条件。""
+          },
+          ""play"": {
+            ""type"": ""string"",
+            ""description"": ""播放量排序。""
+          },
+          ""hot"": {
+            ""type"": ""string"",
+            ""description"": ""热度排序。""
+          },
+          ""country"": {
+            ""type"": ""string"",
+            ""description"": ""影视所属国家或地区。""
+          },
+          ""sort"": {
+            ""type"": ""array"",
+            ""items"": {
+              ""type"": ""string"",
+              ""description"": ""排序维度：rate、hot、date、play。""
+            },
+            ""description"": ""实际生效的排序维度列表。""
+          }
+        }
+      },
+      ""status_code"": {
+        ""type"": ""number"",
+        ""description"": ""响应状态码：200=成功，500=出错。""
+      },
+      ""error_log"": {
+        ""type"": ""string"",
+        ""description"": ""错误信息，仅status_code为500时返回。""
+      }
+    },
+    ""required"": [
+      ""results"",
+      ""status_code""
+    ],
+    ""usage_hint"": ""results中的intent和query字段分别回显实际生效的检索意图与原始输入语料；其余字段反映系统从用户复杂自然语言中解析出的结构化筛选条件；sort字段反映实际生效的排序维度；结合status_code判断解析是否成功；当results中除intent和query外其余字段为空时，说明系统无法从用户描述中提取有效筛选条件。""
+  },
+  ""error_output"": {
+    ""type"": ""object"",
+    ""properties"": {
+      ""status_code"": {
+        ""type"": ""number"",
+        ""description"": ""错误状态码，500表示参数格式错误或服务异常。""
+      },
+      ""error_log"": {
+        ""type"": ""string"",
+        ""description"": ""错误描述信息，说明具体错误原因。""
+      }
+    }
+  },
+  ""examples"": [
+    {
+      ""scenario"": ""剧情聚合检索：狂飙名场面汇总"",
+      ""input"": {
+        ""intent"": ""plot_aggregate"",
+        ""query"": ""狂飙名场面汇总"",
+        ""tag"": ""名场面""
+      },
+      ""output"": {
+        ""results"": {
+          ""intent"": ""plot_aggregate"",
+          ""query"": ""狂飙名场面汇总"",
+          ""tag"": ""名场面"",
+          ""sort"": []
+        },
+        ""status_code"": 200
+      }
+    },
+    {
+      ""scenario"": ""剧情聚合检索：甄嬛传经典场面集锦"",
+      ""input"": {
+        ""intent"": ""plot_aggregate"",
+        ""query"": ""甄嬛传经典场面集锦"",
+        ""tag"": ""经典场面""
+      },
+      ""output"": {
+        ""results"": {
+          ""intent"": ""plot_aggregate"",
+          ""query"": ""甄嬛传经典场面集锦"",
+          ""tag"": ""经典场面"",
+          ""sort"": []
+        },
+        ""status_code"": 200
+      }
+    },
+    {
+      ""scenario"": ""剧情检索：安欣菜市场抓人片段"",
+      ""input"": {
+        ""intent"": ""plot"",
+        ""query"": ""安欣菜市场抓人片段"",
+        ""actor"": ""张译""
+      },
+      ""output"": {
+        ""results"": {
+          ""intent"": ""plot"",
+          ""query"": ""安欣菜市场抓人片段"",
+          ""actor"": ""张译"",
+          ""sort"": []
+        },
+        ""status_code"": 200
+      }
+    },
+    {
+      ""scenario"": ""剧情检索：甄嬛雨中下跪片段"",
+      ""input"": {
+        ""intent"": ""plot"",
+        ""query"": ""甄嬛雨中下跪片段"",
+        ""category"": ""电视剧""
+      },
+      ""output"": {
+        ""results"": {
+          ""intent"": ""plot"",
+          ""query"": ""甄嬛雨中下跪片段"",
+          ""category"": ""电视剧"",
+          ""sort"": []
+        },
+        ""status_code"": 200
+      }
+    },
+    {
+      ""scenario"": ""台词检索：播放甄嬛传里臣妾做不到啊片段"",
+      ""input"": {
+        ""intent"": ""lines"",
+        ""query"": ""播放甄嬛传里臣妾做不到啊片段""
+      },
+      ""output"": {
+        ""results"": {
+          ""intent"": ""lines"",
+          ""query"": ""播放甄嬛传里臣妾做不到啊片段"",
+          ""sort"": []
+        },
+        ""status_code"": 200
+      }
+    },
+    {
+      ""scenario"": ""台词检索：找一下哪吒我命由我不由天片段"",
+      ""input"": {
+        ""intent"": ""lines"",
+        ""query"": ""找一下哪吒我命由我不由天片段"",
+        ""category"": ""电影""
+      },
+      ""output"": {
+        ""results"": {
+          ""intent"": ""lines"",
+          ""query"": ""找一下哪吒我命由我不由天片段"",
+          ""category"": ""电影"",
+          ""sort"": []
+        },
+        ""status_code"": 200
+      }
+    },
+    {
+      ""scenario"": ""溯源检索：我杀猪养你啊是哪个电视剧里的台词"",
+      ""input"": {
+        ""intent"": ""source"",
+        ""query"": ""我杀猪养你啊是哪个电视剧里的台词""
+      },
+      ""output"": {
+        ""results"": {
+          ""intent"": ""source"",
+          ""query"": ""我杀猪养你啊是哪个电视剧里的台词"",
+          ""sort"": []
+        },
+        ""status_code"": 200
+      }
+    },
+    {
+      ""scenario"": ""溯源检索：华强买瓜出自哪部剧"",
+      ""input"": {
+        ""intent"": ""source"",
+        ""query"": ""华强买瓜出自哪部剧""
+      },
+      ""output"": {
+        ""results"": {
+          ""intent"": ""source"",
+          ""query"": ""华强买瓜出自哪部剧"",
+          ""sort"": []
+        },
+        ""status_code"": 200
+      }
+    },
+    {
+      ""scenario"": ""剧情检索+复杂条件：不是国产的、评分高的、最近几年的科幻片"",
+      ""input"": {
+        ""intent"": ""plot"",
+        ""query"": ""不是国产的、评分高的、最近几年的科幻片"",
+        ""category"": ""电影"",
+        ""country"": ""NOT 中国"",
+        ""tag"": ""科幻"",
+        ""rate"": ""8 TO *"",
+        ""date"": ""latest-3-Y""
+      },
+      ""output"": {
+        ""results"": {
+          ""intent"": ""plot"",
+          ""query"": ""不是国产的、评分高的、最近几年的科幻片"",
+          ""category"": ""电影"",
+          ""country"": ""NOT 中国"",
+          ""tag"": ""科幻"",
+          ""rate"": ""8 TO *"",
+          ""date"": ""latest-3-Y"",
+          ""sort"": [
+            ""rate"",
+            ""date""
+          ]
+        },
+        ""status_code"": 200
+      }
+    },
+    {
+      ""scenario"": ""参数格式错误"",
+      ""input"": {
+        ""intent"": ""plot"",
+        ""query"": ""近几年免费科幻片"",
+        ""date"": ""2020-01-01"",
+        ""is_fee"": ""yes""
+      },
+      ""output"": {
+        ""status_code"": 500,
+        ""error_log"": ""参数格式错误：date需为yyyyMMdd格式或使用latest-N-Y/M/D模式；is_fee取值仅支持\""0\""或\""1\""。""
+      }
+    },
+    {
+      ""scenario"": ""缺少必传参数intent"",
+      ""input"": {
+        ""query"": ""动作片"",
+        ""tag"": ""动作""
+      },
+      ""output"": {
+        ""status_code"": 500,
+        ""error_log"": ""参数缺失：intent为必传参数，取值：plot_aggregate、plot、lines、source。""
+      }
+    }
+  ]
+}",同精确检索,,,,,,,,,,,

@@ -11,7 +11,7 @@
 覆盖 4 域：
   * vod/educ 检索类 → route → IR 生成 → 校验自修复
   * vod/educ 相关推荐(relate) → route → IR 生成（4字段子集） → 校验自修复
-  * vod_slow_search → route → 直接结束（只传 query）
+  * vod_fuzzy_search → route → 直接结束（只传 query）
   * vod_personalized_search / vod_history → route → 简单 slot-fill → 结束
   * audio → route → slot-fill（query + play_mode）
   * device → route → slot-fill（tool + operation + object + value）
@@ -19,7 +19,7 @@
 0725-v1 变更：
   * vod_search / vod_search_all 统一意图（都进 IR 阶段，编译后再选工具）
   * vod_relate_search 进 IR 阶段（4 字段布尔 DSL）
-  * vod_slow_search_data_search 路由后直接结束（只传 query 原文）
+  * vod_fuzzy_search 路由后直接结束（只传 query 原文）
   * vod_personalized_search 仅传 category（简单 slot）
   * vod_history 传 category + time（简单 slot）
 """
@@ -68,7 +68,7 @@ SIMPLE_TOOLS = {
 
 # 慢链路工具（route 后直接结束，只传 query 原文）
 SLOW_SEARCH_TOOLS = {
-    "vod_slow_search_data_search",
+    "vod_fuzzy_search",
     "educ_slow_search_data_search",
 }
 
@@ -103,7 +103,7 @@ EDUC_IP_NAMES = (
 VOD_TO_EDUC_TOOL = {
     "vod_search": "educ_search",
     "vod_search_all": "educ_search",
-    "vod_slow_search_data_search": "educ_slow_search_data_search",
+    "vod_fuzzy_search": "educ_slow_search_data_search",
     "vod_relate_search": "educ_relate_recommend",
     "vod_history": "educ_history",
     "vod_personalized_search": "educ_search",

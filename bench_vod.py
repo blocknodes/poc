@@ -20,10 +20,10 @@
 
 判定规则：
   - vod_search 和 vod_search_all 视为同一类工具（互相兼容）。
-  - vod_slow_search_data_search 包含 vod_search / vod_search_all 的能力：
-    * 如果 expected=vod_search/vod_search_all 但 predicted=vod_slow_search_data_search，tool 算对。
-    * 反之不行（expected=vod_slow_search 但 predicted=vod_search，算错）。
-  - vod_slow_search_data_search 的参数只有 query（原文），所以 tool 对了 param 就自动对。
+  - vod_slow_search_data_search / vod_fuzzy_search 包含 vod_search / vod_search_all 的能力：
+    * 如果 expected=vod_search/vod_search_all 但 predicted=vod_slow_search_data_search 或 vod_fuzzy_search，tool 算对。
+    * 反之不行（expected=vod_slow_search/vod_fuzzy_search 但 predicted=vod_search，算错）。
+  - vod_slow_search_data_search / vod_fuzzy_search 的参数只有 query（原文），所以 tool 对了 param 就自动对。
   - vod_personalized_search / vod_history：参数比较用 JSON 深度相等。
   - vod_search / vod_search_all / vod_relate_search：参数比较用结构化 JSON 深度相等
     （忽略 retext 字段，因为 retext 是原始文本，模型不产出）。
@@ -117,18 +117,18 @@ def load_csv(path: str) -> list[TestCase]:
 # vod_search 和 vod_search_all 互相兼容
 _SEARCH_GROUP = {"vod_search", "vod_search_all"}
 
-# vod_slow_search 包含 search 的能力
-_SLOW_SEARCH = "vod_slow_search_data_search"
+# vod_fuzzy_search（原 vod_slow_search_data_search）包含 search 的能力
+_FUZZY_SEARCH = "vod_fuzzy_search"
 
-# 在 test_set 中 vod_slow_search 有时写作 vod_slow_search
-_SLOW_SEARCH_ALIASES = {"vod_slow_search", "vod_slow_search_data_search"}
+# 在 test_set 中可能写作旧名 vod_slow_search / vod_slow_search_data_search
+_FUZZY_SEARCH_ALIASES = {"vod_slow_search", "vod_slow_search_data_search", "vod_fuzzy_search"}
 
 
 def normalize_tool_name(name: str) -> str:
     """统一工具名格式。"""
     name = name.strip()
-    if name in _SLOW_SEARCH_ALIASES:
-        return _SLOW_SEARCH
+    if name in _FUZZY_SEARCH_ALIASES:
+        return _FUZZY_SEARCH
     return name
 
 
@@ -137,8 +137,8 @@ def tool_match(expected: str, predicted: str) -> bool:
 
     规则：
       1. vod_search ↔ vod_search_all 互相兼容
-      2. expected=vod_search/vod_search_all, predicted=vod_slow_search → 算对
-         （slow_search 包含 search 能力）
+      2. expected=vod_search/vod_search_all, predicted=vod_fuzzy_search → 算对
+         （fuzzy_search 包含 search 能力）
       3. 其他必须严格相等
     """
     e = normalize_tool_name(expected)
@@ -151,8 +151,8 @@ def tool_match(expected: str, predicted: str) -> bool:
     if e in _SEARCH_GROUP and p in _SEARCH_GROUP:
         return True
 
-    # slow_search 包含 search/search_all（expected 是 search，predicted 是 slow_search → 对）
-    if e in _SEARCH_GROUP and p == _SLOW_SEARCH:
+    # fuzzy_search 包含 search/search_all（expected 是 search，predicted 是 fuzzy_search → 对）
+    if e in _SEARCH_GROUP and p == _FUZZY_SEARCH:
         return True
 
     return False
@@ -185,15 +185,15 @@ def params_match(expected_tool: str, expected_params: Optional[dict],
     """判定参数是否匹配。
 
     规则：
-      1. 如果 predicted_tool 是 vod_slow_search_data_search，参数自动算对
-         （因为 slow_search 只传 query 原文，参数一定对）。
+      1. 如果 predicted_tool 是 vod_fuzzy_search，参数自动算对
+         （因为 fuzzy_search 只传 query 原文，参数一定对）。
       2. 对于其他工具，忽略 retext 字段后做深度 JSON 相等比较。
       3. 如果 expected_params 为 None（CSV 中无期望参数），跳过参数比较（算对）。
     """
     p_tool = normalize_tool_name(predicted_tool)
 
-    # slow_search 参数自动对
-    if p_tool == _SLOW_SEARCH:
+    # fuzzy_search 参数自动对
+    if p_tool == _FUZZY_SEARCH:
         return True
 
     # 无期望参数 → 跳过

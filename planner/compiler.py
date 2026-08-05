@@ -12,7 +12,7 @@
   * educ_search     -> 少儿全量
 
 flat 后端：
-  * vod_slow_search -> 新版只传 query（用户原文），无需编译器产出结构化 flat 参数
+  * vod_fuzzy_search -> 新版只传 query（用户原文），无需编译器产出结构化 flat 参数
                        但仍保留 compile_flat_best_effort 供训练/评测对比
 
 flat 后端表达力弱于 nested（字段间只能隐式 AND，无跨字段 OR/嵌套 NOT），
@@ -1206,7 +1206,7 @@ def _merge_and(query: dict[str, Any], extra_leaves: list[dict]) -> dict[str, Any
 
 
 # ===========================================================================
-# flat backend  ->  *_slow_search
+# flat backend  ->  vod_fuzzy_search / educ_slow_search
 # ===========================================================================
 def can_compile_flat(ir: IR) -> tuple[bool, Optional[str]]:
     """检查 IR 是否可无损编译到 flat（慢链路）后端。返回 (ok, reason)。"""
@@ -1786,19 +1786,19 @@ def compile_device(slot_fill: dict[str, Any], query: str = "") -> tuple[str, dic
 # vod_search 和 vod_search_all 是同一意图，IR 生成后再选择
 _NESTED_TOOLS = {"vod_search", "vod_search_all", "educ_search",
                  "vod_relate_search", "educ_relate_recommend"}
-_FLAT_TOOLS = {"vod_slow_search_data_search", "educ_slow_search_data_search"}
+_FLAT_TOOLS = {"vod_fuzzy_search", "educ_slow_search_data_search"}
 
-# 当 flat 不可编译时的回退目标（但新版 slow_search 只传 query，一般不回退了）
+# 当 flat 不可编译时的回退目标（但新版 fuzzy_search 只传 query，一般不回退了）
 _FLAT_TO_NESTED_FALLBACK = {
-    "vod_slow_search_data_search": "vod_search",
+    "vod_fuzzy_search": "vod_search",
     "educ_slow_search_data_search": "educ_search",
 }
 
-# nested/relate → 对应的 slow_search 工具（用于 EB compiler层强制重路由）
+# nested/relate → 对应的 fuzzy_search 工具（用于 EB compiler层强制重路由）
 _NESTED_TO_FLAT = {
-    "vod_search": "vod_slow_search_data_search",
-    "vod_search_all": "vod_slow_search_data_search",
-    "vod_relate_search": "vod_slow_search_data_search",
+    "vod_search": "vod_fuzzy_search",
+    "vod_search_all": "vod_fuzzy_search",
+    "vod_relate_search": "vod_fuzzy_search",
     "educ_search": "educ_slow_search_data_search",
     "educ_relate_recommend": "educ_slow_search_data_search",
 }
@@ -1849,7 +1849,7 @@ def compile_with_fallback(ir: IR, tool_name: str, *, retext: str = "",
       1. 若路由为 vod_search / vod_search_all，生成 nested params，
          再根据字段子集选择实际工具名；
       2. 若路由为 vod_relate_search，编译 relate 格式；
-      3. 若路由为慢链路（vod_slow_search_data_search），新版只传 query 原文；
+      3. 若路由为模糊搜索（vod_fuzzy_search），新版只传 query 原文；
       4. retext 为用户原始文本，vod_search/vod_search_all 需要填入。
       5. 最终参数经过领域归一化后处理（tag/category 同义词映射）。
       6. intent 为路由阶段判定的意图，用于 action 覆盖。
@@ -1867,7 +1867,7 @@ def compile_with_fallback(ir: IR, tool_name: str, *, retext: str = "",
             if flat_tool:
                 return flat_tool, {"query": retext}
 
-    # 慢链路：新版 vod_slow_search 只需传 query（用户原文），服务端自行解析
+    # 模糊搜索：vod_fuzzy_search 只需传 query（用户原文），服务端自行解析
     if tool_name in _FLAT_TOOLS:
         if retext:
             return tool_name, {"query": retext}

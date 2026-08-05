@@ -82,7 +82,7 @@ def get_planner() -> Planner:
 # 检索类工具
 SEARCH_TOOLS = {
     "vod_search", "vod_search_all", "educ_search", "vod_relate_search",
-    "vod_slow_search_data_search", "audio_search", "audio_chat_qa",
+    "vod_fuzzy_search", "audio_search", "audio_chat_qa",
     "vod_personalized_search", "vod_history",
 }
 
@@ -395,6 +395,15 @@ async def slow_agent(request: Request):
     query = data["query"].strip()
     memory_hint = extract_memory_hint(data)
 
+    # 从请求的 toolList 提取可用工具名列表
+    tool_list = data.get("toolList", [])
+    available_tools: Optional[list[str]] = None
+    if tool_list and isinstance(tool_list, list):
+        available_tools = [t["toolName"] for t in tool_list
+                          if isinstance(t, dict) and t.get("toolName")]
+        if available_tools:
+            logger.info(f"[{trace_id}] 请求传入 toolList: {available_tools}")
+
     logger.info(f"[{trace_id}] 收到请求: query='{query}', device={device_id}, tvMode={data.get('tvMode')}")
 
     # 调用 Planner 主流程
@@ -402,7 +411,11 @@ async def slow_agent(request: Request):
         planner = get_planner()
 
         # 多意图并发规划
-        results = planner.plan_multi(query, memory_hint=memory_hint)
+        results = planner.plan_multi(query, memory_hint=memory_hint,
+                                     available_tools=available_tools)
+
+        # debug 模式：打印完整 LLM 输入输出
+        _debug_print_trace(trace_id, query, results, request_body=body)
 
         # 过滤失败结果
         success_results = [r for r in results if r.tool_name != "error"]
@@ -487,27 +500,25 @@ def init_planner(stub: bool = False, vod_only: bool = False):
     """初始化全局 Planner 实例。"""
     global _planner
 
+    from config import cfg, make_planner, make_vllm_config
+
     if stub:
         # 离线 stub 模式（复用 demo.py 的 stub responder）
         from demo import make_stub
         client = VLLMClient(responder=make_stub())
         logger.info("[STUB] Planner 使用离线 stub 模式")
+        _planner = Planner(client, max_repairs=cfg.planner_max_repairs, vod_only=vod_only)
     else:
-        base_url = os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1")
-        model = os.environ.get("VLLM_MODEL", "qwen-30b-moe")
-        api_key = os.environ.get("VLLM_API_KEY", "EMPTY")
-        timeout = float(os.environ.get("VLLM_TIMEOUT", "60"))
+        client = VLLMClient(make_vllm_config())
+        logger.info(f"[LIVE] Planner 连接 vLLM: {cfg.vllm_base_url} / {cfg.vllm_model}")
+        _planner = make_planner(client)
+        # 覆盖 vod_only（CLI 参数优先）
+        if vod_only:
+            _planner.vod_only = vod_only
 
-        config = VLLMConfig(
-            base_url=base_url,
-            model=model,
-            api_key=api_key,
-            timeout=timeout,
-        )
-        client = VLLMClient(config)
-        logger.info(f"[LIVE] Planner 连接 vLLM: {base_url} / {model}")
+    if cfg.retrieve_enabled:
+        logger.info(f"[RETRIEVE] 检索层已开启: {cfg.retrieve_base_url}")
 
-    _planner = Planner(client, max_repairs=2, vod_only=vod_only)
     logger.info("Planner 初始化完成")
 
 
@@ -521,6 +532,75 @@ async def on_startup():
 
 
 # --------------------------------------------------------------------------
+# Debug 模式：打印 LLM 完整输入输出
+# --------------------------------------------------------------------------
+_DEBUG_MODE = os.environ.get("PLANNER_DEBUG", "").lower() in ("1", "true", "yes")
+
+
+def _debug_print_trace(trace_id: str, query: str, results, request_body: dict = None):
+    """debug 模式下打印每次 LLM 调用的完整输入输出。"""
+    if not _DEBUG_MODE:
+        return
+
+    print(f"\n{'━'*70}")
+    print(f"  [DEBUG] traceId={trace_id} query='{query}'")
+    print(f"{'━'*70}")
+
+    # 打印完整请求参数
+    if request_body:
+        print(f"\n  ── REQUEST BODY ──")
+        print(json.dumps(request_body, ensure_ascii=False, indent=2))
+
+    for i, result in enumerate(results):
+        if result.tool_name == "error":
+            print(f"\n  [子请求 {i}] ERROR: {result.parameters.get('error')}")
+            continue
+
+        print(f"\n  [子请求 {i}] tool={result.tool_name} domain={result.domain}")
+
+        for step in (result.trace or []):
+            stage = step.get("stage", "?")
+            print(f"\n    ── {stage.upper()} ──")
+
+            if stage == "retrieve":
+                output = step.get("output", {})
+                raw_tools = output.get("tools", [])
+                if raw_tools:
+                    is_nested = isinstance(raw_tools[0], dict) and "parameters" in raw_tools[0]
+                    if is_nested:
+                        for t in raw_tools[:3]:
+                            print(f"      tool: {t.get('domain')}::{t.get('tool_name')} score={t.get('score', 0):.4f}")
+                            for p in (t.get("parameters") or [])[:3]:
+                                vals = [v.get("value", "") for v in (p.get("values") or [])[:3]]
+                                val_str = f" → [{', '.join(vals)}]" if vals else ""
+                                print(f"        param: {p.get('parameter_id')} (score={p.get('score', 0):.4f}){val_str}")
+                    else:
+                        for t in raw_tools[:3]:
+                            print(f"      tool: {t.get('domain')}::{t.get('tool_name')} score={t.get('score', 0):.4f}")
+            elif "messages" in step:
+                msgs = step["messages"]
+                print(f"      messages ({len(msgs)} 轮):")
+                for j, m in enumerate(msgs):
+                    content = m.get("content", "")
+                    preview = content[:150].replace("\n", "\\n") + ("..." if len(content) > 150 else "")
+                    print(f"        [{j}] {m['role']}: {preview}")
+                if "guided_json" in step:
+                    print(f"      guided_json: {json.dumps(step['guided_json'], ensure_ascii=False)}")
+                if "output" in step:
+                    print(f"      output: {json.dumps(step['output'], ensure_ascii=False)}")
+                if step.get("valid") is not None:
+                    print(f"      valid: {step['valid']}")
+                if step.get("errors"):
+                    print(f"      errors: {step['errors']}")
+            elif "compiled_params" in step:
+                print(f"      compiled: tool={step.get('actual_tool')} params={json.dumps(step.get('compiled_params'), ensure_ascii=False)}")
+            elif "output" in step:
+                print(f"      output: {json.dumps(step['output'], ensure_ascii=False)}")
+
+    print(f"\n{'━'*70}\n")
+
+
+# --------------------------------------------------------------------------
 # CLI 入口
 # --------------------------------------------------------------------------
 def main():
@@ -529,18 +609,66 @@ def main():
     parser.add_argument("--port", type=int, default=8082, help="监听端口 (默认 8082)")
     parser.add_argument("--stub", action="store_true", help="使用离线 stub（不连 vLLM）")
     parser.add_argument("--vod-only", action="store_true", help="仅启用 vod 域")
+    parser.add_argument("--debug", action="store_true",
+                        help="开启 debug 模式，打印每次请求的完整 LLM 输入输出")
+    parser.add_argument("--log", type=str, default="",
+                        help="日志输出文件路径（同时写文件和 stdout）")
     parser.add_argument("--reload", action="store_true", help="开发模式，自动热重载")
     parser.add_argument("--workers", type=int, default=1, help="worker 进程数 (默认 1)")
     args = parser.parse_args()
+
+    global _DEBUG_MODE
+    _DEBUG_MODE = args.debug
+
+    # 配置日志输出到文件
+    if args.log:
+        file_handler = logging.FileHandler(args.log, encoding="utf-8")
+        file_handler.setFormatter(logging.Formatter("%(asctime)s [%(levelname)s] %(name)s - %(message)s"))
+        logging.getLogger().addHandler(file_handler)
+        # debug 模式的 print 也重定向到文件（通过 tee）
+
+        class TeeWriter:
+            """同时写 stdout 和日志文件，兼容 uvicorn 的 isatty/fileno 检查。"""
+            def __init__(self, original, log_path):
+                self.original = original
+                self._log_file = open(log_path, "a", encoding="utf-8")
+
+            def write(self, data):
+                self.original.write(data)
+                self._log_file.write(data)
+                self._log_file.flush()
+
+            def flush(self):
+                self.original.flush()
+                self._log_file.flush()
+
+            def isatty(self):
+                return hasattr(self.original, 'isatty') and self.original.isatty()
+
+            def fileno(self):
+                return self.original.fileno()
+
+            @property
+            def encoding(self):
+                return getattr(self.original, 'encoding', 'utf-8')
+
+            def __getattr__(self, name):
+                return getattr(self.original, name)
+
+        sys.stdout = TeeWriter(sys.stdout, args.log)
+        sys.stderr = TeeWriter(sys.stderr, args.log)
+        logger.info(f"日志输出到: {args.log}")
 
     # 通过环境变量传递给 startup event
     if args.stub:
         os.environ["PLANNER_STUB"] = "1"
     if args.vod_only:
         os.environ["PLANNER_VOD_ONLY"] = "1"
+    if args.debug:
+        os.environ["PLANNER_DEBUG"] = "1"
 
     logger.info(f"启动慢任务接口_v2 服务: {args.host}:{args.port}")
-    logger.info(f"  stub={args.stub}, vod_only={args.vod_only}, workers={args.workers}")
+    logger.info(f"  stub={args.stub}, vod_only={args.vod_only}, debug={args.debug}, log={args.log or '(stdout)'}, workers={args.workers}")
 
     uvicorn.run(
         "server:app",

@@ -16,7 +16,7 @@
 0725-v1 变更：
   * vod_search 和 vod_search_all 统一意图，路由都指向 vod_search，IR 后再选
   * 新增 vod_relate_search 路由
-  * vod_slow_search 只传 query（路由即结束）
+  * vod_fuzzy_search 只传 query（路由即结束）
   * playback 字段更新：video_index
 """
 from __future__ import annotations
@@ -360,12 +360,12 @@ def build_device_schema() -> dict[str, Any]:
 
 # 按 domain 列举所有可路由到的工具
 # 0725-v1: vod_search 代表 search/search_all 统一意图；
-#           vod_slow_search_data_search 代表慢链路（只传 query）；
+#           vod_fuzzy_search 代表模糊搜索（只传 query）；
 #           vod_relate_search 代表相关推荐（布尔 DSL）
 ROUTE_TOOLS = {
     "vod": [
         "vod_search",                    # 精确检索（含 search_all，生成 IR 后再选）
-        "vod_slow_search_data_search",   # 慢链路语义搜索（只传 query）
+        "vod_fuzzy_search",              # 模糊搜索（只传 query）
         "vod_relate_search",             # 相关推荐（布尔 DSL，4 字段）
         "vod_personalized_search",       # 个性化推荐（只传 category）
         "vod_history",                   # 历史记录（category + time）

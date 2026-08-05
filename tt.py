@@ -33,7 +33,8 @@ async def ws_client(retext_content, mode="single"):
         "device_id": "86100300900001400000071212345678",
         "retext": retext_content,
         "client_sid": "A06212345678,1723550666666",
-        "tv_mode": "0"
+        "tv_mode": "0",
+        "enable_slow": True
     }
     result = {
         "success": False,

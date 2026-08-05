@@ -79,27 +79,27 @@ shots:
 
   # slow_search
   - query: "骑着白马的王子的电影"
-    response: {domain: vod, intent: slow_search, tool: vod_slow_search_data_search, confidence: 0.9}
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
     tags: [slow_search, semantic]
 
   - query: "西游记86版的"
-    response: {domain: vod, intent: slow_search, tool: vod_slow_search_data_search, confidence: 0.9}
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
     tags: [slow_search, version]
 
   - query: "适合情侣看的电影"
-    response: {domain: vod, intent: slow_search, tool: vod_slow_search_data_search, confidence: 0.9}
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
     tags: [slow_search, audience]
 
   - query: "孙俪老公的电影"
-    response: {domain: vod, intent: slow_search, tool: vod_slow_search_data_search, confidence: 0.9}
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
     tags: [slow_search, relation_ref]
 
   - query: "黄晓明前妻的电视剧"
-    response: {domain: vod, intent: slow_search, tool: vod_slow_search_data_search, confidence: 0.9}
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
     tags: [slow_search, relation_ref]
 
   - query: "成龙儿子演的片"
-    response: {domain: vod, intent: slow_search, tool: vod_slow_search_data_search, confidence: 0.9}
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
     tags: [slow_search, relation_ref]
 
   # relate

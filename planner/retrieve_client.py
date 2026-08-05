@@ -77,11 +77,19 @@ class RetrieveResult:
             params = [p for p in params if p.get("tool_name") == tool_name]
         if not params:
             return ""
+        # 按 parameter_id 去重，保留最高分的
+        seen: dict[str, dict] = {}
+        for p in params:
+            pid = p.get("parameter_id", "?")
+            if pid not in seen or p.get("score", 0) > seen[pid].get("score", 0):
+                seen[pid] = p
+        deduped = sorted(seen.values(), key=lambda x: x.get("score", 0), reverse=True)
         lines = []
-        for p in params[:max_params]:
+        for p in deduped[:max_params]:
             pid = p.get("parameter_id", "?")
             score = p.get("score", 0)
-            lines.append(f"  {pid} (score={score:.4f})")
+            tool = p.get("tool_name", "")
+            lines.append(f"  {pid} (score={score:.4f}, tool={tool})")
         return "检索建议相关参数:\n" + "\n".join(lines)
 
     def format_value_hint(self, max_values: int = 6) -> str:
@@ -145,10 +153,71 @@ class RetrieveClient:
             # 检索层不可用时静默降级，不影响主流程
             return RetrieveResult()
 
-        return RetrieveResult(
-            tools=data.get("tools", []),
-            parameters=data.get("parameters", []),
-            values=data.get("values", []),
-            suggested=data.get("suggested"),
-            raw=data,
-        )
+        return self._parse_response(data)
+
+    @staticmethod
+    def _parse_response(data: dict) -> RetrieveResult:
+        """解析检索层返回，兼容两种格式：
+
+        格式 A（嵌套）：parameters/values 嵌套在每个 tool 内部
+            tools: [{tool_name, parameters: [{parameter_id, values: [{value}]}]}]
+
+        格式 B（扁平，旧版）：顶层独立的 tools/parameters/values 数组
+            tools: [...], parameters: [...], values: [...]
+        """
+        raw_tools = data.get("tools", [])
+
+        # 检测格式：如果 tools[0] 有 "parameters" 字段，则为嵌套格式
+        is_nested = (raw_tools and isinstance(raw_tools[0], dict)
+                     and "parameters" in raw_tools[0])
+
+        if is_nested:
+            # 嵌套格式：从 tools 中展开 parameters 和 values
+            tools: list[dict] = []
+            parameters: list[dict] = []
+            values: list[dict] = []
+
+            for t in raw_tools:
+                tool_name = t.get("tool_name", "")
+                domain = t.get("domain", "")
+                tools.append({
+                    "rank": t.get("rank"),
+                    "score": t.get("score", 0),
+                    "tool_id": t.get("tool_id", ""),
+                    "tool_name": tool_name,
+                    "domain": domain,
+                    "title": t.get("title", ""),
+                })
+                for p in t.get("parameters", []):
+                    param_entry = {
+                        "parameter_id": p.get("parameter_id", ""),
+                        "tool_name": tool_name,
+                        "domain": domain,
+                        "score": p.get("score", 0),
+                        "required": p.get("required", False),
+                    }
+                    parameters.append(param_entry)
+                    for v in p.get("values", []):
+                        values.append({
+                            "parameter_id": p.get("parameter_id", ""),
+                            "tool_name": tool_name,
+                            "value": v.get("value", ""),
+                            "score": v.get("score", 0),
+                        })
+
+            return RetrieveResult(
+                tools=tools,
+                parameters=parameters,
+                values=values,
+                suggested=data.get("suggested"),
+                raw=data,
+            )
+        else:
+            # 扁平格式（旧版 / 或未来变更后的格式）
+            return RetrieveResult(
+                tools=raw_tools,
+                parameters=data.get("parameters", []),
+                values=data.get("values", []),
+                suggested=data.get("suggested"),
+                raw=data,
+            )

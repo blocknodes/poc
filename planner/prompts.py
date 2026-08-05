@@ -101,7 +101,7 @@ domain=vod → 见下方 vod 判定规则。
 【relate】"类似XX/像XX一样/和XX差不多" → tool=vod_relate_search
 【personalized】纯个性化推荐、无具体条件（"推荐我喜欢的/根据我兴趣"）→ tool=vod_personalized_search
 【history】查观看历史（"我看过的/最近看了什么/继续看上次的"）→ tool=vod_history
-【slow_search】需语义理解、无法直接结构化的模糊检索 → tool=vod_slow_search_data_search：
+【slow_search】需语义理解、无法直接结构化的模糊检索 → tool=vod_fuzzy_search：
   - 场景/情绪/人群/节日推荐
   - 版本词/画质词（如"八三版""修复版""高清版"——标签不支持的）
   - 剧情/台词/名场面出处查询
@@ -124,7 +124,7 @@ ROUTE_SYSTEM_VOD = """你是影视内容的工具路由器。根据用户请求�
 
 工具列表：
   vod_search — 精确检索/起播（明确标题/演员/分类/地区/年份/免费/奖项/出品方/频道等条件）
-  vod_slow_search_data_search — 慢链路语义搜索（模糊/复杂/无法结构化的描述）
+  vod_fuzzy_search — 模糊搜索（模糊/复杂/无法结构化的描述）
   vod_relate_search — 相关推荐（"类似XX的/像XX一样的"）
   vod_personalized_search — 个性化推荐（"推荐我喜欢的/根据我兴趣"）
   vod_history — 历史记录（"我看过的/最近看了什么"）
@@ -132,7 +132,7 @@ ROUTE_SYSTEM_VOD = """你是影视内容的工具路由器。根据用户请求�
 intent 判定规则：
   play — 有起播/观看意图动词（播放/放/起播/继续看/想看/要看/看/打开/收看）+ **具体片名/内容** → tool=vod_search
   search — 条件筛选/搜索（搜/搜索/找/有没有/查），或"想看/要看"+纯条件无具体片名 → tool=vod_search
-  slow_search — 需语义理解的模糊检索 → tool=vod_slow_search_data_search
+  slow_search — 需语义理解的模糊检索 → tool=vod_fuzzy_search
   relate — 找相似内容 → tool=vod_relate_search
   personalized — 纯个性化推荐 → tool=vod_personalized_search
   history — 查观看历史 → tool=vod_history

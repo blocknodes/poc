@@ -409,12 +409,91 @@ class VerbosePlanner(Planner):
         print()
 
 
-def run_query(planner, query, debug=False):
+def run_query(planner, query, debug=False, verbose=False):
     """运行单个 query 并输出结果。"""
     print(f"{'='*60}")
     print(f"用户：{query}")
     print(f"{'─'*60}")
     res = planner.plan(query)
+
+    # verbose/debug 模式：从 trace 打印中间过程
+    if verbose and res.trace:
+        for step in res.trace:
+            stage = step.get("stage", "?")
+            print(f"\n{'━'*70}")
+            print(f"  [VERBOSE {stage.upper()}]")
+            print(f"{'━'*70}")
+            if stage == "retrieve":
+                print(f"  检索层返回:")
+                output = step.get("output", {})
+                raw_tools = output.get("tools", [])
+                # 兼容嵌套格式：parameters/values 在 tool 内部
+                is_nested = (raw_tools and isinstance(raw_tools[0], dict)
+                             and "parameters" in raw_tools[0])
+                if is_nested:
+                    print(f"    tools ({len(raw_tools)}):")
+                    for t in raw_tools[:5]:
+                        print(f"      {t.get('domain')}::{t.get('tool_name')} score={t.get('score', 0):.4f}")
+                        for p in (t.get("parameters") or [])[:4]:
+                            vals = p.get("values", [])
+                            val_str = ""
+                            if vals:
+                                top_vals = [v.get("value", "?") for v in vals[:3]]
+                                val_str = f" → [{', '.join(top_vals)}]"
+                            print(f"        param: {p.get('parameter_id')} (score={p.get('score', 0):.4f}){val_str}")
+                else:
+                    tools = raw_tools
+                    params = output.get("parameters", [])
+                    values = output.get("values", [])
+                    if tools:
+                        print(f"    tools ({len(tools)}):")
+                        for t in tools[:5]:
+                            print(f"      {t.get('domain')}::{t.get('tool_name')} score={t.get('score', 0):.4f}")
+                    if params:
+                        print(f"    parameters ({len(params)}):")
+                        for p in params[:6]:
+                            print(f"      {p.get('tool_name')}::{p.get('parameter_id')} score={p.get('score', 0):.4f}")
+                    if values:
+                        print(f"    values ({len(values)}):")
+                        for v in values[:6]:
+                            print(f"      {v.get('parameter_id')}={v.get('value')} score={v.get('score', 0):.4f}")
+                    if not tools and not params and not values:
+                        print(f"    (空结果)")
+            else:
+                if "messages" in step:
+                    msgs = step["messages"]
+                    print(f"  messages ({len(msgs)} 轮):")
+                    for i, m in enumerate(msgs):
+                        content = m.get("content", "")
+                        preview = content[:200].replace("\n", "\\n") + ("..." if len(content) > 200 else "")
+                        print(f"    [{i}] {m['role']}: {preview}")
+                if "guided_json" in step:
+                    schema = step["guided_json"]
+                    print(f"  schema title: {schema.get('title', '?')}, keys: {list(schema.get('properties', {}).keys())}")
+                if "output" in step:
+                    print(f"  output: {json.dumps(step['output'], ensure_ascii=False)}")
+                if step.get("valid") is not None:
+                    print(f"  valid: {step['valid']}")
+                if step.get("errors"):
+                    print(f"  errors: {step['errors']}")
+                if "compiled_params" in step:
+                    print(f"  compiled: tool={step.get('actual_tool')} params={json.dumps(step.get('compiled_params'), ensure_ascii=False)}")
+    elif debug and res.trace:
+        for step in res.trace:
+            stage = step.get("stage", "?")
+            print(f"\n  [DEBUG {stage.upper()}]", end="")
+            if stage == "retrieve":
+                tools = step.get("output", {}).get("tools", [])
+                if tools:
+                    names = [f"{t.get('domain')}::{t.get('tool_name')}" for t in tools[:3]]
+                    print(f" → 检索建议: {names}")
+                else:
+                    print(f" → (空)")
+            elif "output" in step:
+                print(f" → {json.dumps(step['output'], ensure_ascii=False)}")
+            else:
+                print()
+
     print(f"\n  ▶ domain:     {res.domain}")
     print(f"  ▶ intent:     {res.intent}")
     print(f"  ▶ tool:       {res.tool_name}")
@@ -470,7 +549,7 @@ def main():
                         help="对话上下文 memory_hint（可选）")
     args = parser.parse_args()
 
-    from config import cfg, make_vllm_config, make_planner
+    from config import cfg, make_vllm_config, make_planner, make_retrieve_config
 
     # 构造 client
     if args.live:
@@ -483,15 +562,13 @@ def main():
     if cfg.retrieve_enabled:
         print(f"[RETRIEVE] 检索层已开启: {cfg.retrieve_base_url}")
 
-    # 构造 planner
+    # 构造 planner —— 统一走 make_planner，verbose/debug 通过 trace 后处理实现
+    planner = make_planner(client)
+
     if args.verbose:
-        planner = VerbosePlanner(client)
         print("[VERBOSE] 已开启 verbose 模式（完整打印 LLM 输入输出）")
     elif args.debug:
-        planner = DebugPlanner(client)
         print("[DEBUG] 已开启 debug 模式")
-    else:
-        planner = make_planner(client)
 
     print()
 
@@ -499,7 +576,7 @@ def main():
     queries = [args.query] if args.query else DEMO_QUERIES
 
     for query in queries:
-        run_query(planner, query, debug=args.debug)
+        run_query(planner, query, debug=args.debug, verbose=args.verbose)
 
     # 多意图 demo（仅在无自定义 query 或自定义 query 含多意图信号时展示）
     if not args.query:

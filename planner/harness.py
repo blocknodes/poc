@@ -4,7 +4,7 @@
   * vod/educ 检索类：route → IR generate(约束解码) → validate(+自修复) → compile
     - vod_search 意图：compile 后根据字段子集自动选 vod_search 或 vod_search_all
     - vod_relate_search：compile 成 relate 格式（4 字段布尔 DSL）
-  * vod_slow_search_data_search：route → 直接结束，只传 query 原文
+  * vod_fuzzy_search：route → 直接结束，只传 query 原文
   * vod_personalized_search / vod_history：route → 独立 slot-fill
   * audio：route → audio slot-fill(约束解码) → compile
   * device：route → device slot-fill(约束解码) → compile
@@ -83,7 +83,8 @@ class Planner:
         if self.use_retrieve:
             self._retrieve_client = RetrieveClient(retrieve_config)
 
-    def plan(self, query: str, memory_hint: str = "") -> PlanResult:
+    def plan(self, query: str, memory_hint: str = "",
+             available_tools: Optional[list[str]] = None) -> PlanResult:
         agent = PlannerAgent(query, memory_hint=memory_hint, max_repairs=self.max_repairs,
                              vod_only=self.vod_only, educ_only=self.educ_only,
                              use_eb_prompt=self.use_eb_prompt)
@@ -107,7 +108,7 @@ class Planner:
         ]
 
         # ---- 阶段1：路由（约束解码）----
-        route_schema = build_route_schema(vod_only=self.vod_only, educ_only=self.educ_only)
+        route_schema = self._build_route_schema(retrieve_result, available_tools)
         route_raw = self.client.complete_json(messages, guided_json=route_schema)
         messages.append({"role": "assistant", "content": json.dumps(route_raw, ensure_ascii=False)})
         trace.append({
@@ -123,7 +124,7 @@ class Planner:
         # A) 慢链路：路由直接结束，只传 query
         if step.done and step.info.get("reason") == "slow_search_passthrough":
             return PlanResult(
-                tool_name=agent.routed_tool or "vod_slow_search_data_search",
+                tool_name=agent.routed_tool or "vod_fuzzy_search",
                 parameters={"query": query},
                 domain=agent.domain or "vod",
                 intent=agent.intent,
@@ -144,7 +145,8 @@ class Planner:
 
         # D) Device slot-fill
         if step.phase == "device":
-            return self._handle_device(agent, messages, step, trace, retrieve_result)
+            return self._handle_device(agent, messages, step, trace, retrieve_result,
+                                       available_tools)
 
         # E) IR 生成 + 校验自修复
         if step.phase == "ir":
@@ -162,7 +164,8 @@ class Planner:
         )
 
     def plan_multi(self, query: str, memory_hint: str = "",
-                   max_workers: int = 4) -> list[PlanResult]:
+                   max_workers: int = 4,
+                   available_tools: Optional[list[str]] = None) -> list[PlanResult]:
         """多意图规划：先做意图拆分，检测到多意图时并发 plan 各子请求。
 
         单意图时退化为 [plan(query)]，无额外开销（跳过拆分阶段）。
@@ -172,6 +175,7 @@ class Planner:
             query: 原始用户请求
             memory_hint: 对话上下文摘要
             max_workers: 并发规划子意图的最大线程数
+            available_tools: 可选，请求传入的可用工具名列表（用于收窄路由 schema）
 
         Returns:
             list[PlanResult]: 按子请求顺序排列的规划结果列表
@@ -194,14 +198,14 @@ class Planner:
 
         # 单意图 → 直接走原有 plan，避免不必要的开销
         if not is_multi or len(sub_queries) <= 1:
-            return [self.plan(query, memory_hint=memory_hint)]
+            return [self.plan(query, memory_hint=memory_hint, available_tools=available_tools)]
 
         # ---- 多意图并发规划 ----
         results: list[Optional[PlanResult]] = [None] * len(sub_queries)
         errors: list[Optional[Exception]] = [None] * len(sub_queries)
 
         def _plan_one(idx: int, sub_q: str) -> tuple[int, PlanResult]:
-            return idx, self.plan(sub_q, memory_hint=memory_hint)
+            return idx, self.plan(sub_q, memory_hint=memory_hint, available_tools=available_tools)
 
         with ThreadPoolExecutor(max_workers=min(max_workers, len(sub_queries))) as pool:
             futures = {
@@ -298,7 +302,8 @@ class Planner:
 
     def _handle_device(self, agent: PlannerAgent, messages: list, step,
                        trace: list[dict],
-                       retrieve_result: Optional[RetrieveResult] = None) -> PlanResult:
+                       retrieve_result: Optional[RetrieveResult] = None,
+                       available_tools: Optional[list[str]] = None) -> PlanResult:
         """设备域：slot-fill → compile_device。"""
         obs = step.next_observation
         # 注入检索提示
@@ -308,6 +313,12 @@ class Planner:
                 obs = obs + "\n\n" + hint
         messages.append({"role": "user", "content": obs})
         device_schema = build_device_schema()
+        # 硬约束：device schema 的 tool enum 只能是请求传入的工具
+        if available_tools:
+            import copy
+            device_schema = copy.deepcopy(device_schema)
+            # 直接用 available_tools，不做兜底
+            device_schema["properties"]["tool"]["enum"] = available_tools
         slot_raw = self.client.complete_json(messages, guided_json=device_schema)
         messages.append({"role": "assistant", "content": json.dumps(slot_raw, ensure_ascii=False)})
         trace.append({
@@ -335,7 +346,8 @@ class Planner:
                    trace: list[dict],
                    retrieve_result: Optional[RetrieveResult] = None) -> PlanResult:
         """IR 生成 + 校验自修复 + 编译。"""
-        ir_schema = build_ir_schema(agent.domain)
+        # 若检索层有结果，用其 parameter_ids 收窄 IR schema 的 field enum
+        ir_schema = self._build_ir_schema(agent.domain, retrieve_result)
         repair_round = 0
         while not step.done:
             obs = step.next_observation
@@ -405,22 +417,143 @@ class Planner:
     # 检索层辅助方法（use_retrieve=False 时不会被调用）
     # ===========================================================================
 
+    def _build_route_schema(self, retrieve_result: Optional[RetrieveResult],
+                            available_tools: Optional[list[str]] = None) -> dict:
+        """构建路由 schema，严格限制 tool enum 为请求传入的 toolList。
+
+        优先级：
+        1. available_tools（来自请求 toolList）→ 硬约束，只能选这些工具
+        2. retrieve_result → 在 available_tools 范围内进一步排序（可选）
+        """
+        base_schema = build_route_schema(vod_only=self.vod_only, educ_only=self.educ_only)
+
+        import copy
+        schema = copy.deepcopy(base_schema)
+        original_tools = schema["properties"]["tool"]["enum"]
+        original_domains = schema["properties"]["domain"]["enum"]
+
+        # 硬约束：只能选请求传入的工具
+        if available_tools:
+            # 直接用请求传入的工具列表（不管 planner 内部支不支持）
+            schema["properties"]["tool"]["enum"] = available_tools
+            # 同步收窄 domain：只保留包含可用工具的域
+            from .grammar import ROUTE_TOOLS
+            active_domains = set()
+            for domain_key, domain_tools in ROUTE_TOOLS.items():
+                if any(t in available_tools for t in domain_tools):
+                    active_domains.add(domain_key)
+            # 也检查 available_tools 里是否有设备工具（不在 ROUTE_TOOLS 的也算 device）
+            from .agent import DEVICE_TOOLS as AGENT_DEVICE_TOOLS
+            if any(t in AGENT_DEVICE_TOOLS for t in available_tools):
+                active_domains.add("device")
+            narrowed_domains = [d for d in original_domains if d in active_domains]
+            if narrowed_domains:
+                schema["properties"]["domain"]["enum"] = narrowed_domains
+
+        # 检索层进一步收窄（在 available_tools 硬约束后的基础上，可选）
+        if self.use_retrieve and retrieve_result and retrieve_result.tools:
+            retrieve_tools = [t.get("tool_name") for t in retrieve_result.tools if t.get("tool_name")]
+            current_tools = schema["properties"]["tool"]["enum"]
+            narrowed_tools = [t for t in retrieve_tools if t in current_tools]
+            if narrowed_tools:
+                schema["properties"]["tool"]["enum"] = narrowed_tools
+                _DOMAIN_MAP = {"影视": "vod", "少儿": "educ", "有声": "audio", "设备": "device"}
+                retrieve_domains = list(dict.fromkeys(
+                    _DOMAIN_MAP.get(t.get("domain", ""), t.get("domain", ""))
+                    for t in retrieve_result.tools if t.get("domain")
+                ))
+                current_domains = schema["properties"]["domain"]["enum"]
+                narrowed_domains = [d for d in retrieve_domains if d in current_domains]
+                if narrowed_domains:
+                    schema["properties"]["domain"]["enum"] = narrowed_domains
+
+        return schema
+
+    def _build_ir_schema(self, domain: str,
+                         retrieve_result: Optional[RetrieveResult]) -> dict:
+        """构建 IR schema，若检索层有结果则收窄 field enum 到检索建议的参数。"""
+        base_schema = build_ir_schema(domain)
+        if not self.use_retrieve or not retrieve_result or not retrieve_result.parameters:
+            return base_schema
+
+        # 提取检索建议的 parameter_ids（去重）
+        retrieve_params = list(dict.fromkeys(
+            p.get("parameter_id") for p in retrieve_result.parameters
+            if p.get("parameter_id")
+        ))
+        if not retrieve_params:
+            return base_schema
+
+        # 排除不适合放入 IR field 的系统参数（如 retext, action, query 是编译器处理的）
+        _SYSTEM_PARAMS = {"retext", "action", "query"}
+        ir_fields = [f for f in retrieve_params if f not in _SYSTEM_PARAMS]
+        if not ir_fields:
+            return base_schema
+
+        # 检索接口返回的是落地名（如 is_fee），schema 中用的是 canonical（如 fee）
+        # 建立双向映射以确保匹配
+        _LANDING_TO_CANONICAL = {
+            "is_fee": "fee",
+            "age_range": "age",
+            "release_time": "release_year",
+        }
+        # 将检索的落地名转为 canonical
+        ir_fields_canonical = []
+        for f in ir_fields:
+            canonical = _LANDING_TO_CANONICAL.get(f, f)
+            ir_fields_canonical.append(canonical)
+            # 同时保留原名（有些字段 canonical == landing）
+            if f != canonical:
+                ir_fields_canonical.append(f)
+        ir_fields_canonical = list(dict.fromkeys(ir_fields_canonical))  # 去重保序
+
+        # 收窄 schema 中 Leaf 的 field enum
+        import copy
+        schema = copy.deepcopy(base_schema)
+        defs = schema.get("$defs", {})
+        leaf = defs.get("Leaf", {})
+        if "oneOf" in leaf:
+            for variant in leaf["oneOf"]:
+                props = variant.get("properties", {})
+                field_prop = props.get("field", {})
+                if "enum" in field_prop:
+                    original_fields = field_prop["enum"]
+                    # 保留检索建议的 + 原始的交集
+                    narrowed = [f for f in original_fields if f in ir_fields_canonical]
+                    if narrowed:
+                        field_prop["enum"] = narrowed
+                    # 若交集为空则保留原始（兜底）
+
+        return schema
+
     def _build_route_observation(self, agent: PlannerAgent,
                                  retrieve_result: Optional[RetrieveResult]) -> str:
-        """构建路由阶段的 observation，可选注入检索提示。"""
+        """构建路由阶段的 observation，可选注入检索提示（tool + parameter + value）。"""
         obs = agent.first_observation()
         if not self.use_retrieve or not retrieve_result:
             return obs
+        parts: list[str] = []
         tool_hint = retrieve_result.format_tool_hint()
         if tool_hint:
-            obs = obs.rstrip() + "\n\n" + tool_hint + "\n（以上为检索系统参考建议，请结合语义综合判断。）"
+            parts.append(tool_hint)
+        param_hint = retrieve_result.format_parameter_hint()  # 不过滤 tool，全部展示
+        if param_hint:
+            parts.append(param_hint)
+        value_hint = retrieve_result.format_value_hint()
+        if value_hint:
+            parts.append(value_hint)
+        if parts:
+            obs = obs.rstrip() + "\n\n" + "\n".join(parts) + "\n（以上为检索系统参考建议，请结合语义综合判断。）"
         return obs
 
     def _build_retrieve_hint_for_ir(self, retrieve_result: RetrieveResult,
                                     tool_name: Optional[str]) -> str:
         """构建 IR 阶段的检索提示（参数 + 取值）。"""
         parts: list[str] = []
+        # 优先展示匹配当前工具的参数，若无则展示全部
         param_hint = retrieve_result.format_parameter_hint(tool_name=tool_name)
+        if not param_hint:
+            param_hint = retrieve_result.format_parameter_hint()
         if param_hint:
             parts.append(param_hint)
         value_hint = retrieve_result.format_value_hint()
