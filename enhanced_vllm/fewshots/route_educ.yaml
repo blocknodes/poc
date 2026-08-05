@@ -1,0 +1,107 @@
+version: "1.0"
+domain: educ
+stage: route
+description: "少儿单域路由 few-shot"
+
+shots:
+  # play — 有具体动画名
+  - query: "播放汪汪队立大功第2集"
+    response: {domain: educ, intent: play, tool: educ_search, confidence: 0.9}
+    tags: [play, title, episode]
+
+  - query: "我要看宝宝巴士"
+    response: {domain: educ, intent: play, tool: educ_search, confidence: 0.9}
+    tags: [play, title]
+
+  - query: "放小猪佩奇"
+    response: {domain: educ, intent: play, tool: educ_search, confidence: 0.9}
+    tags: [play, title]
+
+  - query: "播放小羊肖恩大电影"
+    response: {domain: educ, intent: play, tool: educ_search, confidence: 0.9}
+    tags: [play, title, movie]
+
+  - query: "打开超级飞侠第3季"
+    response: {domain: educ, intent: play, tool: educ_search, confidence: 0.9}
+    tags: [play, title, season]
+
+  # search — 条件筛选无具体片名
+  - query: "最好看的少儿动画"
+    response: {domain: educ, intent: search, tool: educ_search, confidence: 0.9}
+    tags: [search, sort]
+
+  - query: "拼音启蒙儿歌"
+    response: {domain: educ, intent: search, tool: educ_search, confidence: 0.9}
+    tags: [search, genre]
+
+  - query: "适合2岁小孩看的卡通"
+    response: {domain: educ, intent: search, tool: educ_search, confidence: 0.9}
+    tags: [search, age]
+
+  - query: "免费的英语启蒙动画"
+    response: {domain: educ, intent: search, tool: educ_search, confidence: 0.9}
+    tags: [search, fee, language]
+
+  - query: "国产动画片"
+    response: {domain: educ, intent: search, tool: educ_search, confidence: 0.9}
+    tags: [search, country]
+
+  - query: "适合6岁女孩看的公主动画"
+    response: {domain: educ, intent: search, tool: educ_search, confidence: 0.9}
+    tags: [search, age, gender]
+
+  # search — 有动词但无具体片名
+  - query: "我想看动画片"
+    response: {domain: educ, intent: search, tool: educ_search, confidence: 0.9}
+    tags: [search, verb_no_title]
+
+  - query: "我要看免费的动画"
+    response: {domain: educ, intent: search, tool: educ_search, confidence: 0.9}
+    tags: [search, verb_no_title, fee]
+
+  # slow_search — 模糊/语义/个性化
+  - query: "有没有亲子温情的动画视频"
+    response: {domain: educ, intent: slow_search, tool: educ_slow_search_data_search, confidence: 0.9}
+    tags: [slow_search, semantic]
+
+  - query: "讲述两只熊和伐木工搞笑打闹的动画片"
+    response: {domain: educ, intent: slow_search, tool: educ_slow_search_data_search, confidence: 0.9}
+    tags: [slow_search, plot_description]
+
+  - query: "根据我的喜好推荐动画片"
+    response: {domain: educ, intent: slow_search, tool: educ_slow_search_data_search, confidence: 0.9}
+    tags: [slow_search, personalized]
+
+  - query: "推荐我喜欢的动漫类型"
+    response: {domain: educ, intent: slow_search, tool: educ_slow_search_data_search, confidence: 0.9}
+    tags: [slow_search, personalized]
+
+  - query: "适合我看的少儿动画"
+    response: {domain: educ, intent: slow_search, tool: educ_slow_search_data_search, confidence: 0.9}
+    tags: [slow_search, personalized]
+
+  - query: "按我家娃的喜好推荐"
+    response: {domain: educ, intent: slow_search, tool: educ_slow_search_data_search, confidence: 0.9}
+    tags: [slow_search, personalized]
+
+  # relate — 必须有参考作品名
+  - query: "有没有像小猪佩奇那样语速慢的英文动画"
+    response: {domain: educ, intent: relate, tool: educ_relate_recommend, confidence: 0.9}
+    tags: [relate, title_ref]
+
+  - query: "和消防员山姆同一类型的动画片"
+    response: {domain: educ, intent: relate, tool: educ_relate_recommend, confidence: 0.9}
+    tags: [relate, title_ref]
+
+  - query: "类似汪汪队的动画"
+    response: {domain: educ, intent: relate, tool: educ_relate_recommend, confidence: 0.9}
+    tags: [relate, title_ref]
+
+  # history
+  - query: "回到刚才看的那个英文绘本"
+    response: {domain: educ, intent: history, tool: educ_history, confidence: 0.9}
+    tags: [history]
+
+  - query: "历史收藏里的动画片"
+    response: {domain: educ, intent: history, tool: educ_history, confidence: 0.9}
+    tags: [history, collection]

@@ -268,7 +268,7 @@ class Planner:
     def _handle_audio(self, agent: PlannerAgent, messages: list, step,
                       trace: list[dict],
                       retrieve_result: Optional[RetrieveResult] = None) -> PlanResult:
-        """有声域：slot-fill → compile_audio。"""
+        """有声域：slot-fill（compile/EB 由中间层完成）。"""
         obs = step.next_observation
         # 注入检索提示
         if retrieve_result and self.use_retrieve:
@@ -277,25 +277,32 @@ class Planner:
                 obs = obs + "\n\n" + hint
         messages.append({"role": "user", "content": obs})
         audio_schema = build_audio_schema()
-        slot_raw = self.client.complete_json(messages, guided_json=audio_schema)
-        messages.append({"role": "assistant", "content": json.dumps(slot_raw, ensure_ascii=False)})
+        result = self.client.complete_json(messages, guided_json=audio_schema)
+        messages.append({"role": "assistant", "content": json.dumps(result, ensure_ascii=False)})
         trace.append({
             "stage": "audio_slot_fill",
             "messages": [m.copy() for m in messages],
             "guided_json": audio_schema,
-            "output": slot_raw,
+            "output": result,
         })
-        step = agent.observe(slot_raw)
+        step = agent.observe(result)
 
-        slot_fill = agent.slot_fill or {}
-        tool_name, params = compile_audio(slot_fill)
+        # 中间层已完成 compile_audio，返回的是 {tool_name, parameters}
+        # 兼容两种格式：中间层处理后 vs 裸 vLLM 原始 slot
+        if "tool_name" in result:
+            tool_name = result["tool_name"]
+            params = result.get("parameters", {})
+        else:
+            # fallback: 裸 vLLM 模式，上层自己 compile
+            slot_fill = agent.slot_fill or {}
+            tool_name, params = compile_audio(slot_fill)
 
         return PlanResult(
             tool_name=tool_name,
             parameters=params,
             domain="audio",
             intent=agent.intent,
-            slot_fill=slot_fill,
+            slot_fill=agent.slot_fill,
             route_confidence=agent.confidence,
             trace=trace,
         )
@@ -304,7 +311,7 @@ class Planner:
                        trace: list[dict],
                        retrieve_result: Optional[RetrieveResult] = None,
                        available_tools: Optional[list[str]] = None) -> PlanResult:
-        """设备域：slot-fill → compile_device。"""
+        """设备域：slot-fill（compile/EB 由中间层完成）。"""
         obs = step.next_observation
         # 注入检索提示
         if retrieve_result and self.use_retrieve:
@@ -317,27 +324,33 @@ class Planner:
         if available_tools:
             import copy
             device_schema = copy.deepcopy(device_schema)
-            # 直接用 available_tools，不做兜底
             device_schema["properties"]["tool"]["enum"] = available_tools
-        slot_raw = self.client.complete_json(messages, guided_json=device_schema)
-        messages.append({"role": "assistant", "content": json.dumps(slot_raw, ensure_ascii=False)})
+        result = self.client.complete_json(messages, guided_json=device_schema)
+        messages.append({"role": "assistant", "content": json.dumps(result, ensure_ascii=False)})
         trace.append({
             "stage": "device_slot_fill",
             "messages": [m.copy() for m in messages],
             "guided_json": device_schema,
-            "output": slot_raw,
+            "output": result,
         })
-        step = agent.observe(slot_raw)
+        step = agent.observe(result)
 
-        slot_fill = agent.slot_fill or {}
-        tool_name, params = compile_device(slot_fill, query=agent.query)
+        # 中间层已完成 compile_device + EB，返回 {tool_name, parameters}
+        # 兼容两种格式
+        if "tool_name" in result:
+            tool_name = result["tool_name"]
+            params = result.get("parameters", {})
+        else:
+            # fallback: 裸 vLLM 模式
+            slot_fill = agent.slot_fill or {}
+            tool_name, params = compile_device(slot_fill, query=agent.query)
 
         return PlanResult(
             tool_name=tool_name,
             parameters=params,
             domain="device",
             intent=agent.intent,
-            slot_fill=slot_fill,
+            slot_fill=agent.slot_fill,
             route_confidence=agent.confidence,
             trace=trace,
         )
@@ -345,7 +358,7 @@ class Planner:
     def _handle_ir(self, agent: PlannerAgent, messages: list, step, query: str,
                    trace: list[dict],
                    retrieve_result: Optional[RetrieveResult] = None) -> PlanResult:
-        """IR 生成 + 校验自修复 + 编译。"""
+        """IR 生成（validate + 自修复 + compile + EB 全部由中间层完成）。"""
         # 若检索层有结果，用其 parameter_ids 收窄 IR schema 的 field enum
         ir_schema = self._build_ir_schema(agent.domain, retrieve_result)
         repair_round = 0
@@ -357,27 +370,45 @@ class Planner:
                 if hint:
                     obs = obs + "\n\n" + hint
             messages.append({"role": "user", "content": obs})
-            ir_raw = self.client.complete_json(messages, guided_json=ir_schema)
-            messages.append({"role": "assistant", "content": json.dumps(ir_raw, ensure_ascii=False)})
+            result = self.client.complete_json(messages, guided_json=ir_schema)
+            messages.append({"role": "assistant", "content": json.dumps(result, ensure_ascii=False)})
             stage_name = "ir_generate" if repair_round == 0 else f"ir_repair_{repair_round}"
             trace.append({
                 "stage": stage_name,
                 "messages": [m.copy() for m in messages],
                 "guided_json": ir_schema,
-                "output": ir_raw,
-                "valid": None,  # 暂存，下面更新
-                "errors": None,
+                "output": result,
             })
-            step = agent.observe(ir_raw)
-            # 回填校验结果
+
+            # 中间层返回 {tool_name, parameters} 表示已完成 compile
+            # 返回 IR 原始结构则需要上层继续处理
+            if "tool_name" in result:
+                # 中间层已完成全部后处理（validate + 自修复 + compile + EB）
+                trace[-1]["valid"] = True
+                trace[-1]["errors"] = []
+                return PlanResult(
+                    tool_name=result["tool_name"],
+                    parameters=result.get("parameters", {}),
+                    domain=agent.domain,
+                    intent=agent.intent,
+                    ir=result.get("raw_ir"),  # 中间层可能附带
+                    repairs=0,
+                    route_confidence=agent.confidence,
+                    notes=[],
+                    trace=trace,
+                )
+
+            # fallback: 裸 vLLM 模式（中间层关闭后处理时）
+            step = agent.observe(result)
             trace[-1]["valid"] = agent.ir_valid
             trace[-1]["errors"] = agent.errs if not agent.ir_valid else []
             repair_round += 1
 
+        # 如果走到这里说明是裸 vLLM 模式，上层自己做 compile
         if not agent.ir_valid:
             raise IRError("IR 校验在最大重试后仍失败: " + "; ".join(agent.errs))
 
-        # 编译
+        # 编译（fallback 路径）
         ir = parse_ir(agent.final_ir, domain_hint=agent.domain)
         try:
             actual_tool, params = compile_with_fallback(
@@ -386,7 +417,6 @@ class Planner:
         except CompileError as e:
             raise CompileError(f"IR 编译失败: {e}") from e
 
-        # 记录编译结果到 trace
         trace.append({
             "stage": "compile",
             "input_ir": agent.final_ir,

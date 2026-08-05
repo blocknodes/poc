@@ -1,0 +1,134 @@
+version: "1.0"
+domain: device
+stage: slot_fill
+description: "设备域 slot-fill few-shot"
+
+shots:
+  # numeric_adjust 幅值
+  - query: "声音大一点"
+    response: {tool: numeric_adjust, operation: "提高", object: "音量"}
+    tags: [numeric, volume, increase]
+
+  - query: "把音量调到30"
+    response: {tool: numeric_adjust, operation: "设置", object: "音量", value: "30"}
+    tags: [numeric, volume, set_value]
+
+  - query: "亮度调到50"
+    response: {tool: numeric_adjust, operation: "设置", object: "亮度", value: "50"}
+    tags: [numeric, brightness, set_value]
+
+  - query: "打开高刷新率"
+    response: {tool: numeric_adjust, operation: "打开", object: "高刷新率"}
+    tags: [numeric, refresh_rate]
+
+  # power / timer
+  - query: "关机"
+    response: {tool: power_control, operation: "打开", object: "关机"}
+    tags: [power, off]
+
+  - query: "把电视关了"
+    response: {tool: power_control, operation: "打开", object: "关机"}
+    tags: [power, off, colloquial]
+
+  - query: "开机"
+    response: {tool: power_control, operation: "打开", object: "开机"}
+    tags: [power, on]
+
+  - query: "30分钟后关机"
+    response: {tool: timer_control, operation: "打开", object: "关机", date_time: "30分钟"}
+    tags: [timer, off, duration]
+
+  - query: "晚上10点关机"
+    response: {tool: timer_control, operation: "打开", object: "关机", date_time: "22:00"}
+    tags: [timer, off, clock]
+
+  # source_switch
+  - query: "切换到HDMI1"
+    response: {tool: source_switch, operation: "设置", object: "信号源", value: "HDMI1"}
+    tags: [source, hdmi]
+
+  - query: "打开前置HDMI"
+    response: {tool: source_switch, operation: "设置", object: "信号源", value: "前置HDMI"}
+    tags: [source, hdmi, front]
+
+  # playback
+  - query: "快进10秒"
+    response: {tool: playback_control, operation: "快进", value: "10秒"}
+    tags: [playback, fast_forward]
+
+  - query: "暂停"
+    response: {tool: playback_control, operation: "停止", object: "播放控制"}
+    tags: [playback, pause]
+
+  # mode
+  - query: "声音模式切换到影院模式"
+    response: {tool: mode_control, operation: "设置", object: "声音模式", value: "影院模式"}
+    tags: [mode, sound, set]
+
+  # screen_layout / lift
+  - query: "打开分屏"
+    response: {tool: screen_layout, operation: "打开", object: "分屏"}
+    tags: [screen, split]
+
+  - query: "画面缩小"
+    response: {tool: screen_layout, operation: "缩小", object: "画面"}
+    tags: [screen, resize]
+
+  - query: "打开竖屏短视频"
+    response: {tool: screen_lift_rotation, operation: "打开", object: "竖屏短视频"}
+    tags: [screen, rotation, vertical]
+
+  # display / audio / demo / camera / screensaver / common
+  - query: "打开背光分区"
+    response: {tool: display_control, operation: "打开", object: "背光分区"}
+    tags: [display, backlight]
+
+  - query: "打开全程HDR"
+    response: {tool: display_control, operation: "打开", object: "全程HDR"}
+    tags: [display, hdr]
+
+  - query: "打开WAVES音效"
+    response: {tool: audio_control, operation: "打开", object: "WAVES音效"}
+    tags: [audio, effect]
+
+  - query: "打开杜比全景声"
+    response: {tool: audio_control, operation: "打开", object: "杜比全景声"}
+    tags: [audio, dolby]
+
+  - query: "打开demo演示"
+    response: {tool: demo_control, operation: "打开", object: "demo演示"}
+    tags: [demo]
+
+  - query: "打开智慧之眼"
+    response: {tool: smart_camera, operation: "打开", object: "智慧之眼"}
+    tags: [camera, ai]
+
+  - query: "打开ai壁纸"
+    response: {tool: screensaver_control, operation: "打开", object: "ai壁纸"}
+    tags: [screensaver, wallpaper]
+
+  - query: "打开NAS私有云"
+    response: {tool: common_control, operation: "打开", object: "NAS私有云"}
+    tags: [common, nas]
+
+  - query: "打开蓝牙"
+    response: {tool: common_control, operation: "打开", object: "蓝牙设置"}
+    tags: [common, bluetooth]
+
+  # network
+  - query: "打开无线网络"
+    response: {tool: network_control, operation: "打开", object: "无线网络"}
+    tags: [network, wifi]
+
+  - query: "打开wifi"
+    response: {tool: network_control, operation: "打开", object: "网络设置"}
+    tags: [network, wifi]
+
+  # solve_picture_sound_problem_control
+  - query: "画面颜色太鲜艳了帮我调节一下"
+    response: {tool: solve_picture_sound_problem_control, intent: colors_oversaturated}
+    tags: [picture_sound, color, oversaturated]
+
+  - query: "人声听不清楚"
+    response: {tool: solve_picture_sound_problem_control, intent: voice_not_clear}
+    tags: [picture_sound, voice]

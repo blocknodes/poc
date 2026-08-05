@@ -1,0 +1,19 @@
+version: "1.0"
+domain: vod
+stage: ir
+description: "影视 IR 生成 few-shot（覆盖易错模式）"
+
+shots:
+  # 基础 search
+  - query: "我想看周星驰的免费喜剧"
+    response:
+      domain: vod
+      action: search
+      query:
+        and:
+          - {field: actor, value: "周星驰"}
+          - {field: category, value: "电影"}
+          - {field: tag, value: "喜剧"}
+          - {field: fee, value: 0}
+    tags: [search, actor, category, tag, fee]
+

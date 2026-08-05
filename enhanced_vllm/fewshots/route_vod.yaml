@@ -1,0 +1,118 @@
+version: "1.0"
+domain: vod
+stage: route
+description: "影视单域路由 few-shot"
+
+shots:
+  # search — 条件筛选
+  - query: "周润发的动作电影"
+    response: {domain: vod, intent: search, tool: vod_search, confidence: 0.9}
+    tags: [search, actor, category]
+
+  - query: "NHK纪录片"
+    response: {domain: vod, intent: search, tool: vod_search, confidence: 0.9}
+    tags: [search, company, category]
+
+  - query: "高清欧美科幻电影"
+    response: {domain: vod, intent: search, tool: vod_search, confidence: 0.9}
+    tags: [search, area, tag]
+
+  - query: "获得百花奖最佳女主角的电影"
+    response: {domain: vod, intent: search, tool: vod_search, confidence: 0.9}
+    tags: [search, prize]
+
+  - query: "热门综艺"
+    response: {domain: vod, intent: search, tool: vod_search, confidence: 0.9}
+    tags: [search, category, sort]
+
+  # play — 有具体片名
+  - query: "播放甄嬛传第二季第三集"
+    response: {domain: vod, intent: play, tool: vod_search, confidence: 0.9}
+    tags: [play, title, playback]
+
+  - query: "放琅琊榜"
+    response: {domain: vod, intent: play, tool: vod_search, confidence: 0.9}
+    tags: [play, title]
+
+  - query: "我想看京剧霸王别姬"
+    response: {domain: vod, intent: play, tool: vod_search, confidence: 0.9}
+    tags: [play, title, tag]
+
+  - query: "我要看速度与激情第30分钟"
+    response: {domain: vod, intent: play, tool: vod_search, confidence: 0.9}
+    tags: [play, title, voiceStartPos]
+
+  - query: "收看浙江卫视的奔跑吧兄弟"
+    response: {domain: vod, intent: play, tool: vod_search, confidence: 0.9}
+    tags: [play, title, channel]
+
+  # search — 有动词但无具体片名
+  - query: "打开付费的电视剧"
+    response: {domain: vod, intent: search, tool: vod_search, confidence: 0.9}
+    tags: [search, verb_no_title]
+
+  - query: "播放科幻电视剧"
+    response: {domain: vod, intent: search, tool: vod_search, confidence: 0.9}
+    tags: [search, verb_no_title]
+
+  - query: "我想看美剧"
+    response: {domain: vod, intent: search, tool: vod_search, confidence: 0.9}
+    tags: [search, verb_no_title]
+
+  - query: "我要看免费的电视剧"
+    response: {domain: vod, intent: search, tool: vod_search, confidence: 0.9}
+    tags: [search, verb_no_title]
+
+  - query: "看热门高分电影"
+    response: {domain: vod, intent: search, tool: vod_search, confidence: 0.9}
+    tags: [search, verb_no_title, sort]
+
+  # search — 有集数但无播放动词
+  - query: "搜下庆余年第二季"
+    response: {domain: vod, intent: search, tool: vod_search, confidence: 0.9}
+    tags: [search, title, season]
+
+  # search — 找/搜索
+  - query: "免费的武侠剧天龙八部"
+    response: {domain: vod, intent: search, tool: vod_search, confidence: 0.9}
+    tags: [search, title, fee]
+
+  # slow_search
+  - query: "骑着白马的王子的电影"
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
+    tags: [slow_search, semantic]
+
+  - query: "西游记86版的"
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
+    tags: [slow_search, version]
+
+  - query: "适合情侣看的电影"
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
+    tags: [slow_search, audience]
+
+  - query: "孙俪老公的电影"
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
+    tags: [slow_search, relation_ref]
+
+  - query: "黄晓明前妻的电视剧"
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
+    tags: [slow_search, relation_ref]
+
+  - query: "成龙儿子演的片"
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
+    tags: [slow_search, relation_ref]
+
+  # relate
+  - query: "类似流浪地球的电影"
+    response: {domain: vod, intent: relate, tool: vod_relate_search, confidence: 0.9}
+    tags: [relate, title]
+
+  # personalized
+  - query: "根据我的喜好推荐电影"
+    response: {domain: vod, intent: personalized, tool: vod_personalized_search, confidence: 0.9}
+    tags: [personalized]
+
+  # history
+  - query: "我最近看了什么电视剧"
+    response: {domain: vod, intent: history, tool: vod_history, confidence: 0.9}
+    tags: [history]
