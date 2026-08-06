@@ -2,14 +2,18 @@
 from __future__ import annotations
 
 
-def route_schema() -> dict:
-    """路由 schema。"""
+def route_schema(available_tools: list[str] | None = None) -> dict:
+    """路由 schema。当传入 available_tools 时，tool 字段约束为枚举。"""
+    tool_prop: dict = {"type": "string"}
+    if available_tools:
+        tool_prop["enum"] = available_tools
+
     return {
         "type": "object",
         "properties": {
             "domain": {"type": "string", "enum": ["vod", "educ", "audio", "device"]},
             "intent": {"type": "string"},
-            "tool": {"type": "string"},
+            "tool": tool_prop,
             "confidence": {"type": "number"},
         },
         "required": ["domain", "tool", "confidence"],
@@ -45,12 +49,16 @@ def audio_schema() -> dict:
     }
 
 
-def device_schema() -> dict:
-    """Device slot-fill schema。"""
+def device_schema(available_tools: list[str] | None = None) -> dict:
+    """Device slot-fill schema。当传入 available_tools 时，tool 字段约束为枚举。"""
+    tool_prop: dict = {"type": "string"}
+    if available_tools:
+        tool_prop["enum"] = available_tools
+
     return {
         "type": "object",
         "properties": {
-            "tool": {"type": "string"},
+            "tool": tool_prop,
             "operation": {"type": "string"},
             "object": {"type": "string"},
             "value": {"type": "string"},

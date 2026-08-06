@@ -2,8 +2,8 @@
 from __future__ import annotations
 
 
-def route_system_prompt() -> str:
-    return """你是一个智能电视助手的意图路由器。
+def route_system_prompt(available_tools: list[str] | None = None) -> str:
+    base = """你是一个智能电视助手的意图路由器。
 根据用户请求，判断所属域和应使用的工具。
 输出 JSON：{"domain": "...", "intent": "...", "tool": "...", "confidence": 0.0~1.0}
 
@@ -12,6 +12,12 @@ def route_system_prompt() -> str:
 - educ：少儿/教育内容
 - audio：有声内容（有声书、播客、音乐）
 - device：设备控制（音量、亮度、电源、网络、信号源等）"""
+
+    if available_tools:
+        tool_list_str = "、".join(available_tools)
+        base += f"\n\n【重要】你只能从以下工具中选择，不得输出列表之外的工具名：\n{tool_list_str}"
+
+    return base
 
 
 def route_user_prompt(query: str, memory_hint: str = "") -> str:

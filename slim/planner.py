@@ -65,10 +65,10 @@ class Planner:
 
         # ---- 1. 路由 ----
         messages = [
-            {"role": "system", "content": route_system_prompt()},
+            {"role": "system", "content": route_system_prompt(available_tools=available_tools)},
             {"role": "user", "content": route_user_prompt(query, memory_hint)},
         ]
-        route = self.client.complete(messages, guided_json=route_schema())
+        route = self.client.complete(messages, guided_json=route_schema(available_tools=available_tools))
 
         domain = route.get("domain", "")
         tool = route.get("tool", "")
@@ -88,7 +88,7 @@ class Planner:
 
         elif domain == "device":
             messages.append({"role": "user", "content": device_user_prompt(query, memory_hint)})
-            result = self.client.complete(messages, guided_json=device_schema())
+            result = self.client.complete(messages, guided_json=device_schema(available_tools=available_tools))
 
         else:
             return PlanResult(
