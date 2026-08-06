@@ -17,6 +17,7 @@ def route_schema(available_tools: list[str] | None = None) -> dict:
             "confidence": {"type": "number"},
         },
         "required": ["domain", "tool", "confidence"],
+        "additionalProperties": False,
     }
 
 
@@ -50,7 +51,8 @@ def audio_schema() -> dict:
 
 
 def device_schema(available_tools: list[str] | None = None) -> dict:
-    """Device slot-fill schema。当传入 available_tools 时，tool 字段约束为枚举。"""
+    """Device slot-fill schema。当传入 available_tools 时，tool 字段约束为枚举。
+    使用 additionalProperties: false 防止模型输出额外字段。"""
     tool_prop: dict = {"type": "string"}
     if available_tools:
         tool_prop["enum"] = available_tools
@@ -65,6 +67,7 @@ def device_schema(available_tools: list[str] | None = None) -> dict:
             "date_time": {"type": "string"},
         },
         "required": ["tool", "operation", "object"],
+        "additionalProperties": False,
     }
 
 

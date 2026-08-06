@@ -36,6 +36,9 @@ app = FastAPI(title="slow_agent", version="1.0.0")
 _planner: Optional[Planner] = None
 
 
+_enable_multi_intent: bool = False
+
+
 @app.on_event("startup")
 async def on_startup():
     global _planner
@@ -79,11 +82,18 @@ async def slow_agent(request: Request):
     # 提取 memory_hint
     memory_hint = _extract_memory(data)
 
-    logger.info(f"[{trace_id}] query='{query}'")
+    # 多意图拆分开关（请求级 > 启动参数级）
+    enable_multi = data.get("enableMultiIntent", _enable_multi_intent)
+
+    logger.info(f"[{trace_id}] query='{query}' tools={available_tools or '(all)'} multi={enable_multi}")
 
     try:
-        results = _planner.plan_multi(query, memory_hint=memory_hint,
-                                      available_tools=available_tools)
+        if enable_multi:
+            results = _planner.plan_multi(query, memory_hint=memory_hint,
+                                          available_tools=available_tools)
+        else:
+            results = [_planner.plan(query, memory_hint=memory_hint,
+                                     available_tools=available_tools)]
     except Exception as e:
         elapsed = time.time() - start
         logger.error(f"[{trace_id}] ERROR ({elapsed:.2f}s): {e}")
@@ -148,16 +158,21 @@ async def health():
 
 
 def main():
+    global _enable_multi_intent
     parser = argparse.ArgumentParser(description="慢任务接口")
     parser.add_argument("--host", default="0.0.0.0")
     parser.add_argument("--port", type=int, default=8082)
     parser.add_argument("--debug", action="store_true", help="打印每次 vLLM 调用的输入输出")
+    parser.add_argument("--enable-multi-intent", action="store_true",
+                        help="全局开启多意图拆分（请求体 enableMultiIntent 可覆盖）")
     args = parser.parse_args()
 
     if args.debug:
         os.environ["DEBUG"] = "1"
 
-    logger.info(f"server: {args.host}:{args.port} debug={args.debug}")
+    _enable_multi_intent = args.enable_multi_intent
+
+    logger.info(f"server: {args.host}:{args.port} debug={args.debug} multi_intent={_enable_multi_intent}")
     uvicorn.run(app, host=args.host, port=args.port, log_level="info")
 
 

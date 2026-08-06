@@ -102,6 +102,22 @@ shots:
     response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
     tags: [slow_search, relation_ref]
 
+  - query: "流浪地球里最帅的人是谁"
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
+    tags: [slow_search, content_qa]
+
+  - query: "琅琊榜的大结局是什么"
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
+    tags: [slow_search, content_qa]
+
+  - query: "战狼2的票房是多少"
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
+    tags: [slow_search, content_qa]
+
+  - query: "甄嬛传里演皇后的是谁"
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
+    tags: [slow_search, content_qa]
+
   # relate
   - query: "类似流浪地球的电影"
     response: {domain: vod, intent: relate, tool: vod_relate_search, confidence: 0.9}

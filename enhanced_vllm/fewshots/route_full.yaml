@@ -14,12 +14,24 @@ shots:
     tags: [vod, play, title, playback]
 
   - query: "骑着蓝色大鸟的人的电影"
-    response: {domain: vod, intent: slow_search, tool: vod_slow_search_data_search, confidence: 0.9}
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
     tags: [vod, slow_search, semantic]
 
   - query: "孙俪老公的电影"
-    response: {domain: vod, intent: slow_search, tool: vod_slow_search_data_search, confidence: 0.9}
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
     tags: [vod, slow_search, relation_ref]
+
+  - query: "流浪地球里最帅的人是谁"
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
+    tags: [vod, slow_search, content_qa]
+
+  - query: "甄嬛传里演皇后的是谁"
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
+    tags: [vod, slow_search, content_qa]
+
+  - query: "战狼2票房多少"
+    response: {domain: vod, intent: slow_search, tool: vod_fuzzy_search, confidence: 0.9}
+    tags: [vod, slow_search, content_qa]
 
   - query: "类似流浪地球的电影"
     response: {domain: vod, intent: relate, tool: vod_relate_search, confidence: 0.9}

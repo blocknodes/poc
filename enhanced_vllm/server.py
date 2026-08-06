@@ -79,11 +79,39 @@ class ServerConfig:
     host: str = "0.0.0.0"
     port: int = 9000
     max_repairs: int = 2
+    debug: bool = False
 
 
 _cfg: Optional[ServerConfig] = None
 _backend: Optional[VLLMClient] = None
 _http_client: Optional[httpx.AsyncClient] = None
+
+
+# ==========================================================================
+# Debug 日志
+# ==========================================================================
+
+def _debug_log_request(request_id: str, stage: str, messages: list[dict],
+                       guided_json: Optional[dict], upstream_tool_enum: Optional[list[str]]):
+    """debug 模式下打印发给后端 vLLM 的完整请求信息。"""
+    print(f"\n{'─'*60}")
+    print(f"  [{request_id}] stage={stage} → backend")
+    if upstream_tool_enum:
+        print(f"  upstream_tool_enum: {upstream_tool_enum}")
+    print(f"  messages ({len(messages)} 条):")
+    for i, m in enumerate(messages):
+        content = m.get("content", "")
+        preview = content[:300].replace("\n", "\\n") + ("..." if len(content) > 300 else "")
+        print(f"    [{i}] {m['role']}: {preview}")
+    if guided_json:
+        schema_str = json.dumps(guided_json, ensure_ascii=False)
+        print(f"  guided_json: {schema_str[:400]}{'...' if len(schema_str) > 400 else ''}")
+    print(f"{'─'*60}")
+
+
+def _debug_log_response(request_id: str, stage: str, raw_output: dict):
+    """debug 模式下打印后端 vLLM 返回的原始结果。"""
+    print(f"  [{request_id}] raw_output: {json.dumps(raw_output, ensure_ascii=False)[:500]}")
 
 
 # ==========================================================================
@@ -163,12 +191,43 @@ def _inject_eb_prompt(stage: str, messages: list[dict]) -> list[dict]:
 
     只影响发给后端 vLLM 的 messages，上层完全不感知。
     """
+    if stage == "route":
+        return _inject_route_eb_prompt(messages)
     if stage == "ir":
         return _inject_ir_eb_prompt(messages)
     if stage == "device":
         return _inject_device_eb_prompt(messages)
     # 其他阶段不注入
     return messages
+
+
+def _inject_route_eb_prompt(messages: list[dict]) -> list[dict]:
+    """Route 阶段：用完整的 route_system_prompt（含规则+few-shot）替换 system message，
+    用 route_observation 替换 user message。"""
+    from prompts import route_system_prompt, route_observation
+
+    query = _extract_query_from_messages(messages)
+    # 从 user message 中提取 memory_hint（如有）
+    memory_hint = ""
+    for msg in messages:
+        if msg.get("role") == "user":
+            content = msg.get("content", "")
+            if "上下文：" in content:
+                memory_hint = content.split("上下文：", 1)[1].split("\n")[0].strip()
+            break
+
+    enhanced = list(messages)
+    # 替换 system prompt 为完整版（含规则 + few-shot）
+    for i, msg in enumerate(enhanced):
+        if msg.get("role") == "system":
+            enhanced[i] = {"role": "system", "content": route_system_prompt()}
+            break
+    # 替换 user message 为标准 route_observation
+    for i in range(len(enhanced) - 1, -1, -1):
+        if enhanced[i].get("role") == "user":
+            enhanced[i] = {"role": "user", "content": route_observation(query, memory_hint)}
+            break
+    return enhanced
 
 
 def _inject_ir_eb_prompt(messages: list[dict]) -> list[dict]:
@@ -218,7 +277,8 @@ def _inject_device_eb_prompt(messages: list[dict]) -> list[dict]:
 # ==========================================================================
 
 def _postprocess(stage: str, raw_output: dict, messages: list[dict],
-                 guided_json: Optional[dict]) -> dict:
+                 guided_json: Optional[dict],
+                 upstream_tool_enum: Optional[list[str]] = None) -> dict:
     """对模型原始输出做后处理。
 
     - route / intent_split：无需后处理，直接返回
@@ -237,6 +297,14 @@ def _postprocess(stage: str, raw_output: dict, messages: list[dict],
         # 需要原始 query 来做 compile_device
         query = _extract_query_from_messages(messages)
         tool_name, params = compile_device(raw_output, query=query)
+        # 如果上游有 tool 枚举约束，确保输出在范围内
+        if upstream_tool_enum and tool_name not in upstream_tool_enum:
+            # 尝试用模型路由结果（来自上游 guided_json 约束的 tool 字段）
+            model_tool = raw_output.get("tool", "")
+            if model_tool in upstream_tool_enum:
+                tool_name = model_tool
+            else:
+                tool_name = upstream_tool_enum[0]
         return {"tool_name": tool_name, "parameters": params}
 
     if stage == "ir":
@@ -245,11 +313,25 @@ def _postprocess(stage: str, raw_output: dict, messages: list[dict],
     return raw_output
 
 
+def _extract_domain(messages: list[dict]) -> str:
+    """从 messages 的 assistant 回复中提取路由阶段的 domain。"""
+    for msg in messages:
+        if msg.get("role") == "assistant":
+            try:
+                data = json.loads(msg.get("content", ""))
+                if "domain" in data:
+                    return data["domain"]
+            except (json.JSONDecodeError, TypeError):
+                pass
+    return ""
+
+
 def _postprocess_ir(raw_output: dict, messages: list[dict],
                     guided_json: Optional[dict]) -> dict:
     """IR 后处理：validate → 自修复 → compile + EB。"""
     query = _extract_query_from_messages(messages)
-    domain = raw_output.get("domain", "vod")
+    # domain 优先从 raw_output 取，没有则从路由阶段的 messages 中提取
+    domain = raw_output.get("domain") or _extract_domain(messages) or "vod"
     # 从 messages 历史里提取 routed_tool（路由结果通常在前面的 assistant message 里）
     routed_tool = _extract_routed_tool(messages)
     intent = _extract_intent(messages)
@@ -263,7 +345,11 @@ def _postprocess_ir(raw_output: dict, messages: list[dict],
 
     if not errs:
         # 校验通过，直接 compile
-        actual_tool, params = compile_with_fallback(ir, routed_tool, retext=query, intent=intent)
+        try:
+            actual_tool, params = compile_with_fallback(ir, routed_tool, retext=query, intent=intent)
+        except Exception:
+            # 路由工具不在 IR 编译器管辖范围（upstream tool 硬约束导致），返回空
+            return {"tool_name": "", "parameters": {}}
         return {"tool_name": actual_tool, "parameters": params}
 
     # 校验失败：自修复
@@ -284,7 +370,10 @@ def _postprocess_ir(raw_output: dict, messages: list[dict],
             errs = [str(e)]
 
         if not errs:
-            actual_tool, params = compile_with_fallback(ir, routed_tool, retext=query, intent=intent)
+            try:
+                actual_tool, params = compile_with_fallback(ir, routed_tool, retext=query, intent=intent)
+            except Exception:
+                return {"tool_name": "", "parameters": {}}
             return {"tool_name": actual_tool, "parameters": params}
 
         logger.info(f"IR repair #{attempt+1} failed: {errs}")
@@ -295,7 +384,7 @@ def _postprocess_ir(raw_output: dict, messages: list[dict],
         actual_tool, params = compile_with_fallback(ir, routed_tool, retext=query, intent=intent)
         return {"tool_name": actual_tool, "parameters": params}
     except Exception:
-        return raw_output  # 兜底返回原始输出
+        return {"tool_name": "", "parameters": {}}
 
 
 def _extract_query_from_messages(messages: list[dict]) -> str:
@@ -377,24 +466,48 @@ async def chat_completions(request: Request):
         # 1. 识别阶段
         stage = _detect_stage(messages, guided_json)
 
-        # 2. 用中间层内部的完整 schema（上层传的仅用于阶段识别）
+        # 2. schema 选择策略：
+        #    - 上游传了 guided_json 且含有 tool enum 约束：尊重上游约束
+        #    - 上游没传或没约束：用中间层内部的完整 schema
+        upstream_tool_enum = None
+        if guided_json:
+            upstream_tool_enum = (guided_json.get("properties") or {}).get("tool", {}).get("enum")
+
         full_schema = _auto_schema(stage, messages)
         if full_schema:
+            if upstream_tool_enum:
+                # 上游有 tool 枚举约束，合并到内部 schema 中
+                full_schema = copy.deepcopy(full_schema)
+                if "tool" in full_schema.get("properties", {}):
+                    full_schema["properties"]["tool"]["enum"] = upstream_tool_enum
             guided_json = full_schema
 
         # 3. 注入 EB prompt 层规则（对上层透明）
         enhanced_messages = _inject_eb_prompt(stage, messages)
 
+        # debug 日志
+        if _cfg and _cfg.debug:
+            _debug_log_request(request_id, stage, enhanced_messages, guided_json, upstream_tool_enum)
+
         # 4. 调后端 vLLM（约束解码）
         raw_output = _backend.complete_json(enhanced_messages, guided_json=guided_json)
+
+        # debug 日志
+        if _cfg and _cfg.debug:
+            _debug_log_response(request_id, stage, raw_output)
 
         # 5. 后处理（compile / EB / 自修复）—— 默认开启
         if os.environ.get("ENHANCED_POSTPROCESS", "1").lower() in ("0", "false", "no"):
             final_output = raw_output
         else:
-            final_output = _postprocess(stage, raw_output, enhanced_messages, guided_json)
+            final_output = _postprocess(stage, raw_output, enhanced_messages, guided_json,
+                                         upstream_tool_enum=upstream_tool_enum)
 
-        # 5. 返回标准 chat/completions 响应
+        # debug: 后处理前后对比
+        if _cfg and _cfg.debug and final_output != raw_output:
+            logger.debug(f"[{request_id}] postprocess: {json.dumps(raw_output, ensure_ascii=False)[:200]} → {json.dumps(final_output, ensure_ascii=False)[:200]}")
+
+        # 6. 返回标准 chat/completions 响应
         elapsed = time.time() - start_time
         logger.info(f"[{request_id}] stage={stage} ({elapsed:.2f}s)")
 
@@ -498,7 +611,10 @@ async def on_startup():
             backend_timeout=float(os.environ.get("ENHANCED_BACKEND_TIMEOUT", "60")),
             backend_request_format=os.environ.get("ENHANCED_REQUEST_FORMAT", "structured_outputs"),
             max_repairs=int(os.environ.get("ENHANCED_MAX_REPAIRS", "2")),
+            debug=os.environ.get("ENHANCED_DEBUG", "").lower() in ("1", "true", "yes"),
         )
+    if _cfg.debug:
+        logging.getLogger("enhanced_vllm").setLevel(logging.DEBUG)
     _http_client = httpx.AsyncClient()
     model = os.environ.get("VLLM_MODEL", "qwen-30b-moe")
     _backend = VLLMClient(VLLMConfig(
@@ -508,7 +624,7 @@ async def on_startup():
         timeout=_cfg.backend_timeout,
         request_format=_cfg.backend_request_format,
     ))
-    logger.info(f"Enhanced vLLM ready → backend: {_cfg.backend_base_url}, model: {model}")
+    logger.info(f"Enhanced vLLM ready → backend: {_cfg.backend_base_url}, model: {model}, debug: {_cfg.debug}")
 
 
 @app.on_event("shutdown")
@@ -534,6 +650,7 @@ def main():
                         choices=["structured_outputs", "guided"])
     parser.add_argument("--workers", type=int, default=1)
     parser.add_argument("--reload", action="store_true")
+    parser.add_argument("--debug", action="store_true", help="打印详细的请求/响应日志")
     args = parser.parse_args()
 
     backend_url = args.backend or os.environ.get("VLLM_BASE_URL", "http://localhost:8000/v1")
@@ -543,8 +660,12 @@ def main():
     os.environ["ENHANCED_BACKEND_TIMEOUT"] = str(args.backend_timeout)
     os.environ["ENHANCED_REQUEST_FORMAT"] = args.request_format
     os.environ["ENHANCED_MAX_REPAIRS"] = str(args.max_repairs)
+    os.environ["ENHANCED_DEBUG"] = "1" if args.debug else ""
 
-    logger.info(f"Enhanced vLLM: {args.host}:{args.port} → {backend_url}")
+    if args.debug:
+        logging.getLogger("enhanced_vllm").setLevel(logging.DEBUG)
+
+    logger.info(f"Enhanced vLLM: {args.host}:{args.port} → {backend_url} (debug={args.debug})")
     uvicorn.run("server:app", host=args.host, port=args.port,
                 reload=args.reload, workers=args.workers if not args.reload else 1,
                 log_level="info")

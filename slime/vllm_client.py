@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass
 from typing import Any, Optional
 
@@ -47,7 +48,7 @@ class VLLMClient:
         if self.debug:
             print(f"\n{'─'*60}")
             print(f"  [REQUEST] POST {self.config.base_url}/chat/completions")
-            print(f"  messages ({len(messages)} 轮):")
+            print(f"  messages ({len(messages)} 条):")
             for i, m in enumerate(messages):
                 content = m.get("content", "")
                 preview = content[:200].replace("\n", "\\n") + ("..." if len(content) > 200 else "")
@@ -55,6 +56,7 @@ class VLLMClient:
             if guided_json:
                 print(f"  guided_json: {json.dumps(guided_json, ensure_ascii=False)[:300]}")
 
+        t0 = time.time()
         resp = requests.post(
             f"{self.config.base_url}/chat/completions",
             headers={
@@ -65,11 +67,12 @@ class VLLMClient:
             timeout=self.config.timeout,
         )
         resp.raise_for_status()
+        elapsed = time.time() - t0
         data = resp.json()
         content = data["choices"][0]["message"]["content"]
 
         if self.debug:
-            print(f"  [RESPONSE] {content}")
+            print(f"  [RESPONSE] ({elapsed:.3f}s) {content}")
             print(f"{'─'*60}")
 
         return _parse_json(content)
@@ -98,6 +101,7 @@ class VLLMClient:
                 preview = content[:200].replace("\n", "\\n") + ("..." if len(content) > 200 else "")
                 print(f"    [{i}] {m['role']}: {preview}")
 
+        t0 = time.time()
         resp = requests.post(
             f"{self.config.base_url}/chat/completions",
             headers={
@@ -108,11 +112,12 @@ class VLLMClient:
             timeout=self.config.timeout,
         )
         resp.raise_for_status()
+        elapsed = time.time() - t0
         data = resp.json()
         content = data["choices"][0]["message"]["content"]
 
         if self.debug:
-            print(f"  [RESPONSE] {content}")
+            print(f"  [RESPONSE] ({elapsed:.3f}s) {content}")
             print(f"{'─'*60}")
 
         return content

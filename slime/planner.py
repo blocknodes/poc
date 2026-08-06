@@ -100,10 +100,26 @@ class Planner:
             )
 
         # ---- 3. 解析结果 ----
-        tool_name = result.get("tool_name", tool)
-        parameters = result.get("parameters", result)
-        if "tool_name" not in result:
-            tool_name = tool
+        # device 填槽阶段模型可能输出 tool_name/tool 字段，但路由阶段的 tool
+        # 已经被 guided_json enum 约束过，以路由结果为准。
+        if domain == "device":
+            # 从 result 取参数（可能嵌套在 parameters 下或平铺）
+            if "parameters" in result:
+                parameters = result["parameters"]
+            else:
+                parameters = {k: v for k, v in result.items()
+                              if k not in ("tool", "tool_name")}
+            tool_name = tool  # 路由阶段已约束
+        else:
+            tool_name = result.get("tool_name", tool)
+            parameters = result.get("parameters", result)
+            if "tool_name" not in result:
+                tool_name = tool
+
+        # ---- 4. 最终校验：tool_name 必须在 available_tools 内 ----
+        if available_tools and tool_name not in available_tools:
+            # 路由阶段的 tool 是被 enum 约束的，强制回退
+            tool_name = tool if tool in available_tools else available_tools[0]
 
         return PlanResult(
             tool_name=tool_name,
